@@ -1,0 +1,350 @@
+const mysql = require('mysql2/promise');
+const dotenv = require('dotenv');
+const bcrypt = require('bcrypt');
+dotenv.config();
+const pool = mysql.createPool({
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT || 3306,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    ssl: process.env.DB_SSL === 'true' ? {
+        minVersion: 'TLSv1.2',
+        rejectUnauthorized: true
+    } : undefined,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+});
+
+async function initDB() {
+    const connection = await mysql.createConnection({
+        host: process.env.DB_HOST,
+        port: process.env.DB_PORT || 3306,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        ssl: process.env.DB_SSL === 'true' ? {
+            minVersion: 'TLSv1.2',
+            rejectUnauthorized: true
+        } : undefined
+    });
+    await connection.query(`CREATE DATABASE IF NOT EXISTS \`${process.env.DB_NAME}\`;`);
+    await connection.end();
+
+    const usersTable = `
+        CREATE TABLE IF NOT EXISTS users (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            email VARCHAR(255) UNIQUE NOT NULL,
+            password VARCHAR(255) NOT NULL,
+            phone VARCHAR(20),
+            role ENUM('admin', 'manager', 'employee') DEFAULT 'employee',
+            status VARCHAR(20) DEFAULT 'Active'
+        );
+    `;
+    const customersTable = `
+        CREATE TABLE IF NOT EXISTS customers (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            customer_id VARCHAR(50) UNIQUE NOT NULL,
+            name VARCHAR(255) NOT NULL,
+            phone VARCHAR(20) NOT NULL,
+            district VARCHAR(100),
+            taluk VARCHAR(100),
+            car_brand VARCHAR(100),
+            car_model VARCHAR(100),
+            registration_number VARCHAR(50),
+            source VARCHAR(100),
+            notes TEXT,
+            status ENUM('Pending', 'Interested', 'Not Interested', 'Busy', 'Call Later', 'Switched Off', 'Wrong Number', 'No Answer', 'Follow-up Required', 'Converted') DEFAULT 'Pending',
+            assigned_to INT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (assigned_to) REFERENCES users(id)
+        );
+    `;
+    
+    await pool.query(usersTable);
+    await pool.query(customersTable);
+
+    // ── Attendance tables ──────────────────────────────────────────────────
+    const attendanceTable = `
+        CREATE TABLE IF NOT EXISTS attendance (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            date DATE NOT NULL,
+            check_in DATETIME DEFAULT NULL,
+            check_out DATETIME DEFAULT NULL,
+            status VARCHAR(50) DEFAULT 'Present',
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+    `;
+    const passesTable = `
+        CREATE TABLE IF NOT EXISTS attendance_passes (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            attendance_id INT NOT NULL,
+            reason TEXT NOT NULL,
+            status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
+            request_time DATETIME NOT NULL,
+            pass_start DATETIME DEFAULT NULL,
+            pass_end DATETIME DEFAULT NULL,
+            FOREIGN KEY (attendance_id) REFERENCES attendance(id) ON DELETE CASCADE
+        );
+    `;
+    await pool.query(attendanceTable);
+    await pool.query(passesTable);
+
+    // ── Projects & Tasks tables ────────────────────────────────────────────
+    const projectsTable = `
+        CREATE TABLE IF NOT EXISTS projects (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            category VARCHAR(100),
+            tags VARCHAR(255),
+            client VARCHAR(255),
+            status VARCHAR(50) DEFAULT 'Pending',
+            priority VARCHAR(50) DEFAULT 'Medium',
+            progress INT DEFAULT 0,
+            start_date DATE,
+            end_date DATE,
+            description TEXT,
+            assigned_to VARCHAR(100),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    `;
+    const tasksTable = `
+        CREATE TABLE IF NOT EXISTS tasks (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(255) NOT NULL,
+            description TEXT,
+            project_id INT DEFAULT NULL,
+            assigned_to INT DEFAULT NULL,
+            status VARCHAR(50) DEFAULT 'To Do',
+            priority VARCHAR(50) DEFAULT 'Medium',
+            due_date DATE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL,
+            FOREIGN KEY (assigned_to) REFERENCES users(id) ON DELETE SET NULL
+        );
+    `;
+    const notesTable = `
+        CREATE TABLE IF NOT EXISTS user_notes (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            title VARCHAR(255) NOT NULL,
+            content TEXT,
+            color VARCHAR(20) DEFAULT 'yellow',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+    `;
+    
+    await pool.query(projectsTable);
+    await pool.query(tasksTable);
+    await pool.query(notesTable);
+
+    // ── Phase 2: Finance & Operations tables ──────────────────────────────
+    const accountingTable = `
+        CREATE TABLE IF NOT EXISTS accounting (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            type ENUM('Income', 'Expense') NOT NULL,
+            amount DECIMAL(10,2) NOT NULL,
+            reason VARCHAR(255) NOT NULL,
+            date DATE NOT NULL,
+            assigned_to VARCHAR(100),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    `;
+    const invoicesTable = `
+        CREATE TABLE IF NOT EXISTS invoices (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            invoice_no VARCHAR(100) UNIQUE NOT NULL,
+            client_id INT NOT NULL,
+            items JSON NOT NULL,
+            total_amount DECIMAL(12,2) NOT NULL,
+            paid_amount DECIMAL(12,2) DEFAULT 0.00,
+            payment_method VARCHAR(50),
+            notes TEXT,
+            date DATE NOT NULL,
+            status ENUM('Unpaid', 'Partially Paid', 'Paid') DEFAULT 'Unpaid',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (client_id) REFERENCES customers(id) ON DELETE RESTRICT
+        );
+    `;
+    const quotationsTable = `
+        CREATE TABLE IF NOT EXISTS quotations (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            quote_no VARCHAR(100) UNIQUE NOT NULL,
+            client_id INT NOT NULL,
+            items JSON NOT NULL,
+            total_amount DECIMAL(12,2) NOT NULL,
+            validity DATE,
+            notes TEXT,
+            date DATE NOT NULL,
+            status ENUM('Draft', 'Sent', 'Accepted', 'Rejected') DEFAULT 'Draft',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (client_id) REFERENCES customers(id) ON DELETE RESTRICT
+        );
+    `;
+
+    await pool.query(accountingTable);
+    await pool.query(invoicesTable);
+    await pool.query(quotationsTable);
+
+    // ── Phase 3: Operations & Communication ────────────────────────────────
+    const internalMailTable = `
+        CREATE TABLE IF NOT EXISTS internal_mail (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            sender_id INT NOT NULL,
+            receiver_id INT NOT NULL,
+            subject VARCHAR(255) NOT NULL,
+            body TEXT,
+            status ENUM('Unread', 'Read') DEFAULT 'Unread',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+    `;
+    const leavesTable = `
+        CREATE TABLE IF NOT EXISTS leaves (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            type VARCHAR(100) NOT NULL,
+            start_date DATE NOT NULL,
+            end_date DATE NOT NULL,
+            reason TEXT,
+            status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+    `;
+    const meetingsTable = `
+        CREATE TABLE IF NOT EXISTS meetings (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(255) NOT NULL,
+            description TEXT,
+            date DATE NOT NULL,
+            time VARCHAR(50),
+            link VARCHAR(255),
+            assigned_to INT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (assigned_to) REFERENCES users(id) ON DELETE SET NULL
+        );
+    `;
+    const filesTable = `
+        CREATE TABLE IF NOT EXISTS files (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            type VARCHAR(50) NOT NULL,
+            size VARCHAR(50) NOT NULL,
+            url VARCHAR(255) NOT NULL,
+            uploaded_by INT,
+            folder VARCHAR(100) DEFAULT 'General',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE SET NULL
+        );
+    `;
+    const chatTable = `
+        CREATE TABLE IF NOT EXISTS chat_messages (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            channel VARCHAR(100) NOT NULL,
+            user_id INT NOT NULL,
+            message TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+    `;
+
+    await pool.query(internalMailTable);
+    await pool.query(leavesTable);
+    await pool.query(meetingsTable);
+    await pool.query(filesTable);
+    await pool.query(chatTable);
+
+    // ── Phase 4: Support & Reports ────────────────────────────────────────
+    const supportTicketsTable = `
+        CREATE TABLE IF NOT EXISTS support_tickets (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            ticket_id VARCHAR(50) UNIQUE NOT NULL,
+            subject VARCHAR(255) NOT NULL,
+            client_id INT,
+            status ENUM('Open', 'In Progress', 'Resolved') DEFAULT 'Open',
+            priority ENUM('Low', 'Medium', 'High') DEFAULT 'Low',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (client_id) REFERENCES customers(id) ON DELETE SET NULL
+        );
+    `;
+    const supportTicketMessagesTable = `
+        CREATE TABLE IF NOT EXISTS support_ticket_messages (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            ticket_id INT NOT NULL,
+            sender_name VARCHAR(100) NOT NULL,
+            message TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (ticket_id) REFERENCES support_tickets(id) ON DELETE CASCADE
+        );
+    `;
+    const clientReportsTable = `
+        CREATE TABLE IF NOT EXISTS client_reports (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            client_id INT NOT NULL,
+            title VARCHAR(255) NOT NULL,
+            category VARCHAR(100) NOT NULL,
+            file_url VARCHAR(255),
+            notes TEXT,
+            status VARCHAR(50) DEFAULT 'Delivered',
+            date DATE NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (client_id) REFERENCES customers(id) ON DELETE CASCADE
+        );
+    `;
+
+    await pool.query(supportTicketsTable);
+    await pool.query(supportTicketMessagesTable);
+    await pool.query(clientReportsTable);
+
+
+    // ── SMTP settings table ────────────────────────────────────────────────
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS smtp_settings (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            mail_host       VARCHAR(255) NOT NULL DEFAULT 'smtp.gmail.com',
+            mail_port       INT          NOT NULL DEFAULT 587,
+            mail_secure     TINYINT(1)   NOT NULL DEFAULT 0,
+            mail_user       VARCHAR(255) NOT NULL DEFAULT '',
+            mail_pass       VARCHAR(500) NOT NULL DEFAULT '',
+            mail_from_name  VARCHAR(255) NOT NULL DEFAULT 'AruvixLabs CRM',
+            mail_from_email VARCHAR(255) NOT NULL DEFAULT '',
+            updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        );
+    `);
+    // Seed defaults from .env if table is empty
+    const [smtpRows] = await pool.query('SELECT id FROM smtp_settings LIMIT 1');
+    if (smtpRows.length === 0) {
+        await pool.query(
+            'INSERT INTO smtp_settings (mail_host, mail_port, mail_secure, mail_user, mail_pass, mail_from_name, mail_from_email) VALUES (?,?,?,?,?,?,?)',
+            [
+                process.env.MAIL_HOST       || 'smtp.gmail.com',
+                parseInt(process.env.MAIL_PORT || '587'),
+                process.env.MAIL_SECURE === 'true' ? 1 : 0,
+                process.env.MAIL_USER       || '',
+                process.env.MAIL_PASS       || '',
+                process.env.MAIL_FROM_NAME  || 'AruvixLabs CRM',
+                process.env.MAIL_FROM_EMAIL || process.env.MAIL_USER || '',
+            ]
+        );
+    }
+
+    // Create default admin user
+    const adminEmail = 'admin@aruvixcrm.com';
+    const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [adminEmail]);
+    if (rows.length === 0) {
+        const hashedPassword = await bcrypt.hash('aruvix@123', 10);
+        await pool.query('INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)', ['Admin', adminEmail, hashedPassword, 'admin']);
+        console.log("Default admin user created");
+    }
+
+    console.log("Database initialized");
+}
+
+module.exports = { pool, initDB };
