@@ -56,9 +56,40 @@ app.get('/api/customers', authenticate, async (req, res) => {
 });
 
 app.put('/api/customers/:id', authenticate, async (req, res) => {
-    const { status, notes } = req.body;
+    const { status, notes, name, phone, district, source } = req.body;
     try {
-        await pool.query('UPDATE customers SET status = ?, notes = ? WHERE id = ?', [status, notes, req.params.id]);
+        if (name) {
+            // Full update
+            await pool.query(
+                'UPDATE customers SET name=?, phone=?, district=?, source=?, notes=?, status=? WHERE id=?', 
+                [name, phone, district, source, notes, status, req.params.id]
+            );
+        } else {
+            // Partial update (just status/notes)
+            await pool.query('UPDATE customers SET status = ?, notes = ? WHERE id = ?', [status, notes, req.params.id]);
+        }
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.delete('/api/customers/:id', authenticate, async (req, res) => {
+    try {
+        await pool.query('DELETE FROM customers WHERE id = ?', [req.params.id]);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/customers/bulk-delete', authenticate, async (req, res) => {
+    const { ids } = req.body;
+    try {
+        if (!ids || ids.length === 0) return res.json({ success: true });
+        // Create placeholders ?,?,?
+        const placeholders = ids.map(() => '?').join(',');
+        await pool.query(`DELETE FROM customers WHERE id IN (${placeholders})`, ids);
         res.json({ success: true });
     } catch (error) {
         res.status(500).json({ error: error.message });

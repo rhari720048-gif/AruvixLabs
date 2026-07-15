@@ -26,31 +26,49 @@ const AddLeads = ({ addLeads }) => {
       const result = await Tesseract.recognize(file, 'eng');
       const text = result.data.text;
       
-      const phoneRegex = /(?:\+?91[\-\s]?)?[789]\d{9}/g;
-      const phones = text.match(phoneRegex) || [];
       const lines = text.split('\n').filter(line => line.trim().length > 0);
+      const phoneRegex = /[6789]\d{9}/; // 10 digit Indian number
       
-      let name = 'Unknown';
-      let location = 'Unknown';
-      
-      if (lines.length > 0) name = lines[0].trim();
-      if (lines.length > 2) location = lines[2].trim();
+      const extractedLeads = [];
+      let idCounter = Date.now();
 
-      const phone = phones.length > 0 ? phones[0] : 'Not Found';
+      lines.forEach(line => {
+        const match = line.match(phoneRegex);
+        if (match) {
+          const phone = match[0];
+          // Split the line around the phone number
+          const parts = line.split(phone);
+          let name = parts[0] ? parts[0].trim().replace(/[^a-zA-Z\s]/g, '') : 'Unknown';
+          let rest = parts[1] ? parts[1].trim() : '';
+          
+          if (!name) name = 'Unknown';
+          
+          // Try to extract location and requirements from the rest of the text
+          const restParts = rest.split(/\s{2,}/); // split by multiple spaces if tabular
+          let location = restParts[0] || 'Unknown';
+          let requirements = restParts[1] || 'N/A';
+          let assignedTo = restParts[2] || 'Unassigned';
 
-      const newLead = { 
-        id: Date.now(), 
-        name, 
-        phone, 
-        location, 
-        requirements: 'N/A',
-        assignedTo: 'Unassigned',
-        feedback: 'None',
-        source: 'OCR', 
-        status: 'Pending' 
-      };
-      addLeads([newLead]);
-      showSuccess('Photo uploaded successfully! Lead extracted.');
+          extractedLeads.push({
+            id: idCounter++,
+            name: name.substring(0, 50),
+            phone,
+            location: location.substring(0, 50),
+            requirements: requirements.substring(0, 100),
+            assignedTo: assignedTo.substring(0, 50),
+            feedback: 'None',
+            source: 'OCR Image',
+            status: 'Pending'
+          });
+        }
+      });
+
+      if (extractedLeads.length > 0) {
+        addLeads(extractedLeads);
+        showSuccess(`Photo uploaded successfully! ${extractedLeads.length} lead(s) extracted.`);
+      } else {
+        alert("No valid phone numbers found in the image. Please try again or use manual entry.");
+      }
     } catch (error) {
       console.error("OCR Error:", error);
       alert("Error extracting text from image.");

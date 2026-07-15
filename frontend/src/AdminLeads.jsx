@@ -97,6 +97,68 @@ const AdminLeads = () => {
     }
   };
 
+  const handleDelete = async (id) => {
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`${API}/customers/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        fetchLeads();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleBulkDelete = async (ids) => {
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`${API}/customers/bulk-delete`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}` 
+        },
+        body: JSON.stringify({ ids })
+      });
+      if (res.ok) {
+        fetchLeads();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleEdit = async (id, updatedLead) => {
+    const token = localStorage.getItem('token');
+    try {
+      const payload = {
+        name: updatedLead.name,
+        phone: updatedLead.phone,
+        district: updatedLead.location,
+        notes: (updatedLead.requirements || 'N/A') + ' | ' + (updatedLead.feedback || 'None') + ' | ' + (updatedLead.assignedTo || 'Unassigned'),
+        source: updatedLead.source || 'Manual',
+        status: updatedLead.status
+      };
+      
+      const res = await fetch(`${API}/customers/${id}`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}` 
+        },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        fetchLeads();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   return (
     <div className="admin-leads-page">
       <div style={{ display: 'flex', gap: '15px', borderBottom: '2px solid #e5e7eb', paddingBottom: '10px', marginBottom: '25px' }}>
@@ -144,7 +206,13 @@ const AdminLeads = () => {
         {activePage === 'add' ? (
           <AddLeads addLeads={addLeads} />
         ) : (
-          <AllLeads leads={leads} handleConvert={handleConvert} />
+          <AllLeads 
+            leads={leads} 
+            handleConvert={handleConvert} 
+            handleDelete={handleDelete}
+            handleBulkDelete={handleBulkDelete}
+            handleEdit={handleEdit}
+          />
         )}
       </div>
     </div>
