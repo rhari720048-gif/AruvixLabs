@@ -31,6 +31,13 @@ async function initDB() {
     await connection.query(`CREATE DATABASE IF NOT EXISTS \`${process.env.DB_NAME}\`;`);
     await connection.end();
 
+    const rolesTable = `
+        CREATE TABLE IF NOT EXISTS roles (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) UNIQUE NOT NULL,
+            permissions JSON NOT NULL
+        );
+    `;
     const usersTable = `
         CREATE TABLE IF NOT EXISTS users (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -39,7 +46,9 @@ async function initDB() {
             password VARCHAR(255) NOT NULL,
             phone VARCHAR(20),
             role ENUM('admin', 'manager', 'employee') DEFAULT 'employee',
-            status VARCHAR(20) DEFAULT 'Active'
+            role_id INT,
+            status VARCHAR(20) DEFAULT 'Active',
+            FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE SET NULL
         );
     `;
     const customersTable = `
@@ -62,8 +71,67 @@ async function initDB() {
         );
     `;
     
-    await pool.query(usersTable);
-    await pool.query(customersTable);
+    try {
+        await pool.query(rolesTable);
+        await pool.query(usersTable);
+        // Try to add role_id column if it doesn't exist (for existing DBs)
+        try {
+            await pool.query("ALTER TABLE users ADD COLUMN role_id INT");
+            await pool.query("ALTER TABLE users ADD FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE SET NULL");
+        } catch (e) {
+            // Column might already exist, ignore error
+        }
+
+        // Seed default roles if roles table is empty
+        const [rolesCount] = await pool.query('SELECT COUNT(*) as count FROM roles');
+        if (rolesCount[0].count === 0) {
+            const allPermissions = {
+                dashboard: { view: true },
+                profile: { view: true },
+                mail: { view: true },
+                projects: { view: true, create: true, edit: true, delete: true },
+                tasks: { view: true, create: true, edit: true, delete: true },
+                files: { view: true, create: true, edit: true, delete: true },
+                calendar: { view: true, create: true, edit: true, delete: true },
+                meetings: { view: true, create: true, edit: true, delete: true },
+                accounting: { view: true, create: true, edit: true, delete: true },
+                invoices: { view: true, create: true, edit: true, delete: true },
+                quotes: { view: true, create: true, edit: true, delete: true },
+                leads: { view: true, create: true, edit: true, delete: true },
+                clients: { view: true, create: true, edit: true, delete: true },
+                staff_attendance: { view: true, create: true, edit: true, delete: true },
+                my_attendance: { view: true, create: true, edit: true, delete: true },
+                user_notes: { view: true, create: true, edit: true, delete: true },
+                user_management: { view: true, create: true, edit: true, delete: true },
+                leaves: { view: true, create: true, edit: true, delete: true },
+                client_reports: { view: true, create: true, edit: true, delete: true },
+                team_chat: { view: true, create: true, edit: true, delete: true },
+                support: { view: true, create: true, edit: true, delete: true },
+                settings: { view: true, create: true, edit: true, delete: true }
+            };
+            
+            const employeePermissions = {
+                dashboard: { view: true },
+                profile: { view: true },
+                my_attendance: { view: true, create: true },
+                tasks: { view: true, edit: true },
+                team_chat: { view: true, create: true }
+            };
+
+            await pool.query('INSERT INTO roles (name, permissions) VALUES (?, ?)', ['Admin', JSON.stringify(allPermissions)]);
+            await pool.query('INSERT INTO roles (name, permissions) VALUES (?, ?)', ['Employee', JSON.stringify(employeePermissions)]);
+        }
+
+        // Migrate existing users to have role_id based on their old 'role' enum
+        try {
+            await pool.query(`UPDATE users SET role_id = (SELECT id FROM roles WHERE name = 'Admin') WHERE role = 'admin' AND role_id IS NULL`);
+            await pool.query(`UPDATE users SET role_id = (SELECT id FROM roles WHERE name = 'Admin') WHERE role = 'manager' AND role_id IS NULL`);
+            await pool.query(`UPDATE users SET role_id = (SELECT id FROM roles WHERE name = 'Employee') WHERE role = 'employee' AND role_id IS NULL`);
+        } catch (e) {
+            console.log("Migration skipped or failed:", e.message);
+        }
+
+        await pool.query(customersTable);
 
     // ── Attendance tables ──────────────────────────────────────────────────
     const attendanceTable = `
@@ -336,11 +404,16 @@ async function initDB() {
     }
 
     // Create default admin user
-    const adminEmail = 'admin@aruvixcrm.com';
+    const adminEmail = 'admin@aruvixlabs.com';
     const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [adminEmail]);
     if (rows.length === 0) {
-        const hashedPassword = await bcrypt.hash('aruvix@123', 10);
-        await pool.query('INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)', ['Admin', adminEmail, hashedPassword, 'admin']);
+        const hashedPassword = await bcrypt.hash('admin123', 10);
+        
+        // Try to get admin role ID
+        const [adminRole] = await pool.query("SELECT id FROM roles WHERE name = 'Admin'");
+        const adminRoleId = adminRole.length > 0 ? adminRole[0].id : null;
+        
+        await pool.query('INSERT INTO users (name, email, password, role, role_id) VALUES (?, ?, ?, ?, ?)', ['Admin', adminEmail, hashedPassword, 'admin', adminRoleId]);
         console.log("Default admin user created");
     }
 

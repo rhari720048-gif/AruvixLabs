@@ -8,9 +8,17 @@ import { useNavigate } from 'react-router-dom';
 const API = 'http://localhost:5000/api';
 
 const AdminLeads = () => {
-  const [activePage, setActivePage] = useState('add'); // 'add' or 'all'
+  const [activePage, setActivePage] = useState('all'); // 'add' or 'all'
   const [leads, setLeads] = useState([]);
   const navigate = useNavigate();
+  
+  let permissions = {};
+  try { permissions = JSON.parse(localStorage.getItem('permissions') || '{}'); } catch(e){}
+  const role = (localStorage.getItem('role') || 'employee').toLowerCase();
+  
+  const canCreate = role === 'admin' || (permissions.leads && permissions.leads.create);
+  const canDelete = role === 'admin' || (permissions.leads && permissions.leads.delete);
+  const canEdit = role === 'admin' || (permissions.leads && permissions.leads.edit);
 
   useEffect(() => {
     fetchLeads();
@@ -162,25 +170,27 @@ const AdminLeads = () => {
   return (
     <div className="admin-leads-page">
       <div style={{ display: 'flex', gap: '15px', borderBottom: '2px solid #e5e7eb', paddingBottom: '10px', marginBottom: '25px' }}>
-        <button 
-          onClick={() => setActivePage('add')}
-          style={{
-            padding: '12px 24px', 
-            background: activePage === 'add' ? 'var(--primary)' : 'transparent', 
-            color: activePage === 'add' ? 'white' : '#4b5563', 
-            border: 'none', 
-            borderRadius: '8px',
-            fontSize: '15px',
-            fontWeight: '600',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            transition: '0.2s'
-          }}
-        >
-          <UserPlus size={18} /> Add Leads
-        </button>
+        {canCreate && (
+          <button 
+            onClick={() => setActivePage('add')}
+            style={{
+              padding: '12px 24px', 
+              background: activePage === 'add' ? 'var(--primary)' : 'transparent', 
+              color: activePage === 'add' ? 'white' : '#4b5563', 
+              border: 'none', 
+              borderRadius: '8px',
+              fontSize: '15px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: '0.2s'
+            }}
+          >
+            <UserPlus size={18} /> Add Leads
+          </button>
+        )}
         <button 
           onClick={() => setActivePage('all')}
           style={{
@@ -203,15 +213,15 @@ const AdminLeads = () => {
       </div>
 
       <div className="page-content">
-        {activePage === 'add' ? (
+        {activePage === 'add' && canCreate ? (
           <AddLeads addLeads={addLeads} />
         ) : (
           <AllLeads 
             leads={leads} 
             handleConvert={handleConvert} 
-            handleDelete={handleDelete}
-            handleBulkDelete={handleBulkDelete}
-            handleEdit={handleEdit}
+            handleDelete={canDelete ? handleDelete : null}
+            handleBulkDelete={canDelete ? handleBulkDelete : null}
+            handleEdit={canEdit ? handleEdit : null}
           />
         )}
       </div>

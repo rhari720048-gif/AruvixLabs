@@ -29,18 +29,29 @@ const authenticate = (req, res, next) => {
     }
 };
 
-app.post('/api/login', async (req, res) => {
+// User Login
+app.post('/api/auth/login', async (req, res) => {
     const { email, password } = req.body;
     try {
-        const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+        const [rows] = await pool.query(`
+            SELECT u.*, r.name as role_name, r.permissions 
+            FROM users u 
+            LEFT JOIN roles r ON u.role_id = r.id 
+            WHERE u.email = ?
+        `, [email]);
         const user = rows[0];
-        if (!user) return res.status(400).json({ error: 'Invalid credentials' });
-        
-        const validPassword = await bcrypt.compare(password, user.password);
-        if (!validPassword) return res.status(400).json({ error: 'Invalid credentials' });
 
-        const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
-        res.json({ token, role: user.role, name: user.name });
+        if (!user || !(await bcrypt.compare(password, user.password))) {
+            return res.status(401).json({ error: 'Invalid email or password' });
+        }
+        
+        let permissions = {};
+        if (user.permissions) {
+            try { permissions = typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions; } catch(e){}
+        }
+
+        const token = jwt.sign({ id: user.id, role: user.role_name || user.role, role_id: user.role_id, permissions }, process.env.JWT_SECRET, { expiresIn: '8h' });
+        res.json({ token, user: { id: user.id, name: user.name, role: user.role_name || user.role, permissions } });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -114,56 +125,49 @@ app.post('/api/customers', authenticate, async (req, res) => {
 // GET all users
 app.get('/api/users', authenticate, async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT id, name, email, phone, role, status, created_at FROM users ORDER BY id ASC');
-        res.json(rows);
+        const [rows] = await pool.query(`
+            SELECT u.id, u.name, u.email, u.phone, u.status, u.created_at, u.role_id, r.name as role_name 
+            FROM users u
+            LEFT JOIN roles r ON u.role_id = r.id
+            ORDER BY u.id ASC
+        `);
+        // Provide backwards compatibility for 'role'
+        const users = rows.map(u => ({ ...u, role: u.role_name || 'employee' }));
+        res.json(users);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// POST create user
+ // Add new user
 app.post('/api/users', authenticate, async (req, res) => {
-    const { name, email, phone, role, password, status } = req.body;
-    if (!name || !email || !password) return res.status(400).json({ error: 'Name, email and password are required' });
+    const { name, email, phone, role_id, password, status } = req.body;
     try {
         const [existing] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
         if (existing.length > 0) return res.status(400).json({ error: 'Email already exists' });
 
-        const plainPassword = password; // save before hashing — needed for welcome email
         const hashedPassword = await bcrypt.hash(password, 10);
-
-        const [result] = await pool.query(
-            'INSERT INTO users (name, email, phone, role, password, status) VALUES (?, ?, ?, ?, ?, ?)',
-            [name, email, phone || null, role || 'employee', hashedPassword, status || 'Active']
+        await pool.query(
+            'INSERT INTO users (name, email, phone, role_id, password, status) VALUES (?, ?, ?, ?, ?, ?)',
+            [name, email, phone, role_id, hashedPassword, status]
         );
-
-        // ── Auto-send welcome email ───────────────────────────────────────
-        let mailStatus = 'sent';
-        try {
-            await sendWelcomeEmail({ name, email, role: role || 'employee', password: plainPassword });
-        } catch (mailErr) {
-            console.warn('Welcome mail failed (user still created):', mailErr.message);
-            mailStatus = 'failed: ' + mailErr.message;
-        }
-
-        res.json({ success: true, id: result.insertId, mailStatus });
+        res.json({ success: true });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-
-// PUT update user
+// Edit User
 app.put('/api/users/:id', authenticate, async (req, res) => {
-    const { name, email, phone, role, password, status } = req.body;
+    const { name, email, phone, role_id, password, status } = req.body;
     try {
-        if (password) {
+        if (password && password.trim() !== '') {
             const hashedPassword = await bcrypt.hash(password, 10);
-            await pool.query('UPDATE users SET name=?, email=?, phone=?, role=?, password=?, status=? WHERE id=?',
-                [name, email, phone || null, role, hashedPassword, status || 'Active', req.params.id]);
+            await pool.query('UPDATE users SET name=?, email=?, phone=?, role_id=?, password=?, status=? WHERE id=?',
+                [name, email, phone, role_id, hashedPassword, status, req.params.id]);
         } else {
-            await pool.query('UPDATE users SET name=?, email=?, phone=?, role=?, status=? WHERE id=?',
-                [name, email, phone || null, role, status || 'Active', req.params.id]);
+            await pool.query('UPDATE users SET name=?, email=?, phone=?, role_id=?, status=? WHERE id=?',
+                [name, email, phone, role_id, status, req.params.id]);
         }
         res.json({ success: true });
     } catch (error) {
@@ -253,6 +257,68 @@ app.post('/api/config/email', authenticate, async (req, res) => {
             );
         }
         res.json({ success: true, message: 'SMTP settings saved to database!' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/auth/verify', authenticate, async (req, res) => {
+    try {
+        const [rows] = await pool.query(`
+            SELECT u.id, u.name, u.email, r.name as role_name, r.permissions 
+            FROM users u 
+            LEFT JOIN roles r ON u.role_id = r.id 
+            WHERE u.id = ?
+        `, [req.user.id]);
+        
+        if (rows.length === 0) return res.status(404).json({ error: 'User not found' });
+        
+        const user = rows[0];
+        let permissions = {};
+        if (user.permissions) {
+            try { permissions = typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions; } catch(e){}
+        }
+        
+        res.json({ valid: true, user: { id: user.id, name: user.name, role: user.role_name, permissions } });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ROLES Endpoints
+app.get('/api/roles', authenticate, async (req, res) => {
+    try {
+        const [rows] = await pool.query('SELECT * FROM roles');
+        res.json(rows.map(r => ({...r, permissions: typeof r.permissions === 'string' ? JSON.parse(r.permissions) : r.permissions})));
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/roles', authenticate, async (req, res) => {
+    const { name, permissions } = req.body;
+    try {
+        const result = await pool.query('INSERT INTO roles (name, permissions) VALUES (?, ?)', [name, JSON.stringify(permissions)]);
+        res.json({ success: true, id: result[0].insertId });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.put('/api/roles/:id', authenticate, async (req, res) => {
+    const { name, permissions } = req.body;
+    try {
+        await pool.query('UPDATE roles SET name=?, permissions=? WHERE id=?', [name, JSON.stringify(permissions), req.params.id]);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.delete('/api/roles/:id', authenticate, async (req, res) => {
+    try {
+        await pool.query('DELETE FROM roles WHERE id=?', [req.params.id]);
+        res.json({ success: true });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

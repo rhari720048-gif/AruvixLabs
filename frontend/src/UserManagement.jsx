@@ -7,14 +7,14 @@ import {
 const API = 'http://localhost:5000/api';
 const token = () => localStorage.getItem('token');
 
-const ROLES = ['admin', 'employee', 'manager'];
+const ROLES = ['admin', 'employee', 'manager']; // Fallback
 const ROLE_COLORS = {
   admin:    { bg: '#ede9fe', color: '#6d28d9' },
   manager:  { bg: '#dbeafe', color: '#1d4ed8' },
   employee: { bg: '#d1fae5', color: '#065f46' },
 };
 
-const defaultForm = { name: '', email: '', phone: '', role: 'employee', password: '', status: 'Active' };
+const defaultForm = { name: '', email: '', phone: '', role_id: '', password: '', status: 'Active' };
 
 export default function UserManagement() {
   const [users, setUsers]         = useState([]);
@@ -28,31 +28,27 @@ export default function UserManagement() {
   const [saving, setSaving]       = useState(false);
   const [toast, setToast]         = useState('');
   const [deleteId, setDeleteId]   = useState(null);
+  const [dbRoles, setDbRoles]     = useState([]);
 
   // ── helpers ──────────────────────────────────────────────────────────
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
 
-  const fetchUsers = async () => {
+  const fetchUsersAndRoles = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API}/users`, { headers: { Authorization: `Bearer ${token()}` } });
-      if (res.ok) {
-        const data = await res.json();
-        setUsers(data);
-      }
-    } catch {
-      // fallback mock data if backend not ready
-      setUsers([
-        { id: 1, name: 'Admin User',     email: 'admin@aruvixlabs.com', phone: '+91 9876543210', role: 'admin',    status: 'Active',   created_at: '2024-01-10' },
-        { id: 2, name: 'Sarah Jenkins',  email: 'sarah@aruvixlabs.com', phone: '+91 9123456780', role: 'manager',  status: 'Active',   created_at: '2024-02-14' },
-        { id: 3, name: 'Mike Ross',      email: 'mike@aruvixlabs.com',  phone: '+91 9988776655', role: 'employee', status: 'Active',   created_at: '2024-03-01' },
-        { id: 4, name: 'Priya Sharma',   email: 'priya@aruvixlabs.com', phone: '+91 8877665544', role: 'employee', status: 'Inactive', created_at: '2024-04-20' },
+      const [usersRes, rolesRes] = await Promise.all([
+        fetch(`${API}/users`, { headers: { Authorization: `Bearer ${token()}` } }),
+        fetch(`${API}/roles`, { headers: { Authorization: `Bearer ${token()}` } })
       ]);
+      if (usersRes.ok) setUsers(await usersRes.json());
+      if (rolesRes.ok) setDbRoles(await rolesRes.json());
+    } catch (e) {
+      console.error(e);
     }
     setLoading(false);
   };
 
-  useEffect(() => { fetchUsers(); }, []);
+  useEffect(() => { fetchUsersAndRoles(); }, []);
 
   // ── filtered list ─────────────────────────────────────────────────
   const filtered = users.filter(u => {
@@ -71,7 +67,7 @@ export default function UserManagement() {
   };
   const openEdit = (u) => {
     setEditUser(u);
-    setForm({ name: u.name, email: u.email, phone: u.phone || '', role: u.role, password: '', status: u.status || 'Active' });
+    setForm({ name: u.name, email: u.email, phone: u.phone || '', role_id: u.role_id || '', password: '', status: u.status || 'Active' });
     setShowPass(false);
     setShowModal(true);
   };
@@ -87,46 +83,32 @@ export default function UserManagement() {
         const res = await fetch(`${API}/users/${editUser.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-          body: JSON.stringify({ name: form.name, email: form.email, phone: form.phone, role: form.role, status: form.status, ...(form.password ? { password: form.password } : {}) }),
+          body: JSON.stringify({ name: form.name, email: form.email, phone: form.phone, role_id: form.role_id, status: form.status, ...(form.password ? { password: form.password } : {}) }),
         });
         if (res.ok) {
-          setUsers(users.map(u => u.id === editUser.id ? { ...u, ...form, password: undefined } : u));
+          fetchUsersAndRoles();
           showToast('User updated successfully!');
         } else {
-          // local update fallback
-          setUsers(users.map(u => u.id === editUser.id ? { ...u, name: form.name, email: form.email, phone: form.phone, role: form.role, status: form.status } : u));
-          showToast('User updated (local)!');
+          showToast('Failed to update user.');
         }
       } else {
         // POST /api/users
         const res = await fetch(`${API}/users`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-          body: JSON.stringify(form),
+          body: JSON.stringify({ name: form.name, email: form.email, phone: form.phone, role_id: form.role_id, password: form.password, status: form.status }),
         });
         if (res.ok) {
-          const data = await res.json();
-          await fetchUsers();
-          // Show mail status in toast
-          if (data.mailStatus === 'sent') {
-            showToast('✅ User created & Welcome email sent!');
-          } else {
-            showToast('⚠️ User created, but email failed. Check SMTP settings.');
-          }
+          fetchUsersAndRoles();
+          showToast('User added successfully!');
         } else {
-          // local add fallback
-          setUsers([...users, { id: Date.now(), ...form, created_at: new Date().toISOString().split('T')[0] }]);
-          showToast('User added (local — server offline)');
+          const err = await res.json();
+          alert(err.error || 'Failed to add user');
         }
       }
-    } catch {
-      // offline fallback
-      if (editUser) {
-        setUsers(users.map(u => u.id === editUser.id ? { ...u, name: form.name, email: form.email, phone: form.phone, role: form.role, status: form.status } : u));
-      } else {
-        setUsers([...users, { id: Date.now(), ...form, created_at: new Date().toISOString().split('T')[0] }]);
-      }
-      showToast(editUser ? 'User updated!' : 'User added!');
+    } catch (e) {
+      console.error(e);
+      showToast('Error saving user');
     }
     setSaving(false);
     closeModal();
@@ -135,13 +117,15 @@ export default function UserManagement() {
   // ── delete ────────────────────────────────────────────────────────
   const handleDelete = async (id) => {
     try {
-      await fetch(`${API}/users/${id}`, {
+      const res = await fetch(`${API}/users/${deleteId}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token()}` },
+        headers: { Authorization: `Bearer ${token()}` }
       });
+      if (res.ok) {
+        fetchUsersAndRoles();
+        showToast('User deleted successfully!');
+      }
     } catch {}
-    setUsers(users.filter(u => u.id !== id));
-    showToast('User deleted!');
     setDeleteId(null);
   };
 
@@ -218,11 +202,15 @@ export default function UserManagement() {
             style={{ ...inp, paddingLeft: 38, background: '#f9fafb' }}
           />
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          {['all', 'admin', 'manager', 'employee'].map(r => (
-            <button key={r} onClick={() => setRoleFilter(r)}
-              style={{ padding: '8px 16px', background: roleFilter === r ? '#6366f1' : '#f3f4f6', color: roleFilter === r ? 'white' : '#6b7280', border: 'none', borderRadius: 8, fontWeight: 600, fontSize: 13, cursor: 'pointer', textTransform: 'capitalize', transition: '0.2s' }}>
-              {r === 'all' ? 'All Roles' : r}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button onClick={() => setRoleFilter('all')}
+            style={{ padding: '8px 16px', background: roleFilter === 'all' ? '#6366f1' : '#f3f4f6', color: roleFilter === 'all' ? 'white' : '#6b7280', border: 'none', borderRadius: 8, fontWeight: 600, fontSize: 13, cursor: 'pointer', textTransform: 'capitalize', transition: '0.2s' }}>
+            All Roles
+          </button>
+          {dbRoles.map(r => (
+            <button key={r.id} onClick={() => setRoleFilter(r.name)}
+              style={{ padding: '8px 16px', background: roleFilter === r.name ? '#6366f1' : '#f3f4f6', color: roleFilter === r.name ? 'white' : '#6b7280', border: 'none', borderRadius: 8, fontWeight: 600, fontSize: 13, cursor: 'pointer', textTransform: 'capitalize', transition: '0.2s' }}>
+              {r.name}
             </button>
           ))}
         </div>
@@ -358,8 +346,9 @@ export default function UserManagement() {
 
                 <div>
                   <label style={lbl}>Role *</label>
-                  <select required value={form.role} onChange={e => setForm({ ...form, role: e.target.value })} style={inp}>
-                    {ROLES.map(r => <option key={r} value={r} style={{ textTransform: 'capitalize' }}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>)}
+                  <select required value={form.role_id} onChange={e => setForm({ ...form, role_id: e.target.value })} style={inp}>
+                    <option value="">Select Role</option>
+                    {dbRoles.map(r => <option key={r.id} value={r.id} style={{ textTransform: 'capitalize' }}>{r.name}</option>)}
                   </select>
                 </div>
 

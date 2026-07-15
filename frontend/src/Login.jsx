@@ -20,9 +20,11 @@ const Login = ({ setAuth }) => {
       const data = await response.json();
       if (response.ok) {
         localStorage.setItem('token', data.token);
-        localStorage.setItem('role', data.role);
+        localStorage.setItem('role', data.user.role || data.role);
+        localStorage.setItem('permissions', JSON.stringify(data.user.permissions || {}));
+        localStorage.setItem('user_name', data.user.name || data.name);
         setAuth(true);
-        navigate('/');
+        window.location.href = '/';
       } else {
         setError(data.error || 'Invalid credentials');
       }

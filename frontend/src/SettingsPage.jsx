@@ -5,12 +5,22 @@ const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState('company'); // 'company', 'invoice', 'permissions', 'mail'
   const [successMessage, setSuccessMessage] = useState('');
 
-  const [roles, setRoles] = useState([
-    { id: 1, name: 'Admin', permissions: { leads: true, clients: true, invoices: true, files: true, calendar: true, settings: true } },
-    { id: 2, name: 'Employee', permissions: { leads: true, clients: false, invoices: false, files: true, calendar: true, settings: false } }
-  ]);
+  const [roles, setRoles] = useState([]);
   const [newRoleName, setNewRoleName] = useState('');
-  const [newRolePermissions, setNewRolePermissions] = useState({ leads: false, clients: false, invoices: false, files: false, calendar: false, settings: false });
+  
+  const modules = ['dashboard', 'profile', 'mail', 'projects', 'tasks', 'files', 'calendar', 'meetings', 'accounting', 'invoices', 'quotes', 'leads', 'clients', 'staff_attendance', 'my_attendance', 'user_notes', 'user_management', 'leaves', 'client_reports', 'team_chat', 'support', 'settings'];
+  const defaultPerms = {};
+  modules.forEach(m => defaultPerms[m] = { view: false, create: false, edit: false, delete: false });
+  const [newRolePermissions, setNewRolePermissions] = useState(defaultPerms);
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/roles', {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    })
+    .then(res => res.json())
+    .then(data => setRoles(Array.isArray(data) ? data : []))
+    .catch(console.error);
+  }, []);
 
   const [companyForm, setCompanyForm] = useState({
     companyName: 'AruvixLabs',
@@ -41,19 +51,42 @@ const SettingsPage = () => {
     showSuccess('Invoice settings updated successfully!');
   };
 
-  const handleRoleSubmit = (e) => {
+  const handleRoleSubmit = async (e) => {
     e.preventDefault();
     if (!newRoleName) return;
-    setRoles([...roles, { id: Date.now(), name: newRoleName, permissions: newRolePermissions }]);
-    showSuccess('Role created successfully!');
-    setNewRoleName('');
-    setNewRolePermissions({ leads: false, clients: false, invoices: false, files: false, calendar: false, settings: false });
+    try {
+      const res = await fetch('http://localhost:5000/api/roles', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ name: newRoleName, permissions: newRolePermissions })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setRoles([...roles, { id: data.id, name: newRoleName, permissions: newRolePermissions }]);
+        showSuccess('Role created successfully!');
+        setNewRoleName('');
+        setNewRolePermissions(defaultPerms);
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
-  const handleDeleteRole = (id) => {
+  const handleDeleteRole = async (id) => {
     if (window.confirm('Are you sure you want to delete this role?')) {
-      setRoles(roles.filter(r => r.id !== id));
-      showSuccess('Role deleted successfully!');
+      try {
+        await fetch(`http://localhost:5000/api/roles/${id}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        setRoles(roles.filter(r => r.id !== id));
+        showSuccess('Role deleted successfully!');
+      } catch (error) {
+        console.error(error);
+      }
     }
   };
 
@@ -202,17 +235,28 @@ const SettingsPage = () => {
                 
                 <div>
                   <label style={{ display: 'block', marginBottom: '12px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>Permissions</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                    {Object.keys(newRolePermissions).map(perm => (
-                      <label key={perm} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', color: '#4b5563' }}>
-                        <input 
-                          type="checkbox" 
-                          checked={newRolePermissions[perm]} 
-                          onChange={(e) => setNewRolePermissions({...newRolePermissions, [perm]: e.target.checked})}
-                          style={{ width: '16px', height: '16px', accentColor: 'var(--primary)' }}
-                        />
-                        <span style={{ textTransform: 'capitalize' }}>{perm}</span>
-                      </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '15px', maxHeight: '400px', overflowY: 'auto', paddingRight: '10px' }}>
+                    {modules.map(module => (
+                      <div key={module} style={{ padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px', background: '#f9fafb' }}>
+                        <div style={{ fontWeight: '600', marginBottom: '8px', textTransform: 'capitalize', color: '#1f2937' }}>{module.replace('_', ' ')}</div>
+                        <div style={{ display: 'flex', gap: '15px' }}>
+                          {['view', 'create', 'edit', 'delete'].map(action => (
+                            <label key={action} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', color: '#4b5563' }}>
+                              <input 
+                                type="checkbox" 
+                                checked={newRolePermissions[module]?.[action] || false} 
+                                onChange={(e) => {
+                                  const updated = { ...newRolePermissions };
+                                  updated[module] = { ...updated[module], [action]: e.target.checked };
+                                  setNewRolePermissions(updated);
+                                }}
+                                style={{ width: '14px', height: '14px', accentColor: 'var(--primary)' }}
+                              />
+                              <span style={{ textTransform: 'capitalize' }}>{action}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -235,11 +279,15 @@ const SettingsPage = () => {
                       <button onClick={() => handleDeleteRole(role.id)} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="Delete Role"><Trash2 size={16} /></button>
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                      {Object.entries(role.permissions).map(([perm, hasPerm]) => hasPerm && (
-                        <span key={perm} style={{ fontSize: '11px', background: '#d1fae5', color: '#065f46', padding: '2px 8px', borderRadius: '12px', fontWeight: '500', textTransform: 'capitalize' }}>
-                          {perm}
-                        </span>
-                      ))}
+                      {Object.entries(role.permissions || {}).map(([module, actions]) => {
+                        const activeActions = Object.keys(actions).filter(a => actions[a]);
+                        if (activeActions.length === 0) return null;
+                        return (
+                          <span key={module} style={{ fontSize: '11px', background: '#d1fae5', color: '#065f46', padding: '2px 8px', borderRadius: '12px', fontWeight: '500' }}>
+                            {module.replace('_', ' ')}: {activeActions.join(', ')}
+                          </span>
+                        );
+                      })}
                     </div>
                   </div>
                 ))}

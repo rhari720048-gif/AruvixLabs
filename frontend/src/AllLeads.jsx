@@ -68,7 +68,7 @@ const AllLeads = ({ leads, handleConvert, handleDelete, handleBulkDelete, handle
         <h2 style={{ color: 'var(--text-dark)', margin: 0 }}>All Leads ({filteredLeads.length})</h2>
         
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          {selectedIds.length > 0 && (
+          {selectedIds.length > 0 && handleBulkDelete && (
             <button onClick={() => {
               if (window.confirm(`Are you sure you want to delete ${selectedIds.length} leads?`)) {
                 handleBulkDelete(selectedIds);
@@ -138,12 +138,16 @@ const AllLeads = ({ leads, handleConvert, handleDelete, handleBulkDelete, handle
                     <button onClick={() => setViewLead(lead)} style={{ background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer' }} title="View">
                       <Eye size={18} />
                     </button>
-                    <button onClick={() => setEditLead(lead)} style={{ background: 'none', border: 'none', color: '#f59e0b', cursor: 'pointer' }} title="Edit">
-                      <Edit2 size={18} />
-                    </button>
-                    <button onClick={() => { if(window.confirm('Delete this lead?')) handleDelete(lead.id) }} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }} title="Delete">
-                      <Trash2 size={18} />
-                    </button>
+                    {handleEdit && (
+                      <button onClick={() => setEditLead(lead)} style={{ background: 'none', border: 'none', color: '#f59e0b', cursor: 'pointer' }} title="Edit">
+                        <Edit2 size={18} />
+                      </button>
+                    )}
+                    {handleDelete && (
+                      <button onClick={() => { if(window.confirm('Delete this lead?')) handleDelete(lead.id) }} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }} title="Delete">
+                        <Trash2 size={18} />
+                      </button>
+                    )}
                     {lead.status === 'Converted' ? (
                       <span style={{ fontSize: '11px', padding: '2px 8px', background: '#d1fae5', color: '#065f46', borderRadius: '12px', fontWeight: '600' }}>Converted</span>
                     ) : (

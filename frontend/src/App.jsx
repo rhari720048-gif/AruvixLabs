@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import Landing from './Landing';
 import Login from './Login';
 import { LayoutDashboard, User, Mail, Briefcase, ClipboardCheck, Folder, Calendar, Users, Archive, FileText, Files, UserPlus, Clock, UserCheck, FileSpreadsheet, CalendarOff, CalendarDays, BarChart2, BarChart, PieChart, MessageSquare, Ticket, Settings, ChevronRight, Pencil, X, CheckCircle, Camera } from 'lucide-react';
@@ -31,6 +31,15 @@ import './index.css';
 const Sidebar = () => {
   const location = useLocation();
   const isActive = (path) => location.pathname === path ? 'active' : '';
+  
+  let permissions = {};
+  try { permissions = JSON.parse(localStorage.getItem('permissions') || '{}'); } catch(e){}
+  const role = (localStorage.getItem('role') || 'employee').toLowerCase();
+
+  const hasPerm = (module) => {
+    if (role === 'admin') return true; // Admin sees all
+    return permissions[module] && permissions[module].view;
+  };
 
   return (
     <aside className="sidebar">
@@ -41,28 +50,28 @@ const Sidebar = () => {
         AruvixLabs
       </div>
       <ul className="nav-links" style={{ overflowY: 'auto', paddingBottom: '20px' }}>
-        <li><Link to="/" className={`nav-link ${isActive('/')}`}><LayoutDashboard size={20} /> Dashboard</Link></li>
-        <li><Link to="/profile" className={`nav-link ${isActive('/profile')}`}><User size={20} /> My Profile</Link></li>
-        <li><Link to="/mail" className={`nav-link ${isActive('/mail')}`} style={{ justifyContent: 'space-between' }}><div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><Mail size={20} /> Mail Box</div> <ChevronRight size={16} /></Link></li>
-        <li><Link to="/projects" className={`nav-link ${isActive('/projects')}`}><Briefcase size={20} /> Projects</Link></li>
-        <li><Link to="/tasks" className={`nav-link ${isActive('/tasks')}`}><ClipboardCheck size={20} /> Tasks</Link></li>
-        <li><Link to="/files" className={`nav-link ${isActive('/files')}`}><Folder size={20} /> File Manager</Link></li>
-        <li><Link to="/calendar" className={`nav-link ${isActive('/calendar')}`}><Calendar size={20} /> Calendar</Link></li>
-        <li><Link to="/meetings" className={`nav-link ${isActive('/meetings')}`}><Users size={20} /> Meetings</Link></li>
-        <li><Link to="/accounting" className={`nav-link ${isActive('/accounting')}`}><Archive size={20} /> Accounting</Link></li>
-        <li><Link to="/invoices" className={`nav-link ${isActive('/invoices')}`}><FileText size={20} /> Invoices</Link></li>
-        <li><Link to="/quotes" className={`nav-link ${isActive('/quotes')}`}><Files size={20} /> Quotes</Link></li>
-        <li><Link to="/leads" className={`nav-link ${isActive('/leads')}`}><UserPlus size={20} /> Leads</Link></li>
-        <li><Link to="/staff-attendance" className={`nav-link ${isActive('/staff-attendance')}`}><Clock size={20} /> Staff Attendance</Link></li>
-        <li><Link to="/my-attendance" className={`nav-link ${isActive('/my-attendance')}`}><UserCheck size={20} /> My Attendance</Link></li>
-        <li><Link to="/user-notes" className={`nav-link ${isActive('/user-notes')}`}><FileSpreadsheet size={20} /> User Notes</Link></li>
-        <li><Link to="/user-management" className={`nav-link ${isActive('/user-management')}`}><Users size={20} /> User Management</Link></li>
-        <li><Link to="/clients" className={`nav-link ${isActive('/clients')}`}><Users size={20} /> Clients / Customers</Link></li>
-        <li><Link to="/leaves" className={`nav-link ${isActive('/leaves')}`}><CalendarOff size={20} /> Leave Management</Link></li>
-        <li><Link to="/client-reports" className={`nav-link ${isActive('/client-reports')}`}><PieChart size={20} /> Client Reports</Link></li>
-        <li><Link to="/team-chat" className={`nav-link ${isActive('/team-chat')}`}><MessageSquare size={20} /> Team Chat</Link></li>
-        <li><Link to="/support" className={`nav-link ${isActive('/support')}`}><Ticket size={20} /> Support Ticket</Link></li>
-        <li style={{marginTop: '20px'}}><Link to="/settings" className={`nav-link ${isActive('/settings')}`}><Settings size={20} /> Settings</Link></li>
+        {hasPerm('dashboard') && <li><Link to="/" className={`nav-link ${isActive('/')}`}><LayoutDashboard size={20} /> Dashboard</Link></li>}
+        {hasPerm('profile') && <li><Link to="/profile" className={`nav-link ${isActive('/profile')}`}><User size={20} /> My Profile</Link></li>}
+        {hasPerm('mail') && <li><Link to="/mail" className={`nav-link ${isActive('/mail')}`} style={{ justifyContent: 'space-between' }}><div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><Mail size={20} /> Mail Box</div> <ChevronRight size={16} /></Link></li>}
+        {hasPerm('projects') && <li><Link to="/projects" className={`nav-link ${isActive('/projects')}`}><Briefcase size={20} /> Projects</Link></li>}
+        {hasPerm('tasks') && <li><Link to="/tasks" className={`nav-link ${isActive('/tasks')}`}><ClipboardCheck size={20} /> Tasks</Link></li>}
+        {hasPerm('files') && <li><Link to="/files" className={`nav-link ${isActive('/files')}`}><Folder size={20} /> File Manager</Link></li>}
+        {hasPerm('calendar') && <li><Link to="/calendar" className={`nav-link ${isActive('/calendar')}`}><Calendar size={20} /> Calendar</Link></li>}
+        {hasPerm('meetings') && <li><Link to="/meetings" className={`nav-link ${isActive('/meetings')}`}><Users size={20} /> Meetings</Link></li>}
+        {hasPerm('accounting') && <li><Link to="/accounting" className={`nav-link ${isActive('/accounting')}`}><Archive size={20} /> Accounting</Link></li>}
+        {hasPerm('invoices') && <li><Link to="/invoices" className={`nav-link ${isActive('/invoices')}`}><FileText size={20} /> Invoices</Link></li>}
+        {hasPerm('quotes') && <li><Link to="/quotes" className={`nav-link ${isActive('/quotes')}`}><Files size={20} /> Quotes</Link></li>}
+        {hasPerm('leads') && <li><Link to="/leads" className={`nav-link ${isActive('/leads')}`}><UserPlus size={20} /> Leads</Link></li>}
+        {hasPerm('staff_attendance') && <li><Link to="/staff-attendance" className={`nav-link ${isActive('/staff-attendance')}`}><Clock size={20} /> Staff Attendance</Link></li>}
+        {hasPerm('my_attendance') && <li><Link to="/my-attendance" className={`nav-link ${isActive('/my-attendance')}`}><UserCheck size={20} /> My Attendance</Link></li>}
+        {hasPerm('user_notes') && <li><Link to="/user-notes" className={`nav-link ${isActive('/user-notes')}`}><FileSpreadsheet size={20} /> User Notes</Link></li>}
+        {hasPerm('user_management') && <li><Link to="/user-management" className={`nav-link ${isActive('/user-management')}`}><Users size={20} /> User Management</Link></li>}
+        {hasPerm('clients') && <li><Link to="/clients" className={`nav-link ${isActive('/clients')}`}><Users size={20} /> Clients / Customers</Link></li>}
+        {hasPerm('leaves') && <li><Link to="/leaves" className={`nav-link ${isActive('/leaves')}`}><CalendarOff size={20} /> Leave Management</Link></li>}
+        {hasPerm('client_reports') && <li><Link to="/client-reports" className={`nav-link ${isActive('/client-reports')}`}><PieChart size={20} /> Client Reports</Link></li>}
+        {hasPerm('team_chat') && <li><Link to="/team-chat" className={`nav-link ${isActive('/team-chat')}`}><MessageSquare size={20} /> Team Chat</Link></li>}
+        {hasPerm('support') && <li><Link to="/support" className={`nav-link ${isActive('/support')}`}><Ticket size={20} /> Support Ticket</Link></li>}
+        {hasPerm('settings') && <li style={{marginTop: '20px'}}><Link to="/settings" className={`nav-link ${isActive('/settings')}`}><Settings size={20} /> Settings</Link></li>}
       </ul>
     </aside>
   );
@@ -318,6 +327,26 @@ const ProfilePage = () => {
   );
 };
 
+const ProtectedRoute = ({ module, children }) => {
+  let permissions = {};
+  try { permissions = JSON.parse(localStorage.getItem('permissions') || '{}'); } catch(e){}
+  const role = (localStorage.getItem('role') || 'employee').toLowerCase();
+  
+  if (role === 'admin') return children;
+  if (!module) return children;
+  
+  const canView = permissions[module] && permissions[module].view;
+  if (!canView) {
+    return (
+      <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
+        <h2>Access Denied</h2>
+        <p>You do not have permission to view this page.</p>
+      </div>
+    );
+  }
+  return children;
+};
+
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -348,28 +377,28 @@ function App() {
           <Header />
           <div className="content-area">
             <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/leads" element={<AdminLeads />} />
-              <Route path="/projects" element={<Projects />} />
-              <Route path="/tasks" element={<Tasks />} />
-              <Route path="/files" element={<FileManager />} />
-              <Route path="/calendar" element={<CalendarApp />} />
-              <Route path="/meetings" element={<Meetings />} />
-              <Route path="/accounting" element={<Accounting />} />
-              <Route path="/staff-attendance" element={<StaffAttendance />} />
-              <Route path="/my-attendance" element={<MyAttendance />} />
-              <Route path="/invoices" element={<Invoices />} />
-              <Route path="/quotes" element={<Quotations />} />
-              <Route path="/user-notes" element={<UserNotes />} />
-              <Route path="/clients" element={<Clients />} />
-              <Route path="/client-reports" element={<ClientReports />} />
-              <Route path="/team-chat" element={<TeamChat />} />
-              <Route path="/support" element={<SupportTickets />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/user-management" element={<UserManagement />} />
-              <Route path="/mail" element={<MailBox />} />
-              <Route path="/leaves" element={<Leaves />} />
+              <Route path="/" element={<ProtectedRoute module="dashboard"><Dashboard /></ProtectedRoute>} />
+              <Route path="/leads" element={<ProtectedRoute module="leads"><AdminLeads /></ProtectedRoute>} />
+              <Route path="/projects" element={<ProtectedRoute module="projects"><Projects /></ProtectedRoute>} />
+              <Route path="/tasks" element={<ProtectedRoute module="tasks"><Tasks /></ProtectedRoute>} />
+              <Route path="/files" element={<ProtectedRoute module="files"><FileManager /></ProtectedRoute>} />
+              <Route path="/calendar" element={<ProtectedRoute module="calendar"><CalendarApp /></ProtectedRoute>} />
+              <Route path="/meetings" element={<ProtectedRoute module="meetings"><Meetings /></ProtectedRoute>} />
+              <Route path="/accounting" element={<ProtectedRoute module="accounting"><Accounting /></ProtectedRoute>} />
+              <Route path="/staff-attendance" element={<ProtectedRoute module="staff_attendance"><StaffAttendance /></ProtectedRoute>} />
+              <Route path="/my-attendance" element={<ProtectedRoute module="my_attendance"><MyAttendance /></ProtectedRoute>} />
+              <Route path="/invoices" element={<ProtectedRoute module="invoices"><Invoices /></ProtectedRoute>} />
+              <Route path="/quotes" element={<ProtectedRoute module="quotes"><Quotations /></ProtectedRoute>} />
+              <Route path="/user-notes" element={<ProtectedRoute module="user_notes"><UserNotes /></ProtectedRoute>} />
+              <Route path="/clients" element={<ProtectedRoute module="clients"><Clients /></ProtectedRoute>} />
+              <Route path="/client-reports" element={<ProtectedRoute module="client_reports"><ClientReports /></ProtectedRoute>} />
+              <Route path="/team-chat" element={<ProtectedRoute module="team_chat"><TeamChat /></ProtectedRoute>} />
+              <Route path="/support" element={<ProtectedRoute module="support"><SupportTickets /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute module="settings"><SettingsPage /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute module="profile"><ProfilePage /></ProtectedRoute>} />
+              <Route path="/user-management" element={<ProtectedRoute module="user_management"><UserManagement /></ProtectedRoute>} />
+              <Route path="/mail" element={<ProtectedRoute module="mail"><MailBox /></ProtectedRoute>} />
+              <Route path="/leaves" element={<ProtectedRoute module="leaves"><Leaves /></ProtectedRoute>} />
             </Routes>
           </div>
         </main>
