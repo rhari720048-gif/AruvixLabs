@@ -24,8 +24,19 @@ const AdminLeads = () => {
       });
       if (res.ok) {
         const data = await res.json();
+        // Map backend fields to frontend expected fields
+        const formattedLeads = data.map(c => {
+          const parts = (c.notes || '').split(' | ');
+          return {
+            ...c,
+            location: c.district || 'Unknown',
+            requirements: parts[0] || 'N/A',
+            feedback: parts[1] || 'None',
+            assignedTo: parts[2] || 'Unassigned'
+          };
+        });
         // Filter out converted clients
-        setLeads(data.filter(c => c.status !== 'Converted'));
+        setLeads(formattedLeads.filter(c => c.status !== 'Converted'));
       }
     } catch (e) {
       console.error(e);
@@ -43,7 +54,7 @@ const AdminLeads = () => {
           name: lead.name,
           phone: lead.phone,
           district: lead.location,
-          notes: lead.requirements + ' | ' + lead.feedback,
+          notes: (lead.requirements || 'N/A') + ' | ' + (lead.feedback || 'None') + ' | ' + (lead.assignedTo || 'Unassigned'),
           source: lead.source || 'Manual'
         };
         

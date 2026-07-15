@@ -66,9 +66,12 @@ app.put('/api/customers/:id', authenticate, async (req, res) => {
 });
 
 app.post('/api/customers', authenticate, async (req, res) => {
-    const { customer_id, name, phone, district, car_brand, car_model } = req.body;
+    const { customer_id, name, phone, district, source, notes } = req.body;
     try {
-        await pool.query('INSERT INTO customers (customer_id, name, phone, district, car_brand, car_model) VALUES (?, ?, ?, ?, ?, ?)', [customer_id, name, phone, district, car_brand, car_model]);
+        await pool.query(
+            'INSERT INTO customers (customer_id, name, phone, district, source, notes, status) VALUES (?, ?, ?, ?, ?, ?, ?)', 
+            [customer_id, name, phone, district, source, notes, 'Pending']
+        );
         res.json({ success: true });
     } catch (error) {
         res.status(500).json({ error: error.message });
