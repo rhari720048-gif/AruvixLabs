@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Clock, Play, Pause, Square, Check, X, CheckCircle, Search } from 'lucide-react';
+import { Bell, Clock, Play, Pause, Square, Check, X, CheckCircle, Search, LogOut } from 'lucide-react';
 
 const API = 'http://localhost:5000/api';
 
@@ -174,6 +174,17 @@ export default function Header() {
             {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
           </div>
           <span style={{ fontWeight: 600, color: '#374151' }}>{user.name}</span>
+          
+          <button 
+            onClick={() => {
+              localStorage.clear();
+              window.location.href = '/login';
+            }}
+            title="Logout"
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 8, background: '#fee2e2', color: '#dc2626', border: 'none', cursor: 'pointer', marginLeft: 8 }}
+          >
+            <LogOut size={16} />
+          </button>
         </div>
       </div>
 
