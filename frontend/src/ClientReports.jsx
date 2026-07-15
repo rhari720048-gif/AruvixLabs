@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FileText, PlusCircle, List, CheckCircle, ExternalLink, Trash2, Eye, Filter } from 'lucide-react';
 import ViewModal from './ViewModal';
 
-const API = 'http://localhost:5000/api';
+const API = 'https://aruvixlabs.onrender.com/api';
 const token = () => localStorage.getItem('token');
 
 const ClientReports = () => {

@@ -4,7 +4,7 @@ import {
   ShieldCheck, User, Eye, EyeOff, RefreshCw, Mail, Phone
 } from 'lucide-react';
 
-const API = 'http://localhost:5000/api';
+const API = 'https://aruvixlabs.onrender.com/api';
 const token = () => localStorage.getItem('token');
 
 const ROLES = ['admin', 'employee', 'manager']; // Fallback

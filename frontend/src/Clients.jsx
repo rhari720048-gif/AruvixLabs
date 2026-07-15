@@ -3,7 +3,7 @@ import { PlusCircle, List, CheckCircle, Download, Upload, Users, Eye, Edit2, Tra
 import Papa from 'papaparse';
 import ViewModal from './ViewModal';
 
-const API = 'http://localhost:5000/api';
+const API = 'https://aruvixlabs.onrender.com/api';
 
 const Clients = () => {
   const [activeTab, setActiveTab] = useState('all');

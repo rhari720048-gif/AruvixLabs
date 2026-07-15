@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Send, Inbox, CheckCircle, Plus } from 'lucide-react';
 
-const API = 'http://localhost:5000/api';
+const API = 'https://aruvixlabs.onrender.com/api';
 
 const MailBox = () => {
   const [activeTab, setActiveTab] = useState('inbox');

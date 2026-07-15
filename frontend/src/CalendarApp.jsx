@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Plus, X, Video } from 'lucide-react';
 
-const API = 'http://localhost:5000/api';
+const API = 'https://aruvixlabs.onrender.com/api';
 
 const CalendarApp = () => {
   const [currentDate, setCurrentDate] = useState(new Date());

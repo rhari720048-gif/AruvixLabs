@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Folder, FileText, Image as ImageIcon, Video, Archive, Upload, Download, Trash2, Search, Plus, Filter, MoreVertical, X } from 'lucide-react';
 
-const API = 'http://localhost:5000/api';
+const API = 'https://aruvixlabs.onrender.com/api';
 
 const FileManager = () => {
   const [activeTab, setActiveTab] = useState('all');

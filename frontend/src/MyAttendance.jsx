@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, LogIn, LogOut, CheckCircle } from 'lucide-react';
 
-const API = 'http://localhost:5000/api';
+const API = 'https://aruvixlabs.onrender.com/api';
 
 export default function MyAttendance() {
   const [history, setHistory] = useState([]);

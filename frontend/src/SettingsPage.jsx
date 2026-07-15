@@ -14,7 +14,7 @@ const SettingsPage = () => {
   const [userPermissions, setUserPermissions] = useState(defaultPerms);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/users', {
+    fetch('https://aruvixlabs.onrender.com/api/users', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
     .then(res => res.json())
@@ -55,7 +55,7 @@ const SettingsPage = () => {
     e.preventDefault();
     if (!selectedUser) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/users/${selectedUser.id}/permissions`, {
+      const res = await fetch(`https://aruvixlabs.onrender.com/api/users/${selectedUser.id}/permissions`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -326,7 +326,7 @@ const MailSettingsPanel = ({ showSuccess }) => {
     { key: 'notifications', label: 'Notification Rules', icon: <Bell size={16} />         },
   ];
 
-  const API = 'http://localhost:5000/api';
+  const API = 'https://aruvixlabs.onrender.com/api';
   const authHeader = { Authorization: `Bearer ${localStorage.getItem('token')}` };
 
   // Load SMTP settings from backend on mount

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Ticket, Search, Filter, Plus, MessageCircle, Clock, AlertCircle, CheckCircle2, ChevronRight, User, MoreVertical } from 'lucide-react';
 
-const API = 'http://localhost:5000/api';
+const API = 'https://aruvixlabs.onrender.com/api';
 const token = () => localStorage.getItem('token');
 
 const SupportTickets = () => {

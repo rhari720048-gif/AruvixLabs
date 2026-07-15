@@ -83,7 +83,7 @@ const Dashboard = () => {
   const [data, setData] = useState([]);
   
   useEffect(() => {
-    fetch('http://localhost:5000/api/customers', {
+    fetch('https://aruvixlabs.onrender.com/api/customers', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     }).then(res => res.json()).then(resData => {
       if(Array.isArray(resData)) setData(resData);

@@ -5,7 +5,7 @@ import { UserPlus, Users } from 'lucide-react';
 
 import { useNavigate } from 'react-router-dom';
 
-const API = 'http://localhost:5000/api';
+const API = 'https://aruvixlabs.onrender.com/api';
 
 const AdminLeads = () => {
   const [activePage, setActivePage] = useState('all'); // 'add' or 'all'

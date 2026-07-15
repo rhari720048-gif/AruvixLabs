@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Video, Clock, CheckCircle, Search, MoreVertical, Plus, Edit2, Trash2 } from 'lucide-react';
 import ViewModal from './ViewModal';
 
-const API = 'http://localhost:5000/api';
+const API = 'https://aruvixlabs.onrender.com/api';
 
 const Meetings = () => {
   const [activeTab, setActiveTab] = useState('upcoming');

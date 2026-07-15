@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, CheckCircle, Clock, XCircle } from 'lucide-react';
 
-const API = 'http://localhost:5000/api';
+const API = 'https://aruvixlabs.onrender.com/api';
 const leaveTypes = ['Sick Leave', 'Vacation', 'Casual Leave', 'Emergency'];
 
 const Leaves = () => {

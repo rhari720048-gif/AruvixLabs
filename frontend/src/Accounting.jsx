@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { PlusCircle, List, UserCheck, CheckCircle, DollarSign, TrendingUp, TrendingDown, Eye, Edit2, Trash2 } from 'lucide-react';
 import ViewModal from './ViewModal';
 
-const API = 'http://localhost:5000/api';
+const API = 'https://aruvixlabs.onrender.com/api';
 
 const Accounting = () => {
   const [activeTab, setActiveTab] = useState('add'); // 'add', 'all', 'mine'

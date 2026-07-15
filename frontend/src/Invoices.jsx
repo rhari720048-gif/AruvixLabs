@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { PlusCircle, List, CheckCircle, FileText, Plus, Trash2, Eye, Edit2, Download, X } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
 
-const API = 'http://localhost:5000/api';
+const API = 'https://aruvixlabs.onrender.com/api';
 const paymentMethods = ['UPI', 'Card', 'Cash', 'Bank Transfer'];
 
 const InvoicePreviewModal = ({ isOpen, onClose, invoice }) => {

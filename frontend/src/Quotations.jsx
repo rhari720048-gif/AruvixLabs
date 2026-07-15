@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { PlusCircle, List, CheckCircle, FileText, Plus, Trash2, Eye, Edit2 } from 'lucide-react';
 import ViewModal from './ViewModal';
 
-const API = 'http://localhost:5000/api';
+const API = 'https://aruvixlabs.onrender.com/api';
 
 const Quotations = () => {
   const [activeTab, setActiveTab] = useState('add');

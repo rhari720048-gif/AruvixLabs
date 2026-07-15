@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, Clock, Play, Pause, Square, Check, X, CheckCircle, Search, LogOut } from 'lucide-react';
 
-const API = 'http://localhost:5000/api';
+const API = 'https://aruvixlabs.onrender.com/api';
 
 const decodeToken = (token) => {
   try { return JSON.parse(atob(token.split('.')[1])); }

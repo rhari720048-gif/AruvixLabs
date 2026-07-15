@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, X, Check, Search, Trash2 } from 'lucide-react';
 
 const colors = ['#ffffff', '#f28b82', '#fbbc04', '#fff475', '#ccff90', '#a7ffeb', '#cbf0f8', '#aecbfa', '#d7aefb', '#e6c9a8'];
-const API = 'http://localhost:5000/api';
+const API = 'https://aruvixlabs.onrender.com/api';
 
 const UserNotes = () => {
   const [notes, setNotes] = useState([]);

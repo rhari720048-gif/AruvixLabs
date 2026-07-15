@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Clock, Calendar as CalendarIcon, ChevronDown, ChevronUp, CheckCircle, XCircle } from 'lucide-react';
 
-const API = 'http://localhost:5000/api';
+const API = 'https://aruvixlabs.onrender.com/api';
 
 export default function StaffAttendance() {
   const [report, setReport] = useState([]);

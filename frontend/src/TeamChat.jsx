@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Hash, User, Send, Search, MoreVertical, Phone, Video } from 'lucide-react';
 
-const API = 'http://localhost:5000/api';
+const API = 'https://aruvixlabs.onrender.com/api';
 
 const channels = ["general", "engineering", "sales", "marketing"];
 
