@@ -9,7 +9,10 @@ const { sendWelcomeEmail, testConnection, setPool } = require('./mailer');
 dotenv.config();
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: ['https://aruvix-labs.vercel.app', 'http://localhost:5173', 'http://localhost:3000'],
+  credentials: true,
+}));
 app.use(express.json());
 
 // Initialize DB and inject pool into mailer
