@@ -25,19 +25,26 @@ const AddLeads = ({ addLeads }) => {
     try {
       const result = await Tesseract.recognize(file, 'eng');
       const text = result.data.text;
+      console.log("OCR Text Output:", text); // Helpful for debugging in browser console
       
       const lines = text.split('\n').filter(line => line.trim().length > 0);
-      const phoneRegex = /[6789]\d{9}/; // 10 digit Indian number
+      
+      // Look for at least 8-10 digits, allowing spaces/dashes between them
+      const phoneRegex = /(?:\+?91)?[\s\-]*[6789](?:[\s\-]*\d){9}/; 
       
       const extractedLeads = [];
       let idCounter = Date.now();
 
       lines.forEach(line => {
-        const match = line.match(phoneRegex);
+        // Also try to remove common OCR errors for numbers like 'O' to '0' or 'l' to '1' before matching if needed, 
+        // but let's just do a basic match first
+        const match = line.match(phoneRegex) || line.replace(/o/ig, '0').replace(/[il|]/ig, '1').match(phoneRegex);
+        
         if (match) {
           const phone = match[0];
-          // Split the line around the phone number
-          const parts = line.split(phone);
+          // Split the original line using the original matched text (or roughly around it)
+          const parts = line.split(phoneRegex);
+          
           let name = parts[0] ? parts[0].trim().replace(/[^a-zA-Z\s]/g, '') : 'Unknown';
           let rest = parts[1] ? parts[1].trim() : '';
           
@@ -52,7 +59,7 @@ const AddLeads = ({ addLeads }) => {
           extractedLeads.push({
             id: idCounter++,
             name: name.substring(0, 50),
-            phone,
+            phone: phone.replace(/[^0-9+]/g, ''), // clean phone
             location: location.substring(0, 50),
             requirements: requirements.substring(0, 100),
             assignedTo: assignedTo.substring(0, 50),
