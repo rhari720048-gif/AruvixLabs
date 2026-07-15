@@ -47,6 +47,7 @@ async function initDB() {
             phone VARCHAR(20),
             role ENUM('admin', 'manager', 'employee') DEFAULT 'employee',
             role_id INT,
+            permissions JSON,
             status VARCHAR(20) DEFAULT 'Active',
             FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE SET NULL
         );
@@ -122,11 +123,20 @@ async function initDB() {
             await pool.query('INSERT INTO roles (name, permissions) VALUES (?, ?)', ['Employee', JSON.stringify(employeePermissions)]);
         }
 
-        // Migrate existing users to have role_id based on their old 'role' enum
+        // Migrate existing users to have role_id based on their old 'role' enum, and also set default permissions
         try {
-            await pool.query(`UPDATE users SET role_id = (SELECT id FROM roles WHERE name = 'Admin') WHERE role = 'admin' AND role_id IS NULL`);
-            await pool.query(`UPDATE users SET role_id = (SELECT id FROM roles WHERE name = 'Admin') WHERE role = 'manager' AND role_id IS NULL`);
-            await pool.query(`UPDATE users SET role_id = (SELECT id FROM roles WHERE name = 'Employee') WHERE role = 'employee' AND role_id IS NULL`);
+            await pool.query("ALTER TABLE users ADD COLUMN permissions JSON");
+        } catch (e) {
+            // Column might already exist, ignore error
+        }
+        
+        try {
+            await pool.query(`UPDATE users SET role_id = (SELECT id FROM roles WHERE name = 'Admin'), permissions = (SELECT permissions FROM roles WHERE name = 'Admin') WHERE role IN ('admin', 'manager') AND role_id IS NULL`);
+            await pool.query(`UPDATE users SET role_id = (SELECT id FROM roles WHERE name = 'Employee'), permissions = (SELECT permissions FROM roles WHERE name = 'Employee') WHERE role = 'employee' AND role_id IS NULL`);
+            // Give all users admin permissions if they are 'admin' role but permissions is NULL
+            await pool.query(`UPDATE users SET permissions = (SELECT permissions FROM roles WHERE name = 'Admin') WHERE role = 'admin' AND permissions IS NULL`);
+            // Give all users employee permissions if they are 'employee' role but permissions is NULL
+            await pool.query(`UPDATE users SET permissions = (SELECT permissions FROM roles WHERE name = 'Employee') WHERE role = 'employee' AND permissions IS NULL`);
         } catch (e) {
             console.log("Migration skipped or failed:", e.message);
         }
@@ -417,6 +427,9 @@ async function initDB() {
         console.log("Default admin user created");
     }
 
+    } catch (err) {
+        console.error("Database Init Error:", err);
+    }
     console.log("Database initialized");
 }
 

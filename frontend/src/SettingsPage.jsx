@@ -5,20 +5,20 @@ const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState('company'); // 'company', 'invoice', 'permissions', 'mail'
   const [successMessage, setSuccessMessage] = useState('');
 
-  const [roles, setRoles] = useState([]);
-  const [newRoleName, setNewRoleName] = useState('');
+  const [users, setUsers] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
   
   const modules = ['dashboard', 'profile', 'mail', 'projects', 'tasks', 'files', 'calendar', 'meetings', 'accounting', 'invoices', 'quotes', 'leads', 'clients', 'staff_attendance', 'my_attendance', 'user_notes', 'user_management', 'leaves', 'client_reports', 'team_chat', 'support', 'settings'];
   const defaultPerms = {};
   modules.forEach(m => defaultPerms[m] = { view: false, create: false, edit: false, delete: false });
-  const [newRolePermissions, setNewRolePermissions] = useState(defaultPerms);
+  const [userPermissions, setUserPermissions] = useState(defaultPerms);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/roles', {
+    fetch('http://localhost:5000/api/users', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
     .then(res => res.json())
-    .then(data => setRoles(Array.isArray(data) ? data : []))
+    .then(data => setUsers(Array.isArray(data) ? data : []))
     .catch(console.error);
   }, []);
 
@@ -51,42 +51,24 @@ const SettingsPage = () => {
     showSuccess('Invoice settings updated successfully!');
   };
 
-  const handleRoleSubmit = async (e) => {
+  const handleUserPermsSubmit = async (e) => {
     e.preventDefault();
-    if (!newRoleName) return;
+    if (!selectedUser) return;
     try {
-      const res = await fetch('http://localhost:5000/api/roles', {
-        method: 'POST',
+      const res = await fetch(`http://localhost:5000/api/users/${selectedUser.id}/permissions`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({ name: newRoleName, permissions: newRolePermissions })
+        body: JSON.stringify({ permissions: userPermissions })
       });
       if (res.ok) {
-        const data = await res.json();
-        setRoles([...roles, { id: data.id, name: newRoleName, permissions: newRolePermissions }]);
-        showSuccess('Role created successfully!');
-        setNewRoleName('');
-        setNewRolePermissions(defaultPerms);
+        setUsers(users.map(u => u.id === selectedUser.id ? { ...u, permissions: userPermissions } : u));
+        showSuccess('User permissions updated successfully!');
       }
     } catch (error) {
       console.error(error);
-    }
-  };
-
-  const handleDeleteRole = async (id) => {
-    if (window.confirm('Are you sure you want to delete this role?')) {
-      try {
-        await fetch(`http://localhost:5000/api/roles/${id}`, {
-          method: 'DELETE',
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        });
-        setRoles(roles.filter(r => r.id !== id));
-        showSuccess('Role deleted successfully!');
-      } catch (error) {
-        console.error(error);
-      }
     }
   };
 
@@ -109,7 +91,7 @@ const SettingsPage = () => {
           onClick={() => setActiveTab('permissions')}
           style={{ padding: '12px 24px', background: activeTab === 'permissions' ? 'var(--primary)' : 'transparent', color: activeTab === 'permissions' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
         >
-          <Shield size={18} /> Permissions & Roles
+          <Shield size={18} /> User Permissions
         </button>
         <button 
           onClick={() => setActiveTab('mail')}
@@ -225,73 +207,70 @@ const SettingsPage = () => {
         {activeTab === 'permissions' && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
             <div style={{ background: 'white', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb' }}>
-              <h2 style={{ marginBottom: '20px', color: '#1f2937' }}>Create New Role</h2>
-              
-              <form onSubmit={handleRoleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>Role Name</label>
-                  <input type="text" value={newRoleName} onChange={e => setNewRoleName(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="e.g. Sales Manager" required />
-                </div>
-                
-                <div>
-                  <label style={{ display: 'block', marginBottom: '12px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>Permissions</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '15px', maxHeight: '400px', overflowY: 'auto', paddingRight: '10px' }}>
-                    {modules.map(module => (
-                      <div key={module} style={{ padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px', background: '#f9fafb' }}>
-                        <div style={{ fontWeight: '600', marginBottom: '8px', textTransform: 'capitalize', color: '#1f2937' }}>{module.replace('_', ' ')}</div>
-                        <div style={{ display: 'flex', gap: '15px' }}>
-                          {['view', 'create', 'edit', 'delete'].map(action => (
-                            <label key={action} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', color: '#4b5563' }}>
-                              <input 
-                                type="checkbox" 
-                                checked={newRolePermissions[module]?.[action] || false} 
-                                onChange={(e) => {
-                                  const updated = { ...newRolePermissions };
-                                  updated[module] = { ...updated[module], [action]: e.target.checked };
-                                  setNewRolePermissions(updated);
-                                }}
-                                style={{ width: '14px', height: '14px', accentColor: 'var(--primary)' }}
-                              />
-                              <span style={{ textTransform: 'capitalize' }}>{action}</span>
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div style={{ marginTop: '10px' }}>
-                  <button type="submit" style={{ background: 'var(--primary)', color: 'white', padding: '12px 24px', borderRadius: '8px', border: 'none', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <CheckCircle size={18} /> Create Role
-                  </button>
-                </div>
-              </form>
-            </div>
-            
-            <div style={{ background: 'white', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb' }}>
-              <h2 style={{ marginBottom: '20px', color: '#1f2937' }}>Existing Roles</h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                {roles.map(role => (
-                  <div key={role.id} style={{ padding: '15px', border: '1px solid #e5e7eb', borderRadius: '8px', background: '#f9fafb' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                      <span style={{ fontWeight: '600', color: '#1f2937' }}>{role.name}</span>
-                      <button onClick={() => handleDeleteRole(role.id)} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="Delete Role"><Trash2 size={16} /></button>
-                    </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                      {Object.entries(role.permissions || {}).map(([module, actions]) => {
-                        const activeActions = Object.keys(actions).filter(a => actions[a]);
-                        if (activeActions.length === 0) return null;
-                        return (
-                          <span key={module} style={{ fontSize: '11px', background: '#d1fae5', color: '#065f46', padding: '2px 8px', borderRadius: '12px', fontWeight: '500' }}>
-                            {module.replace('_', ' ')}: {activeActions.join(', ')}
-                          </span>
-                        );
-                      })}
-                    </div>
+              <h2 style={{ marginBottom: '20px', color: '#1f2937' }}>Select User</h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxHeight: '500px', overflowY: 'auto' }}>
+                {users.map(user => (
+                  <div 
+                    key={user.id} 
+                    onClick={() => {
+                      setSelectedUser(user);
+                      setUserPermissions(user.permissions ? (typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions) : defaultPerms);
+                    }}
+                    style={{ padding: '15px', border: selectedUser?.id === user.id ? '2px solid var(--primary)' : '1px solid #e5e7eb', borderRadius: '8px', background: selectedUser?.id === user.id ? '#eef2ff' : '#f9fafb', cursor: 'pointer', transition: '0.2s' }}
+                  >
+                    <div style={{ fontWeight: '600', color: '#1f2937' }}>{user.name}</div>
+                    <div style={{ fontSize: '12px', color: '#6b7280' }}>{user.email} &bull; {user.role}</div>
                   </div>
                 ))}
               </div>
+            </div>
+            
+            <div style={{ background: 'white', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb' }}>
+              {selectedUser ? (
+                <>
+                  <h2 style={{ marginBottom: '20px', color: '#1f2937' }}>Permissions for {selectedUser.name}</h2>
+                  <form onSubmit={handleUserPermsSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '15px', maxHeight: '400px', overflowY: 'auto', paddingRight: '10px' }}>
+                        {modules.map(module => (
+                          <div key={module} style={{ padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px', background: '#f9fafb' }}>
+                            <div style={{ fontWeight: '600', marginBottom: '8px', textTransform: 'capitalize', color: '#1f2937' }}>{module.replace('_', ' ')}</div>
+                            <div style={{ display: 'flex', gap: '15px' }}>
+                              {['view', 'create', 'edit', 'delete'].map(action => (
+                                <label key={action} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', color: '#4b5563' }}>
+                                  <input 
+                                    type="checkbox" 
+                                    checked={userPermissions[module]?.[action] || false} 
+                                    onChange={(e) => {
+                                      const updated = { ...userPermissions };
+                                      if (!updated[module]) updated[module] = {};
+                                      updated[module][action] = e.target.checked;
+                                      setUserPermissions(updated);
+                                    }}
+                                    style={{ width: '14px', height: '14px', accentColor: 'var(--primary)' }}
+                                  />
+                                  <span style={{ textTransform: 'capitalize' }}>{action}</span>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div style={{ marginTop: '10px' }}>
+                      <button type="submit" style={{ background: 'var(--primary)', color: 'white', padding: '12px 24px', borderRadius: '8px', border: 'none', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <CheckCircle size={18} /> Save Permissions
+                      </button>
+                    </div>
+                  </form>
+                </>
+              ) : (
+                <div style={{ textAlign: 'center', color: '#6b7280', marginTop: '100px' }}>
+                  <Shield size={48} style={{ opacity: 0.5, marginBottom: '15px' }} />
+                  <h3>Select a user to view and edit their permissions</h3>
+                </div>
+              )}
             </div>
           </div>
         )}

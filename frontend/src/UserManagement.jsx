@@ -14,7 +14,7 @@ const ROLE_COLORS = {
   employee: { bg: '#d1fae5', color: '#065f46' },
 };
 
-const defaultForm = { name: '', email: '', phone: '', role_id: '', password: '', status: 'Active' };
+const defaultForm = { name: '', email: '', phone: '', role: 'employee', password: '', status: 'Active' };
 
 export default function UserManagement() {
   const [users, setUsers]         = useState([]);
@@ -36,12 +36,8 @@ export default function UserManagement() {
   const fetchUsersAndRoles = async () => {
     setLoading(true);
     try {
-      const [usersRes, rolesRes] = await Promise.all([
-        fetch(`${API}/users`, { headers: { Authorization: `Bearer ${token()}` } }),
-        fetch(`${API}/roles`, { headers: { Authorization: `Bearer ${token()}` } })
-      ]);
+      const usersRes = await fetch(`${API}/users`, { headers: { Authorization: `Bearer ${token()}` } });
       if (usersRes.ok) setUsers(await usersRes.json());
-      if (rolesRes.ok) setDbRoles(await rolesRes.json());
     } catch (e) {
       console.error(e);
     }
@@ -67,7 +63,7 @@ export default function UserManagement() {
   };
   const openEdit = (u) => {
     setEditUser(u);
-    setForm({ name: u.name, email: u.email, phone: u.phone || '', role_id: u.role_id || '', password: '', status: u.status || 'Active' });
+    setForm({ name: u.name, email: u.email, phone: u.phone || '', role: u.role || 'employee', password: '', status: u.status || 'Active' });
     setShowPass(false);
     setShowModal(true);
   };
@@ -83,7 +79,7 @@ export default function UserManagement() {
         const res = await fetch(`${API}/users/${editUser.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-          body: JSON.stringify({ name: form.name, email: form.email, phone: form.phone, role_id: form.role_id, status: form.status, ...(form.password ? { password: form.password } : {}) }),
+          body: JSON.stringify({ name: form.name, email: form.email, phone: form.phone, role: form.role, status: form.status, ...(form.password ? { password: form.password } : {}) }),
         });
         if (res.ok) {
           fetchUsersAndRoles();
@@ -96,7 +92,7 @@ export default function UserManagement() {
         const res = await fetch(`${API}/users`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-          body: JSON.stringify({ name: form.name, email: form.email, phone: form.phone, role_id: form.role_id, password: form.password, status: form.status }),
+          body: JSON.stringify({ name: form.name, email: form.email, phone: form.phone, role: form.role, password: form.password, status: form.status }),
         });
         if (res.ok) {
           fetchUsersAndRoles();
@@ -207,10 +203,10 @@ export default function UserManagement() {
             style={{ padding: '8px 16px', background: roleFilter === 'all' ? '#6366f1' : '#f3f4f6', color: roleFilter === 'all' ? 'white' : '#6b7280', border: 'none', borderRadius: 8, fontWeight: 600, fontSize: 13, cursor: 'pointer', textTransform: 'capitalize', transition: '0.2s' }}>
             All Roles
           </button>
-          {dbRoles.map(r => (
-            <button key={r.id} onClick={() => setRoleFilter(r.name)}
-              style={{ padding: '8px 16px', background: roleFilter === r.name ? '#6366f1' : '#f3f4f6', color: roleFilter === r.name ? 'white' : '#6b7280', border: 'none', borderRadius: 8, fontWeight: 600, fontSize: 13, cursor: 'pointer', textTransform: 'capitalize', transition: '0.2s' }}>
-              {r.name}
+          {ROLES.map(r => (
+            <button key={r} onClick={() => setRoleFilter(r)}
+              style={{ padding: '8px 16px', background: roleFilter === r ? '#6366f1' : '#f3f4f6', color: roleFilter === r ? 'white' : '#6b7280', border: 'none', borderRadius: 8, fontWeight: 600, fontSize: 13, cursor: 'pointer', textTransform: 'capitalize', transition: '0.2s' }}>
+              {r}
             </button>
           ))}
         </div>
@@ -346,9 +342,9 @@ export default function UserManagement() {
 
                 <div>
                   <label style={lbl}>Role *</label>
-                  <select required value={form.role_id} onChange={e => setForm({ ...form, role_id: e.target.value })} style={inp}>
+                  <select required value={form.role} onChange={e => setForm({ ...form, role: e.target.value })} style={inp}>
                     <option value="">Select Role</option>
-                    {dbRoles.map(r => <option key={r.id} value={r.id} style={{ textTransform: 'capitalize' }}>{r.name}</option>)}
+                    {ROLES.map(r => <option key={r} value={r} style={{ textTransform: 'capitalize' }}>{r}</option>)}
                   </select>
                 </div>
 
