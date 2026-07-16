@@ -37,6 +37,7 @@ const getModulePermsFields = (moduleKey) => {
       { key: 'view',       lbl: 'View Page' },
       { key: 'add_leads',  lbl: 'Add Leads Tab' },
       { key: 'all_leads',  lbl: 'All Leads Tab' },
+      { key: 'my_leads',   lbl: 'My Leads Tab' },
       { key: 'create',     lbl: 'Create' },
       { key: 'edit',       lbl: 'Edit' },
       { key: 'delete',     lbl: 'Delete' }
@@ -47,6 +48,7 @@ const getModulePermsFields = (moduleKey) => {
       { key: 'view',        lbl: 'View Page' },
       { key: 'add_clients', lbl: 'Add Clients Tab' },
       { key: 'all_clients', lbl: 'All Clients Tab' },
+      { key: 'my_clients',  lbl: 'My Clients Tab' },
       { key: 'create',      lbl: 'Create' },
       { key: 'edit',        lbl: 'Edit' },
       { key: 'delete',      lbl: 'Delete' }
@@ -67,6 +69,7 @@ const getModulePermsFields = (moduleKey) => {
       { key: 'view',             lbl: 'View Page' },
       { key: 'add_transaction',  lbl: 'Add Transaction Tab' },
       { key: 'transactions_list', lbl: 'Transactions List Tab' },
+      { key: 'my_transactions',  lbl: 'My Transactions Tab' },
       { key: 'create',           lbl: 'Create' },
       { key: 'edit',             lbl: 'Edit' },
       { key: 'delete',           lbl: 'Delete' }
@@ -77,6 +80,7 @@ const getModulePermsFields = (moduleKey) => {
       { key: 'view',           lbl: 'View Page' },
       { key: 'create_invoice', lbl: 'Create Invoice Tab' },
       { key: 'all_invoices',   lbl: 'All Invoices Tab' },
+      { key: 'my_invoices',    lbl: 'My Invoices Tab' },
       { key: 'create',         lbl: 'Create' },
       { key: 'edit',           lbl: 'Edit' },
       { key: 'delete',         lbl: 'Delete' }
@@ -87,6 +91,7 @@ const getModulePermsFields = (moduleKey) => {
       { key: 'view',         lbl: 'View Page' },
       { key: 'create_quote', lbl: 'Create Quote Tab' },
       { key: 'all_quotes',   lbl: 'All Quotes Tab' },
+      { key: 'my_quotes',    lbl: 'My Quotes Tab' },
       { key: 'create',       lbl: 'Create' },
       { key: 'edit',         lbl: 'Edit' },
       { key: 'delete',       lbl: 'Delete' }

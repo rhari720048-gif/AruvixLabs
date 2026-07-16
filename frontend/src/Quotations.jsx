@@ -9,19 +9,24 @@ const Quotations = () => {
   const perms = getPerms('quotes');
   const hasAddTab = perms.create_quote ?? perms.canCreate;
   const hasAllTab = perms.all_quotes ?? perms.canView;
+  const hasMineTab = perms.my_quotes ?? perms.canView;
   const canCreate = perms.create ?? perms.canCreate;
   const canEdit = perms.edit ?? perms.canEdit;
   const canDelete = perms.delete ?? perms.canDelete;
 
   const [activeTab, setActiveTab] = useState(() => {
     if (hasAllTab) return 'all';
+    if (hasMineTab) return 'mine';
     if (hasAddTab) return 'add';
     return '';
   });
   const [quotations, setQuotations] = useState([]);
   const [clients, setClients] = useState([]);
+  const [currentUser, setCurrentUser] = useState('');
 
   useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user) setCurrentUser(user.name);
     fetchClients();
     fetchQuotations();
   }, []);
@@ -200,7 +205,7 @@ const Quotations = () => {
     </div>
   );
 
-  if (!hasAddTab && !hasAllTab) {
+  if (!hasAddTab && !hasAllTab && !hasMineTab) {
     return (
       <div style={{ textAlign: 'center', padding: '40px 20px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb' }}>
         <p style={{ margin: 0, fontSize: '15px', color: '#dc2626', fontWeight: '600' }}>Access Denied</p>
@@ -226,6 +231,14 @@ const Quotations = () => {
             style={{ padding: '12px 24px', background: activeTab === 'all' ? 'var(--primary)' : 'transparent', color: activeTab === 'all' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
           >
             <List size={18} /> All Quotations
+          </button>
+        )}
+        {hasMineTab && (
+          <button 
+            onClick={() => setActiveTab('mine')}
+            style={{ padding: '12px 24px', background: activeTab === 'mine' ? 'var(--primary)' : 'transparent', color: activeTab === 'mine' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
+          >
+            <FileText size={18} /> My Quotations
           </button>
         )}
       </div>
@@ -306,6 +319,13 @@ const Quotations = () => {
           <div>
             <h2 style={{ marginBottom: '20px', color: 'var(--text-dark)' }}>All Quotations ({quotations.length})</h2>
             {renderTable(quotations)}
+          </div>
+        )}
+        
+        {activeTab === 'mine' && hasMineTab && (
+          <div>
+            <h2 style={{ marginBottom: '20px', color: 'var(--text-dark)' }}>My Quotations</h2>
+            {renderTable(quotations.filter(q => q.assigned_to === currentUser || q.created_by === currentUser))}
           </div>
         )}
       </div>

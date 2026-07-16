@@ -9,12 +9,14 @@ const Accounting = () => {
   const perms = getPerms('accounting');
   const hasAddTab = perms.add_transaction ?? perms.canCreate;
   const hasListTab = perms.transactions_list ?? perms.canView;
+  const hasMineTab = perms.my_transactions ?? perms.canView;
   const canCreate = perms.create ?? perms.canCreate;
   const canEdit = perms.edit ?? perms.canEdit;
   const canDelete = perms.delete ?? perms.canDelete;
 
   const [activeTab, setActiveTab] = useState(() => {
     if (hasListTab) return 'all';
+    if (hasMineTab) return 'mine';
     if (hasAddTab) return 'add';
     return '';
   });
@@ -196,20 +198,20 @@ const Accounting = () => {
           </button>
         )}
         {hasListTab && (
-          <>
-            <button 
-              onClick={() => setActiveTab('all')}
-              style={{ padding: '12px 24px', background: activeTab === 'all' ? 'var(--primary)' : 'transparent', color: activeTab === 'all' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
-            >
-              <List size={18} /> All Transactions
-            </button>
-            <button 
-              onClick={() => setActiveTab('mine')}
-              style={{ padding: '12px 24px', background: activeTab === 'mine' ? 'var(--primary)' : 'transparent', color: activeTab === 'mine' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
-            >
-              <UserCheck size={18} /> Assigned to me
-            </button>
-          </>
+          <button 
+            onClick={() => setActiveTab('all')}
+            style={{ padding: '12px 24px', background: activeTab === 'all' ? 'var(--primary)' : 'transparent', color: activeTab === 'all' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
+          >
+            <List size={18} /> All Transactions
+          </button>
+        )}
+        {hasMineTab && (
+          <button 
+            onClick={() => setActiveTab('mine')}
+            style={{ padding: '12px 24px', background: activeTab === 'mine' ? 'var(--primary)' : 'transparent', color: activeTab === 'mine' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
+          >
+            <UserCheck size={18} /> Assigned to me
+          </button>
         )}
       </div>
 
@@ -280,9 +282,11 @@ const Accounting = () => {
           </div>
         )}
 
-        {activeTab === 'mine' && hasListTab && (
+        {activeTab === 'mine' && hasMineTab && (
           <div>
-            <h2 style={{ marginBottom: '20px', color: 'var(--text-dark)' }}>My Assigments ({transactions.filter(t => t.assignedTo === currentUser || t.assignedTo === 'Everyone').length})</h2>
+            <h2 style={{ marginBottom: '20px', color: 'var(--text-dark)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <UserCheck size={24} color="var(--primary)" /> My Assigned Transactions
+            </h2>
             {renderTable(transactions.filter(t => t.assignedTo === currentUser || t.assignedTo === 'Everyone'))}
           </div>
         )}

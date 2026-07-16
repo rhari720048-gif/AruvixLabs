@@ -155,19 +155,24 @@ const Invoices = () => {
   const perms = getPerms('invoices');
   const hasAddTab = perms.create_invoice ?? perms.canCreate;
   const hasAllTab = perms.all_invoices ?? perms.canView;
+  const hasMineTab = perms.my_invoices ?? perms.canView;
   const canCreate = perms.create ?? perms.canCreate;
   const canEdit = perms.edit ?? perms.canEdit;
   const canDelete = perms.delete ?? perms.canDelete;
 
   const [activeTab, setActiveTab] = useState(() => {
     if (hasAllTab) return 'all';
+    if (hasMineTab) return 'mine';
     if (hasAddTab) return 'add';
     return '';
   });
   const [invoices, setInvoices] = useState([]);
   const [clients, setClients] = useState([]);
+  const [currentUser, setCurrentUser] = useState('');
 
   useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user) setCurrentUser(user.name);
     fetchClients();
     fetchInvoices();
   }, []);
@@ -367,6 +372,14 @@ const Invoices = () => {
             <List size={18} /> All Invoices
           </button>
         )}
+        {hasMineTab && (
+          <button 
+            onClick={() => setActiveTab('mine')}
+            style={{ padding: '12px 24px', background: activeTab === 'mine' ? 'var(--primary)' : 'transparent', color: activeTab === 'mine' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
+          >
+            <FileText size={18} /> My Invoices
+          </button>
+        )}
       </div>
 
       <div className="page-content">
@@ -453,6 +466,13 @@ const Invoices = () => {
           <div>
             <h2 style={{ marginBottom: '20px', color: 'var(--text-dark)' }}>All Invoices ({invoices.length})</h2>
             {renderTable(invoices)}
+          </div>
+        )}
+
+        {activeTab === 'mine' && hasMineTab && (
+          <div>
+            <h2 style={{ marginBottom: '20px', color: 'var(--text-dark)' }}>My Invoices</h2>
+            {renderTable(invoices.filter(i => i.created_by === currentUser))}
           </div>
         )}
       </div>

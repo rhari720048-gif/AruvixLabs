@@ -10,12 +10,14 @@ const Clients = () => {
   const perms = getPerms('clients');
   const hasAddTab = perms.add_clients ?? perms.canCreate;
   const hasAllTab = perms.all_clients ?? perms.canView;
+  const hasMineTab = perms.my_clients ?? perms.canView;
   const canCreate = perms.create ?? perms.canCreate;
   const canEdit = perms.edit ?? perms.canEdit;
   const canDelete = perms.delete ?? perms.canDelete;
 
   const [activeTab, setActiveTab] = useState(() => {
     if (hasAllTab) return 'all';
+    if (hasMineTab) return 'mine';
     if (hasAddTab) return 'add';
     return '';
   });
@@ -23,8 +25,11 @@ const Clients = () => {
   const [form, setForm] = useState({ name: '', phone: '', email: '', district: '', source: 'Manual Entry' });
   const [successMessage, setSuccessMessage] = useState('');
   const [viewClient, setViewClient] = useState(null);
+  const [currentUser, setCurrentUser] = useState('');
 
   useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user) setCurrentUser(user.name);
     fetchClients();
   }, []);
 
@@ -197,7 +202,7 @@ const Clients = () => {
     </div>
   );
 
-  if (!hasAddTab && !hasAllTab) {
+  if (!hasAddTab && !hasAllTab && !hasMineTab) {
     return (
       <div style={{ textAlign: 'center', padding: '40px 20px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb' }}>
         <p style={{ margin: 0, fontSize: '15px', color: '#dc2626', fontWeight: '600' }}>Access Denied</p>
@@ -225,7 +230,15 @@ const Clients = () => {
             <List size={18} /> All Clients
           </button>
         )}
-        {activeTab === 'all' && hasAllTab && (
+        {hasMineTab && (
+          <button 
+            onClick={() => setActiveTab('mine')}
+            style={{ padding: '12px 24px', background: activeTab === 'mine' ? 'var(--primary)' : 'transparent', color: activeTab === 'mine' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
+          >
+            <Users size={18} /> My Clients
+          </button>
+        )}
+        {(activeTab === 'all' || activeTab === 'mine') && (
           <button 
             onClick={exportCSV}
             style={{ marginLeft: 'auto', padding: '12px 24px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
@@ -295,6 +308,13 @@ const Clients = () => {
           <div>
             <h2 style={{ marginBottom: '20px', color: 'var(--text-dark)' }}>All Clients ({clients.length})</h2>
             {renderTable(clients)}
+          </div>
+        )}
+
+        {activeTab === 'mine' && hasMineTab && (
+          <div>
+            <h2 style={{ marginBottom: '20px', color: 'var(--text-dark)' }}>My Clients ({clients.filter(c => c.assignedTo === currentUser).length})</h2>
+            {renderTable(clients.filter(c => c.assignedTo === currentUser))}
           </div>
         )}
       </div>

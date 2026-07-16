@@ -11,19 +11,24 @@ const AdminLeads = () => {
   const perms = getPerms('leads');
   const hasAddTab = perms.add_leads ?? perms.canCreate;
   const hasAllTab = perms.all_leads ?? perms.canView;
+  const hasMineTab = perms.my_leads ?? perms.canView;
   const canCreate = perms.create ?? perms.canCreate;
   const canDelete = perms.delete ?? perms.canDelete;
   const canEdit = perms.edit ?? perms.canEdit;
 
   const [activePage, setActivePage] = useState(() => {
     if (hasAllTab) return 'all';
+    if (hasMineTab) return 'mine';
     if (hasAddTab) return 'add';
     return '';
   });
   const [leads, setLeads] = useState([]);
   const navigate = useNavigate();
+  const [currentUser, setCurrentUser] = useState('');
 
   useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user) setCurrentUser(user.name);
     fetchLeads();
   }, []);
 
@@ -224,6 +229,27 @@ const AdminLeads = () => {
             <Users size={18} /> All Leads
           </button>
         )}
+        {hasMineTab && (
+          <button 
+            onClick={() => setActivePage('mine')}
+            style={{
+              padding: '12px 24px', 
+              background: activePage === 'mine' ? 'var(--primary)' : 'transparent', 
+              color: activePage === 'mine' ? 'white' : '#4b5563', 
+              border: 'none', 
+              borderRadius: '8px',
+              fontSize: '15px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: '0.2s'
+            }}
+          >
+            <Users size={18} /> My Leads
+          </button>
+        )}
       </div>
 
       <div className="page-content">
@@ -232,6 +258,14 @@ const AdminLeads = () => {
         ) : activePage === 'all' && hasAllTab ? (
           <AllLeads 
             leads={leads} 
+            handleConvert={handleConvert} 
+            handleDelete={canDelete ? handleDelete : null}
+            handleBulkDelete={canDelete ? handleBulkDelete : null}
+            handleEdit={canEdit ? handleEdit : null}
+          />
+        ) : activePage === 'mine' && hasMineTab ? (
+          <AllLeads 
+            leads={leads.filter(l => l.assignedTo === currentUser)} 
             handleConvert={handleConvert} 
             handleDelete={canDelete ? handleDelete : null}
             handleBulkDelete={canDelete ? handleBulkDelete : null}
