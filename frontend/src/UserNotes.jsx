@@ -232,6 +232,8 @@ const UserNotes = () => {
           </div>
         )}
       </div>
+      </>
+      )}
 
       {/* Editor Modal */}
       {activeNote && (
