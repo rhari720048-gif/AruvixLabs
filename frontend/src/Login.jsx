@@ -19,10 +19,21 @@ const Login = ({ setAuth }) => {
       
       const data = await response.json();
       if (response.ok) {
+        const userRole = (data.user.role || data.role || 'employee').toLowerCase();
+        const userPerms = data.user.permissions || {};
+
         localStorage.setItem('token', data.token);
-        localStorage.setItem('role', data.user.role || data.role);
-        localStorage.setItem('permissions', JSON.stringify(data.user.permissions || {}));
-        localStorage.setItem('user_name', data.user.name || data.name);
+        localStorage.setItem('role', userRole);
+        localStorage.setItem('permissions', JSON.stringify(userPerms));
+        localStorage.setItem('user_name', data.user.name || data.name || '');
+        // Save full user object so pages can access user.id, user.name etc.
+        localStorage.setItem('user', JSON.stringify({
+          id:          data.user.id,
+          name:        data.user.name,
+          role:        userRole,
+          permissions: userPerms,
+        }));
+
         setAuth(true);
         window.location.href = '/';
       } else {

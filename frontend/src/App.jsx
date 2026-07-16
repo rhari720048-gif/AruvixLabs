@@ -354,6 +354,28 @@ function App() {
     const token = localStorage.getItem('token');
     if (token) {
       setIsAuthenticated(true);
+      // Refresh permissions from server every time the app loads
+      // This ensures admin's permission changes apply immediately
+      fetch('https://aruvixlabs.onrender.com/api/auth/me', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data) {
+          const userRole = (data.role || 'employee').toLowerCase();
+          const userPerms = data.permissions || {};
+          localStorage.setItem('role', userRole);
+          localStorage.setItem('permissions', JSON.stringify(userPerms));
+          localStorage.setItem('user_name', data.name || '');
+          localStorage.setItem('user', JSON.stringify({
+            id: data.id,
+            name: data.name,
+            role: userRole,
+            permissions: userPerms,
+          }));
+        }
+      })
+      .catch(() => {}); // silently fail if offline
     }
   }, []);
 

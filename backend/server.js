@@ -59,6 +59,23 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
+// Fetch current logged-in user's fresh data (for permission refresh)
+app.get('/api/auth/me', authenticate, async (req, res) => {
+    try {
+        const [rows] = await pool.query('SELECT id, name, email, role, permissions FROM users WHERE id = ?', [req.user.id]);
+        if (!rows[0]) return res.status(404).json({ error: 'User not found' });
+        const user = rows[0];
+        let permissions = {};
+        if (user.permissions) {
+            try { permissions = typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions; } catch(e){}
+        }
+        res.json({ id: user.id, name: user.name, email: user.email, role: user.role, permissions });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
 app.get('/api/customers', authenticate, async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM customers ORDER BY created_at DESC');
