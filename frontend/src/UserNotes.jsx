@@ -1,34 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, X, Check, Search, Trash2 } from 'lucide-react';
+import { Plus, X, Check, Search, Trash2, FileText, Users, Edit3, User } from 'lucide-react';
 import { getPerms } from './permissions';
 
 const colors = ['#ffffff', '#f28b82', '#fbbc04', '#fff475', '#ccff90', '#a7ffeb', '#cbf0f8', '#aecbfa', '#d7aefb', '#e6c9a8'];
 const API = 'https://aruvixlabs.onrender.com/api';
 
 const UserNotes = () => {
-  const perms = getPerms('notes');
-  const canCreate = perms.create_note ?? perms.canCreate;
-  const canEdit = perms.edit ?? perms.canEdit;
-  const canDelete = perms.delete ?? perms.canDelete;
+  const perms = getPerms('user_notes');
+  const canAddTab = perms.add_notes;
+  const canAllTab = perms.all_notes;
+  const canMyTab = perms.my_notes;
+  
+  const canCreate = perms.create;
+  const canEdit = perms.edit;
+  const canDelete = perms.delete;
+
+  const [activeTab, setActiveTab] = useState(
+    canMyTab ? 'my_notes' : (canAllTab ? 'all_notes' : (canAddTab ? 'add_notes' : ''))
+  );
 
   const [notes, setNotes] = useState([]);
   const [search, setSearch] = useState('');
-  
-  const [activeNote, setActiveNote] = useState(null); // null means no active note open for editing/creating
+  const [activeNote, setActiveNote] = useState(null); 
+  const [newNoteForm, setNewNoteForm] = useState({ title: '', content: '', color: '#ffffff' });
 
   useEffect(() => {
-    fetchNotes();
-  }, []);
+    if (activeTab === 'my_notes' || activeTab === 'all_notes') {
+      fetchNotes(activeTab);
+    }
+  }, [activeTab]);
 
-  const fetchNotes = async () => {
+  const fetchNotes = async (tab) => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${API}/notes`, {
+      const endpoint = tab === 'all_notes' ? `${API}/notes/all` : `${API}/notes`;
+      const res = await fetch(endpoint, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
         const data = await res.json();
-        // format date from created_at
         const formatted = data.map(n => ({
           ...n,
           date: new Date(n.created_at).toLocaleString()
@@ -38,43 +48,40 @@ const UserNotes = () => {
     } catch (e) { console.error(e); }
   };
 
-  const handleCreate = () => {
-    setActiveNote({ id: 'new', title: '', content: '', color: '#ffffff', date: new Date().toLocaleString() });
+  const handleCreateSubmit = async () => {
+    if (!newNoteForm.title.trim() && !newNoteForm.content.trim()) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      await fetch(`${API}/notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(newNoteForm)
+      });
+      setNewNoteForm({ title: '', content: '', color: '#ffffff' });
+      alert('Note saved successfully!');
+      if (canMyTab) setActiveTab('my_notes');
+    } catch (e) { console.error(e); }
   };
 
-  const handleSave = async () => {
+  const handleSaveEdit = async () => {
     if (!activeNote.title.trim() && !activeNote.content.trim()) {
       setActiveNote(null);
       return;
     }
-    
     try {
       const token = localStorage.getItem('token');
-      if (activeNote.id === 'new') {
-        // Create new
-        await fetch(`${API}/notes`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({
-            title: activeNote.title,
-            content: activeNote.content,
-            color: activeNote.color
-          })
-        });
-      } else {
-        // Update existing
-        await fetch(`${API}/notes/${activeNote.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({
-            title: activeNote.title,
-            content: activeNote.content,
-            color: activeNote.color
-          })
-        });
-      }
+      await fetch(`${API}/notes/${activeNote.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          title: activeNote.title,
+          content: activeNote.content,
+          color: activeNote.color
+        })
+      });
       setActiveNote(null);
-      fetchNotes();
+      fetchNotes(activeTab);
     } catch (e) { console.error(e); }
   };
 
@@ -87,7 +94,7 @@ const UserNotes = () => {
           method: 'DELETE',
           headers: { Authorization: `Bearer ${token}` }
         });
-        fetchNotes();
+        fetchNotes(activeTab);
         if (activeNote && activeNote.id === id) setActiveNote(null);
       } catch (e) { console.error(e); }
     }
@@ -95,59 +102,117 @@ const UserNotes = () => {
 
   const filteredNotes = notes.filter(n => 
     (n.title && n.title.toLowerCase().includes(search.toLowerCase())) || 
-    (n.content && n.content.toLowerCase().includes(search.toLowerCase()))
+    (n.content && n.content.toLowerCase().includes(search.toLowerCase())) ||
+    (n.user_name && n.user_name.toLowerCase().includes(search.toLowerCase()))
   );
 
   return (
-    <div className="user-notes-page" style={{ height: 'calc(100vh - 140px)', display: 'flex', flexDirection: 'column' }}>
+    <div className="user-notes-page" style={{ height: 'calc(100vh - 140px)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
       
-      {/* Header Bar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <div style={{ position: 'relative', width: '300px' }}>
-          <Search size={18} color="#6b7280" style={{ position: 'absolute', left: '12px', top: '10px' }} />
-          <input 
-            type="text" 
-            placeholder="Search notes..." 
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{ width: '100%', padding: '10px 10px 10px 38px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }}
-          />
-        </div>
-        {canCreate && (
-          <button 
-            onClick={handleCreate} 
-            style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
-          >
-            <Plus size={18} /> Take a note
+      {/* Tabs */}
+      <div style={{ display: 'flex', gap: '10px', background: '#f3f4f6', padding: '6px', borderRadius: '10px', width: 'fit-content' }}>
+        {canMyTab && (
+          <button onClick={() => setActiveTab('my_notes')}
+            style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 18px', background: activeTab === 'my_notes' ? 'white' : 'transparent', color: activeTab === 'my_notes' ? '#6366f1' : '#6b7280', border: 'none', borderRadius: '8px', fontWeight: activeTab === 'my_notes' ? '700' : '500', fontSize: '14px', cursor: 'pointer', boxShadow: activeTab === 'my_notes' ? '0 2px 8px rgba(0,0,0,0.08)' : 'none', transition: '0.2s' }}>
+            <FileText size={16} /> My Notes
+          </button>
+        )}
+        {canAllTab && (
+          <button onClick={() => setActiveTab('all_notes')}
+            style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 18px', background: activeTab === 'all_notes' ? 'white' : 'transparent', color: activeTab === 'all_notes' ? '#6366f1' : '#6b7280', border: 'none', borderRadius: '8px', fontWeight: activeTab === 'all_notes' ? '700' : '500', fontSize: '14px', cursor: 'pointer', boxShadow: activeTab === 'all_notes' ? '0 2px 8px rgba(0,0,0,0.08)' : 'none', transition: '0.2s' }}>
+            <Users size={16} /> All Notes
+          </button>
+        )}
+        {canAddTab && canCreate && (
+          <button onClick={() => setActiveTab('add_notes')}
+            style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 18px', background: activeTab === 'add_notes' ? '#6366f1' : 'transparent', color: activeTab === 'add_notes' ? 'white' : '#6b7280', border: 'none', borderRadius: '8px', fontWeight: activeTab === 'add_notes' ? '700' : '500', fontSize: '14px', cursor: 'pointer', boxShadow: activeTab === 'add_notes' ? '0 2px 8px rgba(99,102,241,0.3)' : 'none', transition: '0.2s' }}>
+            <Edit3 size={16} /> Add Notes
           </button>
         )}
       </div>
 
-      {/* Notes Grid */}
-      <div style={{ flex: 1, overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px', alignContent: 'start', paddingBottom: '20px' }}>
-        {filteredNotes.map(note => (
-          <div 
-            key={note.id} 
-            onClick={() => {
-              if (canEdit) setActiveNote(note);
-            }}
-            style={{ 
-              background: note.color, 
-              padding: '20px', 
-              borderRadius: '12px', 
-              border: note.color === '#ffffff' ? '1px solid #e5e7eb' : `1px solid ${note.color}`, 
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-              cursor: 'pointer',
-              display: 'flex',
-              flexDirection: 'column',
-              minHeight: '150px',
-              position: 'relative',
-              transition: 'transform 0.2s, box-shadow 0.2s'
-            }}
-            onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)'}
-            onMouseLeave={e => e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)'}
-          >
-            <h3 style={{ fontSize: '16px', color: '#1f2937', marginBottom: '10px', wordBreak: 'break-word' }}>{note.title || 'Untitled'}</h3>
+      {activeTab === 'add_notes' && canAddTab && canCreate && (
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '20px' }}>
+          <div style={{ background: newNoteForm.color, width: '100%', maxWidth: '700px', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', overflow: 'hidden', border: newNoteForm.color === '#ffffff' ? '1px solid #e5e7eb' : 'none', transition: '0.3s' }}>
+            <div style={{ padding: '30px', paddingBottom: '10px' }}>
+              <input 
+                type="text" 
+                placeholder="Title" 
+                value={newNoteForm.title} 
+                onChange={e => setNewNoteForm({...newNoteForm, title: e.target.value})} 
+                style={{ width: '100%', border: 'none', background: 'transparent', fontSize: '24px', fontWeight: '700', color: '#1f2937', outline: 'none', marginBottom: '20px' }}
+                autoFocus
+              />
+              <textarea 
+                placeholder="Take a note..." 
+                value={newNoteForm.content} 
+                onChange={e => setNewNoteForm({...newNoteForm, content: e.target.value})} 
+                style={{ width: '100%', border: 'none', background: 'transparent', fontSize: '16px', color: '#374151', outline: 'none', minHeight: '300px', resize: 'vertical', lineHeight: '1.6' }}
+              ></textarea>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 30px', borderTop: '1px solid rgba(0,0,0,0.05)', background: 'rgba(255,255,255,0.4)' }}>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {colors.map(c => (
+                  <div 
+                    key={c} 
+                    onClick={() => setNewNoteForm({...newNoteForm, color: c})}
+                    style={{ width: '28px', height: '28px', borderRadius: '50%', background: c, cursor: 'pointer', border: newNoteForm.color === c ? '2px solid #4b5563' : '1px solid #d1d5db', transition: '0.2s', transform: newNoteForm.color === c ? 'scale(1.1)' : 'scale(1)' }}
+                    title="Change Color"
+                  ></div>
+                ))}
+              </div>
+              <button onClick={handleCreateSubmit} style={{ background: '#1f2937', color: 'white', border: 'none', padding: '10px 28px', fontWeight: '600', cursor: 'pointer', borderRadius: '8px', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Check size={16} /> Save Note
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {(activeTab === 'my_notes' || activeTab === 'all_notes') && (
+        <>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ position: 'relative', width: '320px' }}>
+              <Search size={18} color="#9ca3af" style={{ position: 'absolute', left: '12px', top: '10px' }} />
+              <input 
+                type="text" 
+                placeholder="Search notes..." 
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                style={{ width: '100%', padding: '10px 10px 10px 38px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none', fontSize: '14px' }}
+              />
+            </div>
+          </div>
+
+          <div style={{ flex: 1, overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '20px', alignContent: 'start', paddingBottom: '20px' }}>
+            {filteredNotes.map(note => (
+              <div 
+                key={note.id} 
+                onClick={() => {
+                  if (canEdit && (activeTab === 'my_notes' || canEdit)) setActiveNote(note);
+                }}
+                style={{ 
+                  background: note.color, 
+                  padding: '20px', 
+                  borderRadius: '12px', 
+                  border: note.color === '#ffffff' ? '1px solid #e5e7eb' : `1px solid ${note.color}`, 
+                  boxShadow: '0 2px 5px rgba(0,0,0,0.05)',
+                  cursor: canEdit ? 'pointer' : 'default',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  minHeight: '160px',
+                  position: 'relative',
+                  transition: 'transform 0.2s, box-shadow 0.2s'
+                }}
+                onMouseEnter={e => { if(canEdit) e.currentTarget.style.boxShadow = '0 6px 12px rgba(0,0,0,0.08)' }}
+                onMouseLeave={e => { if(canEdit) e.currentTarget.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)' }}
+              >
+                {activeTab === 'all_notes' && (
+                  <div style={{ fontSize: '11px', fontWeight: '700', color: '#6366f1', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <User size={12} /> {note.user_name || 'User'}
+                  </div>
+                )}
+                <h3 style={{ fontSize: '16px', color: '#1f2937', marginBottom: '10px', wordBreak: 'break-word', fontWeight: '700' }}>{note.title || 'Untitled'}</h3>
             <p style={{ fontSize: '14px', color: '#4b5563', whiteSpace: 'pre-wrap', wordBreak: 'break-word', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 6, WebkitBoxOrient: 'vertical' }}>
               {note.content}
             </p>

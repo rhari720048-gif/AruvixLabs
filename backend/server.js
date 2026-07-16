@@ -754,6 +754,18 @@ app.delete('/api/tasks/:id', authenticate, async (req, res) => {
 });
 
 // ── User Notes API ─────────────────────────────────────────────────────
+app.get('/api/notes/all', authenticate, async (req, res) => {
+    try {
+        const [rows] = await pool.query(`
+            SELECT user_notes.*, users.name as user_name 
+            FROM user_notes 
+            LEFT JOIN users ON user_notes.user_id = users.id 
+            ORDER BY user_notes.created_at DESC
+        `);
+        res.json(rows);
+    } catch (error) { res.status(500).json({ error: error.message }); }
+});
+
 app.get('/api/notes', authenticate, async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM user_notes WHERE user_id = ? ORDER BY created_at DESC', [req.user.id]);
