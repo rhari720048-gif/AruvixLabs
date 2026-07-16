@@ -10,7 +10,15 @@ const decodeToken = (token) => {
 
 export default function Header() {
   const token = localStorage.getItem('token');
-  const user = decodeToken(token) || { name: 'User', role: 'employee' };
+  const tokenUser = decodeToken(token) || { role: 'employee' };
+  
+  let storedUser = {};
+  try { storedUser = JSON.parse(localStorage.getItem('user') || '{}'); } catch(e){}
+  
+  const user = {
+    name: storedUser.name || localStorage.getItem('user_name') || 'User',
+    role: tokenUser.role || storedUser.role || 'employee'
+  };
   
   const [attStatus, setAttStatus] = useState('not_checked_in'); // not_checked_in, checked_in, pass_pending, on_pass, checked_out
   const [pendingPasses, setPendingPasses] = useState([]);

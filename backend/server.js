@@ -52,7 +52,7 @@ app.post('/api/auth/login', async (req, res) => {
             try { permissions = typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions; } catch(e){}
         }
 
-        const token = jwt.sign({ id: user.id, role: user.role, permissions }, process.env.JWT_SECRET, { expiresIn: '8h' });
+        const token = jwt.sign({ id: user.id, name: user.name, role: user.role, permissions }, process.env.JWT_SECRET, { expiresIn: '8h' });
         res.json({ token, user: { id: user.id, name: user.name, role: user.role, permissions } });
     } catch (error) {
         res.status(500).json({ error: error.message });
