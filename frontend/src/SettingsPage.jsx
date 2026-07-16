@@ -524,8 +524,10 @@ const SettingsPage = () => {
                         const loadedPerms = roleObj.permissions
                           ? (typeof roleObj.permissions === 'string' ? JSON.parse(roleObj.permissions) : roleObj.permissions)
                           : {};
-                        const merged = { ...defaultPerms };
-                        Object.keys(loadedPerms).forEach(k => { merged[k] = loadedPerms[k]; });
+                        const merged = {};
+                        allModuleKeys.forEach(k => {
+                          merged[k] = { ...(defaultPerms[k] || {}), ...(loadedPerms[k] || {}) };
+                        });
                         setRolePermissions(merged);
                       } else {
                         setSelectedRole(null);
@@ -802,8 +804,10 @@ const SettingsPage = () => {
                                         setEditUserForm({ name: u.name, email: u.email, phone: u.phone || '', role: u.role || 'employee', password: '', status: u.status || 'Active' });
                                         
                                         const loaded = u.permissions || {};
-                                        const merged = { ...defaultPerms };
-                                        Object.keys(loaded).forEach(k => { merged[k] = loaded[k]; });
+                                        const merged = {};
+                                        allModuleKeys.forEach(k => {
+                                          merged[k] = { ...(defaultPerms[k] || {}), ...(loaded[k] || {}) };
+                                        });
                                         setEditUserPermissions(merged);
                                         setShowEditModal(true);
                                       }}
@@ -997,8 +1001,10 @@ const SettingsPage = () => {
                               const rPerms = roleObj.permissions
                                 ? (typeof roleObj.permissions === 'string' ? JSON.parse(roleObj.permissions) : roleObj.permissions)
                                 : {};
-                              const merged = { ...defaultPerms };
-                              Object.keys(rPerms).forEach(k => { merged[k] = rPerms[k]; });
+                              const merged = {};
+                              allModuleKeys.forEach(k => {
+                                merged[k] = { ...(defaultPerms[k] || {}), ...(rPerms[k] || {}) };
+                              });
                               setEditUserPermissions(merged);
                             }
                           }}
