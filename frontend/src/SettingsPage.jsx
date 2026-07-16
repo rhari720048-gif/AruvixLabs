@@ -8,9 +8,71 @@ const SettingsPage = () => {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   
-  const modules = ['dashboard', 'profile', 'mail', 'projects', 'tasks', 'files', 'calendar', 'meetings', 'accounting', 'invoices', 'quotes', 'leads', 'clients', 'staff_attendance', 'my_attendance', 'user_notes', 'user_management', 'leaves', 'client_reports', 'team_chat', 'support', 'settings'];
+  // ── Grouped module definitions ──────────────────────────────────────────
+  const moduleGroups = [
+    {
+      groupLabel: '📊 General',
+      color: '#6366f1',
+      modules: [
+        { key: 'dashboard',       label: 'Dashboard'        },
+        { key: 'profile',         label: 'My Profile'       },
+        { key: 'mail',            label: 'Mail Box'         },
+        { key: 'user_notes',      label: 'User Notes'       },
+        { key: 'settings',        label: 'Settings'         },
+      ]
+    },
+    {
+      groupLabel: '👥 CRM',
+      color: '#0ea5e9',
+      modules: [
+        { key: 'leads',           label: 'Leads'            },
+        { key: 'clients',         label: 'Clients'          },
+        { key: 'client_reports',  label: 'Client Reports'   },
+      ]
+    },
+    {
+      groupLabel: '🗂️ Work Management',
+      color: '#8b5cf6',
+      modules: [
+        { key: 'projects',        label: 'Projects'         },
+        { key: 'tasks',           label: 'Tasks'            },
+        { key: 'meetings',        label: 'Meetings'         },
+        { key: 'calendar',        label: 'Calendar'         },
+        { key: 'files',           label: 'File Manager'     },
+      ]
+    },
+    {
+      groupLabel: '💰 Finance',
+      color: '#10b981',
+      modules: [
+        { key: 'accounting',      label: 'Accounting'       },
+        { key: 'invoices',        label: 'Invoices'         },
+        { key: 'quotes',          label: 'Quotations'       },
+      ]
+    },
+    {
+      groupLabel: '👔 HR & Attendance',
+      color: '#f59e0b',
+      modules: [
+        { key: 'staff_attendance',label: 'Staff Attendance' },
+        { key: 'my_attendance',   label: 'My Attendance'    },
+        { key: 'leaves',          label: 'Leave Management' },
+        { key: 'user_management', label: 'User Management'  },
+      ]
+    },
+    {
+      groupLabel: '💬 Communication',
+      color: '#ef4444',
+      modules: [
+        { key: 'team_chat',       label: 'Team Chat'        },
+        { key: 'support',         label: 'Support Tickets'  },
+      ]
+    },
+  ];
+
+  const allModuleKeys = moduleGroups.flatMap(g => g.modules.map(m => m.key));
   const defaultPerms = {};
-  modules.forEach(m => defaultPerms[m] = { view: false, create: false, edit: false, delete: false });
+  allModuleKeys.forEach(m => defaultPerms[m] = { view: false, create: false, edit: false, delete: false });
   const [userPermissions, setUserPermissions] = useState(defaultPerms);
 
   useEffect(() => {
@@ -52,7 +114,7 @@ const SettingsPage = () => {
   };
 
   const handleUserPermsSubmit = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     if (!selectedUser) return;
     try {
       const res = await fetch(`https://aruvixlabs.onrender.com/api/users/${selectedUser.id}/permissions`, {
@@ -205,73 +267,186 @@ const SettingsPage = () => {
         )}
 
         {activeTab === 'permissions' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
-            <div style={{ background: 'white', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb' }}>
-              <h2 style={{ marginBottom: '20px', color: '#1f2937' }}>Select User</h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxHeight: '500px', overflowY: 'auto' }}>
-                {users.map(user => (
-                  <div 
-                    key={user.id} 
-                    onClick={() => {
-                      setSelectedUser(user);
-                      setUserPermissions(user.permissions ? (typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions) : defaultPerms);
-                    }}
-                    style={{ padding: '15px', border: selectedUser?.id === user.id ? '2px solid var(--primary)' : '1px solid #e5e7eb', borderRadius: '8px', background: selectedUser?.id === user.id ? '#eef2ff' : '#f9fafb', cursor: 'pointer', transition: '0.2s' }}
-                  >
-                    <div style={{ fontWeight: '600', color: '#1f2937' }}>{user.name}</div>
-                    <div style={{ fontSize: '12px', color: '#6b7280' }}>{user.email} &bull; {user.role}</div>
-                  </div>
-                ))}
+          <div>
+            {/* ── User Selector Bar ── */}
+            <div style={{ background: 'white', padding: '18px 24px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: '1px solid #e5e7eb', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+                <Shield size={20} color="#6366f1" />
+                <span style={{ fontWeight: '700', fontSize: '16px', color: '#1f2937' }}>User Permissions</span>
+                <span style={{ fontSize: '12px', color: '#6b7280', background: '#f3f4f6', padding: '2px 10px', borderRadius: '20px', marginLeft: '4px' }}>
+                  {allModuleKeys.length} modules
+                </span>
               </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <label style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>Select User:</label>
+                <select
+                  value={selectedUser?.id || ''}
+                  onChange={e => {
+                    const user = users.find(u => String(u.id) === e.target.value);
+                    if (user) {
+                      setSelectedUser(user);
+                      const loadedPerms = user.permissions
+                        ? (typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions)
+                        : {};
+                      // Merge with defaultPerms so every module key exists
+                      const merged = { ...defaultPerms };
+                      Object.keys(loadedPerms).forEach(k => { merged[k] = loadedPerms[k]; });
+                      setUserPermissions(merged);
+                    } else {
+                      setSelectedUser(null);
+                      setUserPermissions(defaultPerms);
+                    }
+                  }}
+                  style={{ padding: '9px 14px', borderRadius: '8px', border: '1.5px solid #d1d5db', fontSize: '14px', color: '#1f2937', background: 'white', minWidth: '240px', outline: 'none', cursor: 'pointer' }}
+                >
+                  <option value="">— Select a user —</option>
+                  {users.map(u => (
+                    <option key={u.id} value={u.id}>{u.name}  [{u.role}]</option>
+                  ))}
+                </select>
+              </div>
+              {selectedUser && (
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  {/* Grant All button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const all = {};
+                      allModuleKeys.forEach(k => all[k] = { view: true, create: true, edit: true, delete: true });
+                      setUserPermissions(all);
+                    }}
+                    style={{ padding: '9px 16px', background: '#d1fae5', color: '#065f46', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '13px', cursor: 'pointer' }}
+                  >
+                    ✓ Grant All
+                  </button>
+                  {/* Clear All button */}
+                  <button
+                    type="button"
+                    onClick={() => setUserPermissions({ ...defaultPerms })}
+                    style={{ padding: '9px 16px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '13px', cursor: 'pointer' }}
+                  >
+                    ✕ Clear All
+                  </button>
+                  {/* Save button */}
+                  <button
+                    onClick={handleUserPermsSubmit}
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 20px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '14px', cursor: 'pointer', boxShadow: '0 2px 8px rgba(99,102,241,0.3)' }}
+                  >
+                    <CheckCircle size={15} /> Save
+                  </button>
+                </div>
+              )}
             </div>
-            
-            <div style={{ background: 'white', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb' }}>
-              {selectedUser ? (
-                <>
-                  <h2 style={{ marginBottom: '20px', color: '#1f2937' }}>Permissions for {selectedUser.name}</h2>
-                  <form onSubmit={handleUserPermsSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    <div>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '15px', maxHeight: '400px', overflowY: 'auto', paddingRight: '10px' }}>
-                        {modules.map(module => (
-                          <div key={module} style={{ padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px', background: '#f9fafb' }}>
-                            <div style={{ fontWeight: '600', marginBottom: '8px', textTransform: 'capitalize', color: '#1f2937' }}>{module.replace('_', ' ')}</div>
-                            <div style={{ display: 'flex', gap: '15px' }}>
-                              {['view', 'create', 'edit', 'delete'].map(action => (
-                                <label key={action} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', color: '#4b5563' }}>
-                                  <input 
-                                    type="checkbox" 
-                                    checked={userPermissions[module]?.[action] || false} 
-                                    onChange={(e) => {
-                                      const updated = { ...userPermissions };
-                                      if (!updated[module]) updated[module] = {};
-                                      updated[module][action] = e.target.checked;
-                                      setUserPermissions(updated);
-                                    }}
-                                    style={{ width: '14px', height: '14px', accentColor: 'var(--primary)' }}
+
+            {/* ── Permissions Grouped Grid ── */}
+            {selectedUser ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+                {moduleGroups.map(group => (
+                  <div key={group.groupLabel}>
+                    {/* Group Header */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+                      <div style={{ width: '4px', height: '22px', borderRadius: '4px', background: group.color }} />
+                      <span style={{ fontWeight: '700', fontSize: '15px', color: '#1f2937' }}>{group.groupLabel}</span>
+                      <span style={{ fontSize: '12px', color: '#9ca3af' }}>({group.modules.length} pages)</span>
+                      {/* Select All for this group */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = { ...userPermissions };
+                          group.modules.forEach(m => { updated[m.key] = { view: true, create: true, edit: true, delete: true }; });
+                          setUserPermissions(updated);
+                        }}
+                        style={{ marginLeft: 'auto', padding: '4px 12px', background: group.color + '18', color: group.color, border: `1px solid ${group.color}40`, borderRadius: '6px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
+                      >
+                        Select All
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = { ...userPermissions };
+                          group.modules.forEach(m => { updated[m.key] = { view: false, create: false, edit: false, delete: false }; });
+                          setUserPermissions(updated);
+                        }}
+                        style={{ padding: '4px 12px', background: '#f3f4f6', color: '#6b7280', border: '1px solid #e5e7eb', borderRadius: '6px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
+                      >
+                        Clear
+                      </button>
+                    </div>
+
+                    {/* Module Cards Grid — 4 columns */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px' }}>
+                      {group.modules.map(({ key: module, label }) => {
+                        const perms = userPermissions[module] || {};
+                        const allChecked = perms.view && perms.create && perms.edit && perms.delete;
+                        const updatePerm = (pKey, val) => {
+                          setUserPermissions(prev => ({
+                            ...prev,
+                            [module]: { ...(prev[module] || {}), [pKey]: val }
+                          }));
+                        };
+                        return (
+                          <div
+                            key={module}
+                            style={{ background: 'white', borderRadius: '10px', border: `1.5px solid ${allChecked ? group.color + '60' : '#e5e7eb'}`, boxShadow: allChecked ? `0 0 0 3px ${group.color}15` : '0 1px 4px rgba(0,0,0,0.05)', padding: '14px 16px', transition: '0.2s' }}
+                          >
+                            {/* Card Header: label + toggle-all checkbox */}
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', paddingBottom: '8px', borderBottom: '1px solid #f3f4f6' }}>
+                              <span style={{ fontWeight: '700', fontSize: '13px', color: group.color }}>{label}</span>
+                              <input
+                                type="checkbox"
+                                title="Toggle all permissions"
+                                checked={!!allChecked}
+                                onChange={e => {
+                                  setUserPermissions(prev => ({
+                                    ...prev,
+                                    [module]: { view: e.target.checked, create: e.target.checked, edit: e.target.checked, delete: e.target.checked }
+                                  }));
+                                }}
+                                style={{ width: '15px', height: '15px', accentColor: group.color, cursor: 'pointer' }}
+                              />
+                            </div>
+                            {/* 4 Permission Checkboxes */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
+                              {[
+                                { key: 'view',   label: 'View'   },
+                                { key: 'create', label: 'Create' },
+                                { key: 'edit',   label: 'Edit'   },
+                                { key: 'delete', label: 'Delete' },
+                              ].map(({ key: pKey, label: pLabel }) => (
+                                <label key={pKey} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', color: perms[pKey] ? '#111827' : '#9ca3af', fontWeight: perms[pKey] ? '500' : '400', transition: '0.15s' }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={!!perms[pKey]}
+                                    onChange={e => updatePerm(pKey, e.target.checked)}
+                                    style={{ width: '15px', height: '15px', accentColor: group.color, cursor: 'pointer', flexShrink: 0 }}
                                   />
-                                  <span style={{ textTransform: 'capitalize' }}>{action}</span>
+                                  {pLabel}
                                 </label>
                               ))}
                             </div>
                           </div>
-                        ))}
-                      </div>
+                        );
+                      })}
                     </div>
-
-                    <div style={{ marginTop: '10px' }}>
-                      <button type="submit" style={{ background: 'var(--primary)', color: 'white', padding: '12px 24px', borderRadius: '8px', border: 'none', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <CheckCircle size={18} /> Save Permissions
-                      </button>
-                    </div>
-                  </form>
-                </>
-              ) : (
-                <div style={{ textAlign: 'center', color: '#6b7280', marginTop: '100px' }}>
-                  <Shield size={48} style={{ opacity: 0.5, marginBottom: '15px' }} />
-                  <h3>Select a user to view and edit their permissions</h3>
+                  </div>
+                ))}
+                {/* Bottom Save Button */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '8px' }}>
+                  <button
+                    onClick={handleUserPermsSubmit}
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 28px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '700', fontSize: '15px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(99,102,241,0.35)' }}
+                  >
+                    <CheckCircle size={18} /> Save Permissions for {selectedUser?.name}
+                  </button>
                 </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '80px 20px', background: 'white', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                <Shield size={52} style={{ opacity: 0.2, marginBottom: '16px', color: '#6366f1' }} />
+                <h3 style={{ color: '#6b7280', fontWeight: '600', margin: '0 0 8px' }}>No User Selected</h3>
+                <p style={{ color: '#9ca3af', fontSize: '14px', margin: 0 }}>Select a user from the dropdown above to manage their permissions</p>
+              </div>
+            )}
           </div>
         )}
 

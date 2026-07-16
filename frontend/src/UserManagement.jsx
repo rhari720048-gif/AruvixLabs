@@ -163,7 +163,7 @@ export default function UserManagement() {
           <p style={{ margin: '4px 0 0', color: '#6b7280', fontSize: 14 }}>Manage team members, roles, and access</p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={fetchUsers} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 16px', background: '#f3f4f6', color: '#374151', border: '1px solid #e5e7eb', borderRadius: 10, fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
+          <button onClick={fetchUsersAndRoles} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 16px', background: '#f3f4f6', color: '#374151', border: '1px solid #e5e7eb', borderRadius: 10, fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
             <RefreshCw size={15} /> Refresh
           </button>
           <button onClick={openAdd} id="add-user-btn" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: '#6366f1', color: 'white', border: 'none', borderRadius: 10, fontWeight: 600, fontSize: 14, cursor: 'pointer', boxShadow: '0 2px 8px rgba(99,102,241,0.35)' }}>

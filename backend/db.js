@@ -422,9 +422,24 @@ async function initDB() {
         // Try to get admin role ID
         const [adminRole] = await pool.query("SELECT id FROM roles WHERE name = 'Admin'");
         const adminRoleId = adminRole.length > 0 ? adminRole[0].id : null;
-        
-        await pool.query('INSERT INTO users (name, email, password, role, role_id) VALUES (?, ?, ?, ?, ?)', ['Admin', adminEmail, hashedPassword, 'admin', adminRoleId]);
-        console.log("Default admin user created");
+
+        // Full permissions for all modules
+        const allModules = ['dashboard','profile','mail','projects','tasks','files','calendar','meetings','accounting','invoices','quotes','leads','clients','staff_attendance','my_attendance','user_notes','user_management','leaves','client_reports','team_chat','support','settings'];
+        const adminPerms = {};
+        allModules.forEach(m => adminPerms[m] = { view: true, create: true, edit: true, delete: true });
+
+        await pool.query('INSERT INTO users (name, email, password, role, role_id, permissions) VALUES (?, ?, ?, ?, ?, ?)', ['Admin', adminEmail, hashedPassword, 'admin', adminRoleId, JSON.stringify(adminPerms)]);
+        console.log("Default admin user created with full permissions");
+    } else {
+        // Ensure existing admin user has full permissions
+        const existing = rows[0];
+        if (!existing.permissions) {
+            const allModules = ['dashboard','profile','mail','projects','tasks','files','calendar','meetings','accounting','invoices','quotes','leads','clients','staff_attendance','my_attendance','user_notes','user_management','leaves','client_reports','team_chat','support','settings'];
+            const adminPerms = {};
+            allModules.forEach(m => adminPerms[m] = { view: true, create: true, edit: true, delete: true });
+            await pool.query('UPDATE users SET permissions = ? WHERE email = ?', [JSON.stringify(adminPerms), adminEmail]);
+            console.log("Existing admin user permissions updated");
+        }
     }
 
     } catch (err) {
