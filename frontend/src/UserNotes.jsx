@@ -113,13 +113,13 @@ const UserNotes = () => {
       <div style={{ display: 'flex', gap: '10px', background: '#f3f4f6', padding: '6px', borderRadius: '10px', width: 'fit-content' }}>
         {canMyTab && (
           <button onClick={() => setActiveTab('my_notes')}
-            style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 18px', background: activeTab === 'my_notes' ? 'white' : 'transparent', color: activeTab === 'my_notes' ? '#6366f1' : '#6b7280', border: 'none', borderRadius: '8px', fontWeight: activeTab === 'my_notes' ? '700' : '500', fontSize: '14px', cursor: 'pointer', boxShadow: activeTab === 'my_notes' ? '0 2px 8px rgba(0,0,0,0.08)' : 'none', transition: '0.2s' }}>
+            style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 18px', background: activeTab === 'my_notes' ? '#6366f1' : 'transparent', color: activeTab === 'my_notes' ? 'white' : '#6b7280', border: 'none', borderRadius: '8px', fontWeight: activeTab === 'my_notes' ? '700' : '500', fontSize: '14px', cursor: 'pointer', boxShadow: activeTab === 'my_notes' ? '0 2px 8px rgba(99,102,241,0.3)' : 'none', transition: '0.2s' }}>
             <FileText size={16} /> My Notes
           </button>
         )}
         {canAllTab && (
           <button onClick={() => setActiveTab('all_notes')}
-            style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 18px', background: activeTab === 'all_notes' ? 'white' : 'transparent', color: activeTab === 'all_notes' ? '#6366f1' : '#6b7280', border: 'none', borderRadius: '8px', fontWeight: activeTab === 'all_notes' ? '700' : '500', fontSize: '14px', cursor: 'pointer', boxShadow: activeTab === 'all_notes' ? '0 2px 8px rgba(0,0,0,0.08)' : 'none', transition: '0.2s' }}>
+            style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 18px', background: activeTab === 'all_notes' ? '#6366f1' : 'transparent', color: activeTab === 'all_notes' ? 'white' : '#6b7280', border: 'none', borderRadius: '8px', fontWeight: activeTab === 'all_notes' ? '700' : '500', fontSize: '14px', cursor: 'pointer', boxShadow: activeTab === 'all_notes' ? '0 2px 8px rgba(99,102,241,0.3)' : 'none', transition: '0.2s' }}>
             <Users size={16} /> All Notes
           </button>
         )}
