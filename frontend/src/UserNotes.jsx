@@ -7,13 +7,14 @@ const API = 'https://aruvixlabs.onrender.com/api';
 
 const UserNotes = () => {
   const perms = getPerms('user_notes');
-  const canAddTab = perms.add_notes;
-  const canAllTab = perms.all_notes;
-  const canMyTab = perms.my_notes;
+  const isAdmin = perms.isAdmin;
+  const canAddTab = isAdmin || perms.add_notes;
+  const canAllTab = isAdmin || perms.all_notes;
+  const canMyTab  = isAdmin || perms.my_notes;
   
-  const canCreate = perms.create;
-  const canEdit = perms.edit;
-  const canDelete = perms.delete;
+  const canCreate = isAdmin || perms.create;
+  const canEdit   = isAdmin || perms.edit;
+  const canDelete = isAdmin || perms.delete;
 
   const [activeTab, setActiveTab] = useState(
     canMyTab ? 'my_notes' : (canAllTab ? 'all_notes' : (canAddTab ? 'add_notes' : ''))
