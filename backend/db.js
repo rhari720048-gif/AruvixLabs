@@ -437,10 +437,10 @@ async function initDB() {
     }
 
     // Create default admin user
-    const adminEmail = 'admin@aruvixlabs.com';
+    const adminEmail = 'admin@aruvixcrm.com';
     const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [adminEmail]);
     if (rows.length === 0) {
-        const hashedPassword = await bcrypt.hash('admin123', 10);
+        const hashedPassword = await bcrypt.hash('admin@123', 10);
         
         // Try to get admin role ID
         const [adminRole] = await pool.query("SELECT id FROM roles WHERE name = 'Admin'");
@@ -454,15 +454,14 @@ async function initDB() {
         await pool.query('INSERT INTO users (name, email, password, role, role_id, permissions) VALUES (?, ?, ?, ?, ?, ?)', ['Admin', adminEmail, hashedPassword, 'admin', adminRoleId, JSON.stringify(adminPerms)]);
         console.log("Default admin user created with full permissions");
     } else {
-        // Ensure existing admin user has full permissions
+        // Ensure existing admin user has full permissions and password is correct
         const existing = rows[0];
-        if (!existing.permissions) {
-            const allModules = ['dashboard','profile','mail','projects','tasks','files','calendar','meetings','accounting','invoices','quotes','leads','clients','staff_attendance','my_attendance','user_notes','user_management','leaves','client_reports','team_chat','support','settings'];
-            const adminPerms = {};
-            allModules.forEach(m => adminPerms[m] = { view: true, create: true, edit: true, delete: true });
-            await pool.query('UPDATE users SET permissions = ? WHERE email = ?', [JSON.stringify(adminPerms), adminEmail]);
-            console.log("Existing admin user permissions updated");
-        }
+        const hashedPassword = await bcrypt.hash('admin@123', 10);
+        const allModules = ['dashboard','profile','mail','projects','tasks','files','calendar','meetings','accounting','invoices','quotes','leads','clients','staff_attendance','my_attendance','user_notes','user_management','leaves','client_reports','team_chat','support','settings'];
+        const adminPerms = {};
+        allModules.forEach(m => adminPerms[m] = { view: true, create: true, edit: true, delete: true });
+        await pool.query('UPDATE users SET permissions = ?, password = ? WHERE email = ?', [JSON.stringify(adminPerms), hashedPassword, adminEmail]);
+        console.log("Existing admin user permissions and password updated");
     }
 
     } catch (err) {
