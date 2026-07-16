@@ -894,14 +894,7 @@ const SettingsPage = () => {
                     />
                   </div>
 
-                  {canEditSettings && (
-                    <button
-                      onClick={() => setShowAddUserModal(true)}
-                      style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', boxShadow: '0 2px 8px rgba(99,102,241,0.3)' }}
-                    >
-                      <UserPlus size={15} /> Add User
-                    </button>
-                  )}
+
                 </div>
               </div>
 
@@ -1037,52 +1030,6 @@ const SettingsPage = () => {
             )}
 
             {/* B. Add User Modal */}
-            {showAddUserModal && (
-              <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.4)', backdropFilter: 'blur(4px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ background: 'white', borderRadius: '16px', padding: '30px', width: '100%', maxWidth: '480px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                    <h3 style={{ margin: 0, color: '#1f2937', fontWeight: 700 }}>Add New Team Member</h3>
-                    <button onClick={() => setShowAddUserModal(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#9ca3af' }}><X size={20} /></button>
-                  </div>
-                  <form onSubmit={handleAddUserSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                    <div>
-                      <label style={{ display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: '600', color: '#374151' }}>Full Name *</label>
-                      <input type="text" required value={addUserForm.name} onChange={e => setAddUserForm({ ...addUserForm, name: e.target.value })} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1.5px solid #d1d5db', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} placeholder="John Doe" />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: '600', color: '#374151' }}>Email Address *</label>
-                      <input type="email" required value={addUserForm.email} onChange={e => setAddUserForm({ ...addUserForm, email: e.target.value })} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1.5px solid #d1d5db', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} placeholder="john@company.com" />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: '600', color: '#374151' }}>Phone Number</label>
-                      <input type="text" value={addUserForm.phone} onChange={e => setAddUserForm({ ...addUserForm, phone: e.target.value })} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1.5px solid #d1d5db', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} placeholder="+91 9876543210" />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: '600', color: '#374151' }}>Role *</label>
-                      <select required value={addUserForm.role} onChange={e => setAddUserForm({ ...addUserForm, role: e.target.value })} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1.5px solid #d1d5db', fontSize: '14px', outline: 'none', boxSizing: 'border-box', background: 'white' }}>
-                        <option value="">Select Role</option>
-                        {roles.map(r => <option key={r.id} value={r.name}>{r.name}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: '600', color: '#374151' }}>Password *</label>
-                      <input type="password" required value={addUserForm.password} onChange={e => setAddUserForm({ ...addUserForm, password: e.target.value })} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1.5px solid #d1d5db', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} placeholder="Min 6 characters" />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: '600', color: '#374151' }}>Status</label>
-                      <select value={addUserForm.status} onChange={e => setAddUserForm({ ...addUserForm, status: e.target.value })} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1.5px solid #d1d5db', fontSize: '14px', outline: 'none', boxSizing: 'border-box', background: 'white' }}>
-                        <option>Active</option>
-                        <option>Inactive</option>
-                      </select>
-                    </div>
-                    <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                      <button type="button" onClick={() => setShowAddUserModal(false)} style={{ flex: 1, padding: '10px', background: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
-                      <button type="submit" style={{ flex: 1, padding: '10px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>Create User</button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )}
 
             {/* C. View User Modal */}
             {showViewModal && viewingUser && (
