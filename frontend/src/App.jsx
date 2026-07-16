@@ -38,6 +38,7 @@ const Sidebar = () => {
 
   const hasPerm = (module) => {
     if (role === 'admin') return true; // Admin sees all
+    if (module === 'dashboard' || module === 'profile') return true; // Always allow Dashboard and My Profile
     return permissions[module] && permissions[module].view;
   };
 
@@ -201,29 +202,78 @@ const DummyPage = ({ title, columns, data, stats }) => (
 const ProfilePage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [avatar, setAvatar] = useState(null);
   const fileRef = useRef();
 
   const [form, setForm] = useState({
-    name: 'Admin User',
-    email: 'admin@aruvixlabs.com',
-    phone: '+1 234 567 890',
-    location: 'New York, USA',
-    department: 'Management',
-    role: 'Administrator',
-    bio: 'Experienced CRM administrator managing daily operations and team productivity.',
+    name: '',
+    email: '',
+    phone: '',
+    location: '',
+    department: '',
+    role: '',
+    bio: '',
   });
   const [draft, setDraft] = useState({ ...form });
 
+  useEffect(() => {
+    fetch('https://aruvixlabs.onrender.com/api/auth/me', {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    })
+    .then(res => res.ok ? res.json() : null)
+    .then(data => {
+      if (data) {
+        const u = {
+          name: data.name || '',
+          email: data.email || '',
+          phone: data.phone || '',
+          location: data.location || '',
+          department: data.department || '',
+          role: data.role || '',
+          bio: data.bio || '',
+        };
+        setForm(u);
+        setDraft(u);
+      }
+      setLoading(false);
+    })
+    .catch(() => setLoading(false));
+  }, []);
+
   const handleEdit = () => { setDraft({ ...form }); setIsEditing(true); setSaved(false); };
   const handleCancel = () => { setIsEditing(false); };
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
-    setForm({ ...draft });
-    setIsEditing(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    try {
+      const res = await fetch('https://aruvixlabs.onrender.com/api/auth/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          name: draft.name,
+          phone: draft.phone,
+          bio: draft.bio,
+          location: draft.location,
+          department: draft.department,
+        })
+      });
+      if (res.ok) {
+        setForm({ ...draft });
+        setIsEditing(false);
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
+
+  if (loading) {
+    return <div style={{ padding: '40px', color: '#6b7280', textAlign: 'center' }}>Loading profile details...</div>;
+  }
 
   const inputStyle = (editing) => ({
     width: '100%', padding: '10px 12px', borderRadius: '8px',
@@ -334,6 +384,7 @@ const ProtectedRoute = ({ module, children }) => {
   
   if (role === 'admin') return children;
   if (!module) return children;
+  if (module === 'dashboard' || module === 'profile') return children;
   
   const canView = permissions[module] && permissions[module].view;
   if (!canView) {

@@ -62,14 +62,38 @@ app.post('/api/auth/login', async (req, res) => {
 // Fetch current logged-in user's fresh data (for permission refresh)
 app.get('/api/auth/me', authenticate, async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT id, name, email, role, permissions FROM users WHERE id = ?', [req.user.id]);
+        const [rows] = await pool.query('SELECT id, name, email, role, phone, bio, location, department, permissions FROM users WHERE id = ?', [req.user.id]);
         if (!rows[0]) return res.status(404).json({ error: 'User not found' });
         const user = rows[0];
         let permissions = {};
         if (user.permissions) {
             try { permissions = typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions; } catch(e){}
         }
-        res.json({ id: user.id, name: user.name, email: user.email, role: user.role, permissions });
+        res.json({ 
+            id: user.id, 
+            name: user.name, 
+            email: user.email, 
+            role: user.role, 
+            phone: user.phone || '', 
+            bio: user.bio || '', 
+            location: user.location || '', 
+            department: user.department || '', 
+            permissions 
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Update own profile details
+app.put('/api/auth/profile', authenticate, async (req, res) => {
+    const { name, phone, bio, location, department } = req.body;
+    try {
+        await pool.query(
+            'UPDATE users SET name = ?, phone = ?, bio = ?, location = ?, department = ? WHERE id = ?',
+            [name, phone, bio, location, department, req.user.id]
+        );
+        res.json({ success: true, message: 'Profile updated successfully!' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -145,11 +169,14 @@ app.post('/api/customers', authenticate, async (req, res) => {
 app.get('/api/users', authenticate, async (req, res) => {
     try {
         const [rows] = await pool.query(`
-            SELECT u.id, u.name, u.email, u.phone, u.status, u.created_at, u.role, u.permissions 
+            SELECT u.id, u.name, u.email, u.phone, u.status, u.created_at, u.role, u.permissions, u.bio, u.location, u.department
             FROM users u
             ORDER BY u.id ASC
         `);
-        const users = rows.map(u => ({ ...u, permissions: typeof u.permissions === 'string' ? JSON.parse(u.permissions) : u.permissions }));
+        const users = rows.map(u => ({ 
+            ...u, 
+            permissions: typeof u.permissions === 'string' ? JSON.parse(u.permissions) : (u.permissions || {})
+        }));
         res.json(users);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -163,15 +190,14 @@ app.post('/api/users', authenticate, async (req, res) => {
         const [existing] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
         if (existing.length > 0) return res.status(400).json({ error: 'Email already exists' });
 
-        const hashedPassword = await bcrypt.hash(password, 10);
-        // Default permissions based on role
-        let defaultPerms = {};
-        if (role === 'admin') {
-            const allModules = ['dashboard', 'profile', 'mail', 'projects', 'tasks', 'files', 'calendar', 'meetings', 'accounting', 'invoices', 'quotes', 'leads', 'clients', 'staff_attendance', 'my_attendance', 'user_notes', 'user_management', 'leaves', 'client_reports', 'team_chat', 'support', 'settings'];
-            allModules.forEach(m => defaultPerms[m] = { view: true, create: true, edit: true, delete: true });
-        } else {
-            defaultPerms = { dashboard: { view: true }, profile: { view: true } };
+        // Validate that the role exists in the roles database table
+        const [dbRoles] = await pool.query('SELECT permissions FROM roles WHERE LOWER(name) = LOWER(?)', [role]);
+        if (dbRoles.length === 0) {
+            return res.status(400).json({ error: `Role '${role}' does not exist. Please add it first in Settings -> User Permissions.` });
         }
+
+        const defaultPerms = typeof dbRoles[0].permissions === 'string' ? JSON.parse(dbRoles[0].permissions) : dbRoles[0].permissions;
+        const hashedPassword = await bcrypt.hash(password, 10);
         
         await pool.query(
             'INSERT INTO users (name, email, phone, role, password, status, permissions) VALUES (?, ?, ?, ?, ?, ?, ?)',
@@ -185,16 +211,41 @@ app.post('/api/users', authenticate, async (req, res) => {
 
 // Edit User
 app.put('/api/users/:id', authenticate, async (req, res) => {
-    const { name, email, phone, role, password, status } = req.body;
+    const { name, email, phone, role, password, status, permissions } = req.body;
     try {
+        const [existing] = await pool.query('SELECT role, permissions FROM users WHERE id = ?', [req.params.id]);
+        if (existing.length === 0) return res.status(404).json({ error: 'User not found' });
+        
+        let finalPerms = existing[0].permissions;
+        
+        if (role) {
+            const [dbRoles] = await pool.query('SELECT permissions FROM roles WHERE LOWER(name) = LOWER(?)', [role]);
+            if (dbRoles.length === 0) {
+                return res.status(400).json({ error: `Role '${role}' does not exist. Please add it first in Settings -> User Permissions.` });
+            }
+            
+            if (permissions) {
+                finalPerms = JSON.stringify(permissions);
+            } else if ((existing[0].role || '').toLowerCase() !== role.toLowerCase()) {
+                finalPerms = JSON.stringify(dbRoles[0].permissions);
+            }
+        } else if (permissions) {
+            finalPerms = JSON.stringify(permissions);
+        }
+
+        const queryParams = [name, email, phone, role || existing[0].role, status, finalPerms];
+        let queryStr = 'UPDATE users SET name=?, email=?, phone=?, role=?, status=?, permissions=?';
+        
         if (password && password.trim() !== '') {
             const hashedPassword = await bcrypt.hash(password, 10);
-            await pool.query('UPDATE users SET name=?, email=?, phone=?, role=?, password=?, status=? WHERE id=?',
-                [name, email, phone, role, hashedPassword, status, req.params.id]);
-        } else {
-            await pool.query('UPDATE users SET name=?, email=?, phone=?, role=?, status=? WHERE id=?',
-                [name, email, phone, role, status, req.params.id]);
+            queryStr += ', password=?';
+            queryParams.push(hashedPassword);
         }
+        
+        queryStr += ' WHERE id=?';
+        queryParams.push(req.params.id);
+        
+        await pool.query(queryStr, queryParams);
         res.json({ success: true });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -434,7 +485,8 @@ app.post('/api/attendance/pass/resume', authenticate, async (req, res) => {
 
 app.post('/api/attendance/admin/passes/:id/action', authenticate, async (req, res) => {
     try {
-        if (req.user.role !== 'admin' && req.user.role !== 'manager') {
+        const canEditAttendance = req.user.permissions?.staff_attendance?.edit;
+        if (req.user.role !== 'admin' && req.user.role !== 'manager' && !canEditAttendance) {
             return res.status(403).json({ error: 'Unauthorized' });
         }
         const { action } = req.body; // 'approve' or 'reject'
@@ -496,7 +548,8 @@ app.get('/api/attendance/history', authenticate, async (req, res) => {
 
 app.get('/api/attendance/admin/pending', authenticate, async (req, res) => {
     try {
-        if (req.user.role !== 'admin' && req.user.role !== 'manager') return res.status(403).json({ error: 'Unauthorized' });
+        const canViewAttendance = req.user.permissions?.staff_attendance?.view;
+        if (req.user.role !== 'admin' && req.user.role !== 'manager' && !canViewAttendance) return res.status(403).json({ error: 'Unauthorized' });
         
         const query = `
             SELECT p.*, u.name as user_name, u.role as user_role 
@@ -515,7 +568,8 @@ app.get('/api/attendance/admin/pending', authenticate, async (req, res) => {
 
 app.get('/api/attendance/admin/report', authenticate, async (req, res) => {
     try {
-        if (req.user.role !== 'admin' && req.user.role !== 'manager') return res.status(403).json({ error: 'Unauthorized' });
+        const canViewAttendance = req.user.permissions?.staff_attendance?.view;
+        if (req.user.role !== 'admin' && req.user.role !== 'manager' && !canViewAttendance) return res.status(403).json({ error: 'Unauthorized' });
         
         const date = req.query.date || new Date().toISOString().split('T')[0];
         
@@ -796,7 +850,8 @@ app.get('/api/leaves/my', authenticate, async (req, res) => {
 
 app.get('/api/leaves/admin', authenticate, async (req, res) => {
     try {
-        if (req.user.role !== 'admin' && req.user.role !== 'manager') return res.status(403).json({ error: 'Unauthorized' });
+        const canViewLeaves = req.user.permissions?.leaves?.view;
+        if (req.user.role !== 'admin' && req.user.role !== 'manager' && !canViewLeaves) return res.status(403).json({ error: 'Unauthorized' });
         const query = `
             SELECT l.*, u.name as user_name 
             FROM leaves l 
@@ -821,7 +876,8 @@ app.post('/api/leaves', authenticate, async (req, res) => {
 
 app.put('/api/leaves/:id/action', authenticate, async (req, res) => {
     try {
-        if (req.user.role !== 'admin' && req.user.role !== 'manager') return res.status(403).json({ error: 'Unauthorized' });
+        const canEditLeaves = req.user.permissions?.leaves?.edit;
+        if (req.user.role !== 'admin' && req.user.role !== 'manager' && !canEditLeaves) return res.status(403).json({ error: 'Unauthorized' });
         const { action } = req.body; // 'Approved' or 'Rejected'
         await pool.query('UPDATE leaves SET status = ? WHERE id = ?', [action, req.params.id]);
         res.json({ success: true });

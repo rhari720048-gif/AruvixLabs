@@ -75,6 +75,29 @@ async function initDB() {
     try {
         await pool.query(rolesTable);
         await pool.query(usersTable);
+        
+        // Custom roles & user profile migrations
+        try {
+            await pool.query("ALTER TABLE users MODIFY COLUMN role VARCHAR(255) DEFAULT 'employee'");
+        } catch (e) {
+            console.log("Migration users.role alteration failed/skipped:", e.message);
+        }
+        try {
+            await pool.query("ALTER TABLE users ADD COLUMN bio TEXT");
+        } catch (e) {}
+        try {
+            await pool.query("ALTER TABLE users ADD COLUMN location VARCHAR(255)");
+        } catch (e) {}
+        try {
+            await pool.query("ALTER TABLE users ADD COLUMN department VARCHAR(255)");
+        } catch (e) {}
+        try {
+            await pool.query("ALTER TABLE users ADD COLUMN permissions JSON");
+        } catch (e) {}
+        try {
+            await pool.query("UPDATE users SET permissions = '{}' WHERE permissions IS NULL");
+        } catch (e) {}
+
         // Try to add role_id column if it doesn't exist (for existing DBs)
         try {
             await pool.query("ALTER TABLE users ADD COLUMN role_id INT");

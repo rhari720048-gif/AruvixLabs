@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Building, FileText, CheckCircle, Upload, Shield, Trash2, Mail, Server, LayoutTemplate, Bell, Send, Eye, EyeOff, Wifi } from 'lucide-react';
+import { Settings as SettingsIcon, Building, FileText, CheckCircle, Upload, Shield, Trash2, Mail, Server, LayoutTemplate, Bell, Send, Eye, EyeOff, Wifi, Pencil, UserPlus, ShieldCheck, Search, RefreshCw, Plus, User, X, Phone, Briefcase, MessageSquare, LayoutDashboard } from 'lucide-react';
 
 const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState('company'); // 'company', 'invoice', 'permissions', 'mail'
@@ -9,9 +9,28 @@ const SettingsPage = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   
   // ── Grouped module definitions ──────────────────────────────────────────
+  const renderGroupIcon = (label, color, size = 16) => {
+    switch (label) {
+      case 'General':
+        return <LayoutDashboard size={size} color={color} />;
+      case 'CRM':
+        return <UserPlus size={size} color={color} />;
+      case 'Work Management':
+        return <Briefcase size={size} color={color} />;
+      case 'Finance':
+        return <Building size={size} color={color} />;
+      case 'HR & Attendance':
+        return <ShieldCheck size={size} color={color} />;
+      case 'Communication':
+        return <MessageSquare size={size} color={color} />;
+      default:
+        return <Shield size={size} color={color} />;
+    }
+  };
+
   const moduleGroups = [
     {
-      groupLabel: '📊 General',
+      groupLabel: 'General',
       color: '#6366f1',
       modules: [
         { key: 'dashboard',       label: 'Dashboard'        },
@@ -22,7 +41,7 @@ const SettingsPage = () => {
       ]
     },
     {
-      groupLabel: '👥 CRM',
+      groupLabel: 'CRM',
       color: '#0ea5e9',
       modules: [
         { key: 'leads',           label: 'Leads'            },
@@ -31,7 +50,7 @@ const SettingsPage = () => {
       ]
     },
     {
-      groupLabel: '🗂️ Work Management',
+      groupLabel: 'Work Management',
       color: '#8b5cf6',
       modules: [
         { key: 'projects',        label: 'Projects'         },
@@ -42,7 +61,7 @@ const SettingsPage = () => {
       ]
     },
     {
-      groupLabel: '💰 Finance',
+      groupLabel: 'Finance',
       color: '#10b981',
       modules: [
         { key: 'accounting',      label: 'Accounting'       },
@@ -51,7 +70,7 @@ const SettingsPage = () => {
       ]
     },
     {
-      groupLabel: '👔 HR & Attendance',
+      groupLabel: 'HR & Attendance',
       color: '#f59e0b',
       modules: [
         { key: 'staff_attendance',label: 'Staff Attendance' },
@@ -61,7 +80,7 @@ const SettingsPage = () => {
       ]
     },
     {
-      groupLabel: '💬 Communication',
+      groupLabel: 'Communication',
       color: '#ef4444',
       modules: [
         { key: 'team_chat',       label: 'Team Chat'        },
@@ -75,13 +94,46 @@ const SettingsPage = () => {
   allModuleKeys.forEach(m => defaultPerms[m] = { view: false, create: false, edit: false, delete: false });
   const [userPermissions, setUserPermissions] = useState(defaultPerms);
 
+  const [roles, setRoles] = useState([]);
+  const [selectedRole, setSelectedRole] = useState(null);
+  const [rolePermissions, setRolePermissions] = useState(defaultPerms);
+  
+  // Add role state
+  const [showAddRoleModal, setShowAddRoleModal] = useState(false);
+  const [newRoleName, setNewRoleName] = useState('');
+  
+  // User modals state
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [viewingUser, setViewingUser] = useState(null);
+  
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [editUserForm, setEditUserForm] = useState({ name: '', email: '', phone: '', role: '', password: '', status: 'Active' });
+  const [editUserPermissions, setEditUserPermissions] = useState(defaultPerms);
+  
+  // Add User modal state
+  const [showAddUserModal, setShowAddUserModal] = useState(false);
+  const [addUserForm, setAddUserForm] = useState({ name: '', email: '', phone: '', role: '', password: '', status: 'Active' });
+
+  const [deleteUserId, setDeleteUserId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const fetchUsersAndRoles = async () => {
+    try {
+      const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
+      const [usersRes, rolesRes] = await Promise.all([
+        fetch('https://aruvixlabs.onrender.com/api/users', { headers }),
+        fetch('https://aruvixlabs.onrender.com/api/roles', { headers }),
+      ]);
+      if (usersRes.ok) setUsers(await usersRes.json());
+      if (rolesRes.ok) setRoles(await rolesRes.json());
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   useEffect(() => {
-    fetch('https://aruvixlabs.onrender.com/api/users', {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-    })
-    .then(res => res.json())
-    .then(data => setUsers(Array.isArray(data) ? data : []))
-    .catch(console.error);
+    fetchUsersAndRoles();
   }, []);
 
   const [companyForm, setCompanyForm] = useState({
@@ -113,24 +165,148 @@ const SettingsPage = () => {
     showSuccess('Invoice settings updated successfully!');
   };
 
-  const handleUserPermsSubmit = async (e) => {
+  const handleRolePermsSubmit = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
-    if (!selectedUser) return;
+    if (!selectedRole) return;
+    
+    // Validate role in DB
+    const roleExists = roles.some(r => r.id === selectedRole.id);
+    if (!roleExists) {
+      alert(`Error: Role '${selectedRole.name}' does not exist in the database!`);
+      return;
+    }
+
     try {
-      const res = await fetch(`https://aruvixlabs.onrender.com/api/users/${selectedUser.id}/permissions`, {
+      const res = await fetch(`https://aruvixlabs.onrender.com/api/roles/${selectedRole.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({ permissions: userPermissions })
+        body: JSON.stringify({ name: selectedRole.name, permissions: rolePermissions })
       });
       if (res.ok) {
-        setUsers(users.map(u => u.id === selectedUser.id ? { ...u, permissions: userPermissions } : u));
-        showSuccess('User permissions updated successfully!');
+        setRoles(roles.map(r => r.id === selectedRole.id ? { ...r, permissions: rolePermissions } : r));
+        showSuccess('Role permissions saved successfully!');
+      } else {
+        alert('Failed to save role permissions');
       }
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  const handleAddRoleSubmit = async (e) => {
+    e.preventDefault();
+    if (!newRoleName.trim()) return;
+    try {
+      const res = await fetch('https://aruvixlabs.onrender.com/api/roles', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ name: newRoleName, permissions: defaultPerms })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const createdRole = { id: data.id, name: newRoleName, permissions: defaultPerms };
+        setRoles([...roles, createdRole]);
+        setSelectedRole(createdRole);
+        setRolePermissions(defaultPerms);
+        setShowAddRoleModal(false);
+        setNewRoleName('');
+        showSuccess(`Role '${newRoleName}' added successfully!`);
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Failed to create role');
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleUserUpdate = async (e) => {
+    e.preventDefault();
+    if (!editingUser) return;
+    try {
+      const res = await fetch(`https://aruvixlabs.onrender.com/api/users/${editingUser.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          name: editUserForm.name,
+          email: editUserForm.email,
+          phone: editUserForm.phone,
+          role: editUserForm.role,
+          status: editUserForm.status,
+          password: editUserForm.password,
+          permissions: editUserPermissions
+        })
+      });
+      if (res.ok) {
+        fetchUsersAndRoles();
+        setShowEditModal(false);
+        showSuccess('User details and permissions updated successfully!');
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Failed to update user');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleAddUserSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('https://aruvixlabs.onrender.com/api/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          name: addUserForm.name,
+          email: addUserForm.email,
+          phone: addUserForm.phone,
+          role: addUserForm.role,
+          password: addUserForm.password,
+          status: addUserForm.status
+        })
+      });
+      if (res.ok) {
+        fetchUsersAndRoles();
+        setShowAddUserModal(false);
+        setAddUserForm({ name: '', email: '', phone: '', role: '', password: '', status: 'Active' });
+        showSuccess('User created successfully!');
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Failed to create user');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleUserDelete = async () => {
+    if (!deleteUserId) return;
+    try {
+      const res = await fetch(`https://aruvixlabs.onrender.com/api/users/${deleteUserId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (res.ok) {
+        fetchUsersAndRoles();
+        setDeleteUserId(null);
+        showSuccess('User deleted successfully!');
+      } else {
+        alert('Failed to delete user');
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -268,183 +444,582 @@ const SettingsPage = () => {
 
         {activeTab === 'permissions' && (
           <div>
-            {/* ── User Selector Bar ── */}
-            <div style={{ background: 'white', padding: '18px 24px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: '1px solid #e5e7eb', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                <Shield size={20} color="#6366f1" />
-                <span style={{ fontWeight: '700', fontSize: '16px', color: '#1f2937' }}>User Permissions</span>
-                <span style={{ fontSize: '12px', color: '#6b7280', background: '#f3f4f6', padding: '2px 10px', borderRadius: '20px', marginLeft: '4px' }}>
-                  {allModuleKeys.length} modules
-                </span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <label style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>Select User:</label>
-                <select
-                  value={selectedUser?.id || ''}
-                  onChange={e => {
-                    const user = users.find(u => String(u.id) === e.target.value);
-                    if (user) {
-                      setSelectedUser(user);
-                      const loadedPerms = user.permissions
-                        ? (typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions)
-                        : {};
-                      // Merge with defaultPerms so every module key exists
-                      const merged = { ...defaultPerms };
-                      Object.keys(loadedPerms).forEach(k => { merged[k] = loadedPerms[k]; });
-                      setUserPermissions(merged);
-                    } else {
-                      setSelectedUser(null);
-                      setUserPermissions(defaultPerms);
-                    }
-                  }}
-                  style={{ padding: '9px 14px', borderRadius: '8px', border: '1.5px solid #d1d5db', fontSize: '14px', color: '#1f2937', background: 'white', minWidth: '240px', outline: 'none', cursor: 'pointer' }}
-                >
-                  <option value="">— Select a user —</option>
-                  {users.map(u => (
-                    <option key={u.id} value={u.id}>{u.name}  [{u.role}]</option>
-                  ))}
-                </select>
-              </div>
-              {selectedUser && (
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  {/* Grant All button */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const all = {};
-                      allModuleKeys.forEach(k => all[k] = { view: true, create: true, edit: true, delete: true });
-                      setUserPermissions(all);
+            {/* ── 1. Roles & Default Permissions Section ── */}
+            <div style={{ background: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb', marginBottom: '32px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ width: '38px', height: '38px', borderRadius: '8px', background: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Shield size={20} color="white" />
+                  </div>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: '#1f2937' }}>Manage Roles & Default Permissions</h3>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#6b7280' }}>Add custom roles and define their default page permissions</p>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <select
+                    value={selectedRole?.id || ''}
+                    onChange={e => {
+                      const roleObj = roles.find(r => String(r.id) === e.target.value);
+                      if (roleObj) {
+                        setSelectedRole(roleObj);
+                        const loadedPerms = roleObj.permissions
+                          ? (typeof roleObj.permissions === 'string' ? JSON.parse(roleObj.permissions) : roleObj.permissions)
+                          : {};
+                        const merged = { ...defaultPerms };
+                        Object.keys(loadedPerms).forEach(k => { merged[k] = loadedPerms[k]; });
+                        setRolePermissions(merged);
+                      } else {
+                        setSelectedRole(null);
+                        setRolePermissions(defaultPerms);
+                      }
                     }}
-                    style={{ padding: '9px 16px', background: '#d1fae5', color: '#065f46', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '13px', cursor: 'pointer' }}
+                    style={{ padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #d1d5db', fontSize: '14px', color: '#1f2937', background: 'white', minWidth: '220px', outline: 'none', cursor: 'pointer' }}
                   >
-                    ✓ Grant All
-                  </button>
-                  {/* Clear All button */}
+                    <option value="">— Select a role —</option>
+                    {roles.map(r => (
+                      <option key={r.id} value={r.id}>{r.name}</option>
+                    ))}
+                  </select>
+
                   <button
                     type="button"
-                    onClick={() => setUserPermissions({ ...defaultPerms })}
-                    style={{ padding: '9px 16px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '13px', cursor: 'pointer' }}
+                    onClick={() => setShowAddRoleModal(true)}
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 16px', background: '#e0e7ff', color: '#4338ca', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', transition: '0.2s' }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#c7d2fe'}
+                    onMouseLeave={e => e.currentTarget.style.background = '#e0e7ff'}
                   >
-                    ✕ Clear All
+                    <Plus size={16} /> Add Role
                   </button>
-                  {/* Save button */}
-                  <button
-                    onClick={handleUserPermsSubmit}
-                    style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 20px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '14px', cursor: 'pointer', boxShadow: '0 2px 8px rgba(99,102,241,0.3)' }}
-                  >
-                    <CheckCircle size={15} /> Save
-                  </button>
+                </div>
+              </div>
+
+              {selectedRole ? (
+                <div>
+                  <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginBottom: '20px' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const all = {};
+                        allModuleKeys.forEach(k => all[k] = { view: true, create: true, edit: true, delete: true });
+                        setRolePermissions(all);
+                      }}
+                      style={{ padding: '8px 14px', background: '#d1fae5', color: '#065f46', border: 'none', borderRadius: '6px', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }}
+                    >
+                      ✓ Grant All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRolePermissions({ ...defaultPerms })}
+                      style={{ padding: '8px 14px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '6px', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }}
+                    >
+                      ✕ Clear All
+                    </button>
+                    <button
+                      onClick={handleRolePermsSubmit}
+                      style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '6px', fontWeight: '600', fontSize: '12px', cursor: 'pointer', boxShadow: '0 2px 6px rgba(99,102,241,0.3)' }}
+                    >
+                      <CheckCircle size={14} /> Save Role Permissions
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    {moduleGroups.map(group => (
+                      <div key={group.groupLabel}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                          {renderGroupIcon(group.groupLabel, group.color, 18)}
+                          <span style={{ fontWeight: '700', fontSize: '14px', color: '#374151' }}>{group.groupLabel}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = { ...rolePermissions };
+                              group.modules.forEach(m => { updated[m.key] = { view: true, create: true, edit: true, delete: true }; });
+                              setRolePermissions(updated);
+                            }}
+                            style={{ marginLeft: 'auto', padding: '2px 8px', background: group.color + '18', color: group.color, border: 'none', borderRadius: '4px', fontSize: '11px', fontWeight: '600', cursor: 'pointer' }}
+                          >
+                            All
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = { ...rolePermissions };
+                              group.modules.forEach(m => { updated[m.key] = { view: false, create: false, edit: false, delete: false }; });
+                              setRolePermissions(updated);
+                            }}
+                            style={{ padding: '2px 8px', background: '#f3f4f6', color: '#6b7280', border: 'none', borderRadius: '4px', fontSize: '11px', fontWeight: '600', cursor: 'pointer' }}
+                          >
+                            Clear
+                          </button>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '12px' }}>
+                          {group.modules.map(({ key: module, label }) => {
+                            const perms = rolePermissions[module] || {};
+                            const allChecked = perms.view && perms.create && perms.edit && perms.delete;
+                            const updatePerm = (pKey, val) => {
+                              setRolePermissions(prev => ({
+                                ...prev,
+                                [module]: { ...(prev[module] || {}), [pKey]: val }
+                              }));
+                            };
+                            return (
+                              <div
+                                key={module}
+                                style={{ background: '#f9fafb', borderRadius: '8px', border: `1px solid ${allChecked ? group.color + '60' : '#e5e7eb'}`, padding: '12px', transition: '0.15s' }}
+                              >
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', borderBottom: '1px solid #e5e7eb', paddingBottom: '6px' }}>
+                                  <span style={{ fontWeight: '700', fontSize: '12px', color: '#4b5563' }}>{label}</span>
+                                  <input
+                                    type="checkbox"
+                                    checked={!!allChecked}
+                                    onChange={e => {
+                                      setRolePermissions(prev => ({
+                                        ...prev,
+                                        [module]: { view: e.target.checked, create: e.target.checked, edit: e.target.checked, delete: e.target.checked }
+                                      }));
+                                    }}
+                                    style={{ width: '14px', height: '14px', accentColor: group.color, cursor: 'pointer' }}
+                                  />
+                                </div>
+                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                  {[
+                                    { key: 'view',   lbl: 'View' },
+                                    { key: 'create', lbl: 'Create' },
+                                    { key: 'edit',   lbl: 'Edit' },
+                                    { key: 'delete', lbl: 'Delete' }
+                                  ].map(p => (
+                                    <label key={p.key} style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '11px', color: perms[p.key] ? '#111827' : '#9ca3af', fontWeight: perms[p.key] ? '600' : '400' }}>
+                                      <input
+                                        type="checkbox"
+                                        checked={!!perms[p.key]}
+                                        onChange={e => updatePerm(p.key, e.target.checked)}
+                                        style={{ width: '12px', height: '12px', accentColor: group.color, cursor: 'pointer' }}
+                                      />
+                                      {p.lbl}
+                                    </label>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '40px 20px', background: '#f9fafb', borderRadius: '8px', border: '1px dashed #d1d5db' }}>
+                  <ShieldCheck size={36} style={{ opacity: 0.3, color: '#6366f1', marginBottom: '8px' }} />
+                  <p style={{ margin: 0, fontSize: '13px', color: '#6b7280' }}>Select a role from the dropdown above to manage default access levels, or create a new custom role.</p>
                 </div>
               )}
             </div>
 
-            {/* ── Permissions Grouped Grid ── */}
-            {selectedUser ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-                {moduleGroups.map(group => (
-                  <div key={group.groupLabel}>
-                    {/* Group Header */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-                      <div style={{ width: '4px', height: '22px', borderRadius: '4px', background: group.color }} />
-                      <span style={{ fontWeight: '700', fontSize: '15px', color: '#1f2937' }}>{group.groupLabel}</span>
-                      <span style={{ fontSize: '12px', color: '#9ca3af' }}>({group.modules.length} pages)</span>
-                      {/* Select All for this group */}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const updated = { ...userPermissions };
-                          group.modules.forEach(m => { updated[m.key] = { view: true, create: true, edit: true, delete: true }; });
-                          setUserPermissions(updated);
-                        }}
-                        style={{ marginLeft: 'auto', padding: '4px 12px', background: group.color + '18', color: group.color, border: `1px solid ${group.color}40`, borderRadius: '6px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
-                      >
-                        Select All
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const updated = { ...userPermissions };
-                          group.modules.forEach(m => { updated[m.key] = { view: false, create: false, edit: false, delete: false }; });
-                          setUserPermissions(updated);
-                        }}
-                        style={{ padding: '4px 12px', background: '#f3f4f6', color: '#6b7280', border: '1px solid #e5e7eb', borderRadius: '6px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
-                      >
-                        Clear
-                      </button>
-                    </div>
+            {/* ── 2. Unified User Permissions Table ── */}
+            <div style={{ background: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: '#1f2937' }}>Team Member Access Control</h3>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#6b7280' }}>View, update, or revoke access permissions for individual team members</p>
+                </div>
 
-                    {/* Module Cards Grid — 4 columns */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px' }}>
-                      {group.modules.map(({ key: module, label }) => {
-                        const perms = userPermissions[module] || {};
-                        const allChecked = perms.view && perms.create && perms.edit && perms.delete;
-                        const updatePerm = (pKey, val) => {
-                          setUserPermissions(prev => ({
-                            ...prev,
-                            [module]: { ...(prev[module] || {}), [pKey]: val }
-                          }));
-                        };
-                        return (
-                          <div
-                            key={module}
-                            style={{ background: 'white', borderRadius: '10px', border: `1.5px solid ${allChecked ? group.color + '60' : '#e5e7eb'}`, boxShadow: allChecked ? `0 0 0 3px ${group.color}15` : '0 1px 4px rgba(0,0,0,0.05)', padding: '14px 16px', transition: '0.2s' }}
-                          >
-                            {/* Card Header: label + toggle-all checkbox */}
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', paddingBottom: '8px', borderBottom: '1px solid #f3f4f6' }}>
-                              <span style={{ fontWeight: '700', fontSize: '13px', color: group.color }}>{label}</span>
-                              <input
-                                type="checkbox"
-                                title="Toggle all permissions"
-                                checked={!!allChecked}
-                                onChange={e => {
-                                  setUserPermissions(prev => ({
-                                    ...prev,
-                                    [module]: { view: e.target.checked, create: e.target.checked, edit: e.target.checked, delete: e.target.checked }
-                                  }));
-                                }}
-                                style={{ width: '15px', height: '15px', accentColor: group.color, cursor: 'pointer' }}
-                              />
-                            </div>
-                            {/* 4 Permission Checkboxes */}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
-                              {[
-                                { key: 'view',   label: 'View'   },
-                                { key: 'create', label: 'Create' },
-                                { key: 'edit',   label: 'Edit'   },
-                                { key: 'delete', label: 'Delete' },
-                              ].map(({ key: pKey, label: pLabel }) => (
-                                <label key={pKey} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', color: perms[pKey] ? '#111827' : '#9ca3af', fontWeight: perms[pKey] ? '500' : '400', transition: '0.15s' }}>
-                                  <input
-                                    type="checkbox"
-                                    checked={!!perms[pKey]}
-                                    onChange={e => updatePerm(pKey, e.target.checked)}
-                                    style={{ width: '15px', height: '15px', accentColor: group.color, cursor: 'pointer', flexShrink: 0 }}
-                                  />
-                                  {pLabel}
-                                </label>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <div style={{ position: 'relative' }}>
+                    <Search size={14} color="#9ca3af" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
+                    <input
+                      type="text"
+                      placeholder="Search users..."
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                      style={{ padding: '8px 12px 8px 30px', borderRadius: '8px', border: '1.5px solid #d1d5db', fontSize: '13px', outline: 'none', width: '200px' }}
+                    />
                   </div>
-                ))}
-                {/* Bottom Save Button */}
-                <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '8px' }}>
+
                   <button
-                    onClick={handleUserPermsSubmit}
-                    style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 28px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '700', fontSize: '15px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(99,102,241,0.35)' }}
+                    onClick={() => setShowAddUserModal(true)}
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', boxShadow: '0 2px 8px rgba(99,102,241,0.3)' }}
                   >
-                    <CheckCircle size={18} /> Save Permissions for {selectedUser?.name}
+                    <UserPlus size={15} /> Add User
                   </button>
                 </div>
               </div>
-            ) : (
-              <div style={{ textAlign: 'center', padding: '80px 20px', background: 'white', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
-                <Shield size={52} style={{ opacity: 0.2, marginBottom: '16px', color: '#6366f1' }} />
-                <h3 style={{ color: '#6b7280', fontWeight: '600', margin: '0 0 8px' }}>No User Selected</h3>
-                <p style={{ color: '#9ca3af', fontSize: '14px', margin: 0 }}>Select a user from the dropdown above to manage their permissions</p>
+
+              <div style={{ overflowX: 'auto', border: '1px solid #e5e7eb', borderRadius: '8px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+                  <thead>
+                    <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+                      {['User', 'Email', 'Role', 'Allowed Modules', 'Actions'].map(col => (
+                        <th key={col} style={{ padding: '12px 18px', textAlign: 'left', fontWeight: '600', color: '#4b5563', fontSize: '12px', textTransform: 'uppercase' }}>{col}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users
+                      .filter(u => u.name.toLowerCase().includes(searchQuery.toLowerCase()) || u.email.toLowerCase().includes(searchQuery.toLowerCase()))
+                      .map((u, index) => {
+                        const isUserAdmin = u.role?.toLowerCase() === 'admin';
+                        const allowedKeys = Object.keys(u.permissions || {}).filter(k => u.permissions[k]?.view);
+                        return (
+                          <tr key={u.id} style={{ borderBottom: '1px solid #f3f4f6', background: index % 2 === 0 ? 'white' : '#f9fafb' }}>
+                            <td style={{ padding: '12px 18px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: `hsl(${(u.id * 80) % 360},60%,60%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: '700', fontSize: '13px' }}>
+                                  {u.name.charAt(0).toUpperCase()}
+                                </div>
+                                <span style={{ fontWeight: '600', color: '#111827' }}>{u.name}</span>
+                              </div>
+                            </td>
+                            <td style={{ padding: '12px 18px', color: '#4b5563' }}>{u.email}</td>
+                            <td style={{ padding: '12px 18px' }}>
+                              <span style={{ fontSize: '11px', fontWeight: '700', padding: '3px 8px', borderRadius: '12px', background: isUserAdmin ? '#ede9fe' : '#e0f2fe', color: isUserAdmin ? '#6d28d9' : '#0369a1', textTransform: 'uppercase' }}>
+                                {u.role}
+                              </span>
+                            </td>
+                            <td style={{ padding: '12px 18px' }}>
+                              {isUserAdmin ? (
+                                <span style={{ color: '#10b981', fontWeight: '600', fontSize: '12px' }}>Full Administrator Access</span>
+                              ) : allowedKeys.length === 0 ? (
+                                <span style={{ color: '#9ca3af', fontSize: '12px' }}>Dashboard & Profile Only</span>
+                              ) : (
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', maxWidth: '340px' }}>
+                                  {allowedKeys.slice(0, 3).map(k => (
+                                    <span key={k} style={{ background: '#e0e7ff', color: '#4338ca', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: '500', textTransform: 'capitalize' }}>
+                                      {k.replace('_', ' ')}
+                                    </span>
+                                  ))}
+                                  {allowedKeys.length > 3 && (
+                                    <span style={{ color: '#6366f1', fontSize: '11px', fontWeight: '700', alignSelf: 'center' }}>
+                                      +{allowedKeys.length - 3} more
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </td>
+                            <td style={{ padding: '12px 18px' }}>
+                              <div style={{ display: 'flex', gap: '6px' }}>
+                                <button
+                                  onClick={() => {
+                                    setViewingUser(u);
+                                    setShowViewModal(true);
+                                  }}
+                                  title="View Access"
+                                  style={{ width: '30px', height: '30px', borderRadius: '6px', border: 'none', background: '#f3f4f6', color: '#4b5563', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                >
+                                  <Eye size={14} />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setEditingUser(u);
+                                    setEditUserForm({ name: u.name, email: u.email, phone: u.phone || '', role: u.role || 'employee', password: '', status: u.status || 'Active' });
+                                    
+                                    const loaded = u.permissions || {};
+                                    const merged = { ...defaultPerms };
+                                    Object.keys(loaded).forEach(k => { merged[k] = loaded[k]; });
+                                    setEditUserPermissions(merged);
+                                    setShowEditModal(true);
+                                  }}
+                                  title="Edit Permissions"
+                                  style={{ width: '30px', height: '30px', borderRadius: '6px', border: 'none', background: '#eef2ff', color: '#4338ca', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                >
+                                  <Pencil size={14} />
+                                </button>
+                                <button
+                                  onClick={() => setDeleteUserId(u.id)}
+                                  title="Delete User"
+                                  style={{ width: '30px', height: '30px', borderRadius: '6px', border: 'none', background: '#fee2e2', color: '#dc2626', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* ── 3. MODALS ── */}
+
+            {/* A. Add Role Modal */}
+            {showAddRoleModal && (
+              <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.4)', backdropFilter: 'blur(4px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ background: 'white', borderRadius: '16px', padding: '30px', width: '100%', maxWidth: '400px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                    <h3 style={{ margin: 0, color: '#1f2937', fontWeight: 700 }}>Add Custom Role</h3>
+                    <button onClick={() => setShowAddRoleModal(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#9ca3af' }}><X size={20} /></button>
+                  </div>
+                  <form onSubmit={handleAddRoleSubmit}>
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600', color: '#374151' }}>Role Name *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. CTO, Developer, Sales Executive"
+                      value={newRoleName}
+                      onChange={e => setNewRoleName(e.target.value)}
+                      style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1.5px solid #d1d5db', fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '20px' }}
+                    />
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <button type="button" onClick={() => setShowAddRoleModal(false)} style={{ flex: 1, padding: '10px', background: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
+                      <button type="submit" style={{ flex: 1, padding: '10px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>Create Role</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* B. Add User Modal */}
+            {showAddUserModal && (
+              <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.4)', backdropFilter: 'blur(4px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ background: 'white', borderRadius: '16px', padding: '30px', width: '100%', maxWidth: '480px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                    <h3 style={{ margin: 0, color: '#1f2937', fontWeight: 700 }}>Add New Team Member</h3>
+                    <button onClick={() => setShowAddUserModal(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#9ca3af' }}><X size={20} /></button>
+                  </div>
+                  <form onSubmit={handleAddUserSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: '600', color: '#374151' }}>Full Name *</label>
+                      <input type="text" required value={addUserForm.name} onChange={e => setAddUserForm({ ...addUserForm, name: e.target.value })} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1.5px solid #d1d5db', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} placeholder="John Doe" />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: '600', color: '#374151' }}>Email Address *</label>
+                      <input type="email" required value={addUserForm.email} onChange={e => setAddUserForm({ ...addUserForm, email: e.target.value })} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1.5px solid #d1d5db', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} placeholder="john@company.com" />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: '600', color: '#374151' }}>Phone Number</label>
+                      <input type="text" value={addUserForm.phone} onChange={e => setAddUserForm({ ...addUserForm, phone: e.target.value })} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1.5px solid #d1d5db', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} placeholder="+91 9876543210" />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: '600', color: '#374151' }}>Role *</label>
+                      <select required value={addUserForm.role} onChange={e => setAddUserForm({ ...addUserForm, role: e.target.value })} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1.5px solid #d1d5db', fontSize: '14px', outline: 'none', boxSizing: 'border-box', background: 'white' }}>
+                        <option value="">Select Role</option>
+                        {roles.map(r => <option key={r.id} value={r.name}>{r.name}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: '600', color: '#374151' }}>Password *</label>
+                      <input type="password" required value={addUserForm.password} onChange={e => setAddUserForm({ ...addUserForm, password: e.target.value })} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1.5px solid #d1d5db', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} placeholder="Min 6 characters" />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '4px', fontSize: '13px', fontWeight: '600', color: '#374151' }}>Status</label>
+                      <select value={addUserForm.status} onChange={e => setAddUserForm({ ...addUserForm, status: e.target.value })} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1.5px solid #d1d5db', fontSize: '14px', outline: 'none', boxSizing: 'border-box', background: 'white' }}>
+                        <option>Active</option>
+                        <option>Inactive</option>
+                      </select>
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                      <button type="button" onClick={() => setShowAddUserModal(false)} style={{ flex: 1, padding: '10px', background: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
+                      <button type="submit" style={{ flex: 1, padding: '10px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>Create User</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* C. View User Modal */}
+            {showViewModal && viewingUser && (
+              <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.4)', backdropFilter: 'blur(4px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ background: 'white', borderRadius: '16px', padding: '30px', width: '100%', maxWidth: '640px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: '#8b5cf6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700 }}>
+                        {viewingUser.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <h3 style={{ margin: 0, color: '#1f2937', fontWeight: 700 }}>{viewingUser.name}</h3>
+                        <span style={{ fontSize: '11px', fontWeight: '700', color: '#6d28d9', background: '#ede9fe', padding: '2px 8px', borderRadius: '10px' }}>{viewingUser.role}</span>
+                      </div>
+                    </div>
+                    <button onClick={() => setShowViewModal(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#9ca3af' }}><X size={20} /></button>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '24px', background: '#f9fafb', padding: '16px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                    <div><strong>Email:</strong> <span style={{ color: '#4b5563' }}>{viewingUser.email}</span></div>
+                    <div><strong>Phone:</strong> <span style={{ color: '#4b5563' }}>{viewingUser.phone || '—'}</span></div>
+                    <div><strong>Department:</strong> <span style={{ color: '#4b5563' }}>{viewingUser.department || '—'}</span></div>
+                    <div><strong>Location:</strong> <span style={{ color: '#4b5563' }}>{viewingUser.location || '—'}</span></div>
+                    <div style={{ gridColumn: '1 / -1' }}><strong>Bio:</strong> <span style={{ color: '#4b5563' }}>{viewingUser.bio || '—'}</span></div>
+                  </div>
+
+                  <h4 style={{ margin: '0 0 12px', fontSize: '14px', fontWeight: '700', color: '#374151' }}>Granted Module Permissions:</h4>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    {moduleGroups.flatMap(g => g.modules).map(m => {
+                      const perms = viewingUser.permissions?.[m.key] || {};
+                      const act = [];
+                      if (perms.view) act.push('View');
+                      if (perms.create) act.push('Create');
+                      if (perms.edit) act.push('Edit');
+                      if (perms.delete) act.push('Delete');
+                      if (act.length === 0) return null;
+                      return (
+                        <div key={m.key} style={{ background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: '6px', padding: '6px 12px', fontSize: '12px' }}>
+                          <strong>{m.label}:</strong> <span style={{ color: '#4f46e5', fontWeight: 600 }}>{act.join(', ')}</span>
+                        </div>
+                      );
+                    })}
+                    {Object.keys(viewingUser.permissions || {}).filter(k => viewingUser.permissions[k]?.view).length === 0 && (
+                      <div style={{ color: '#9ca3af', fontSize: '13px', fontStyle: 'italic' }}>Dashboard and Profile access only. No other modules allowed.</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* D. Edit User Modal */}
+            {showEditModal && editingUser && (
+              <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.4)', backdropFilter: 'blur(4px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ background: 'white', borderRadius: '16px', padding: '30px', width: '100%', maxWidth: '720px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                    <div>
+                      <h3 style={{ margin: 0, color: '#1f2937', fontWeight: 700 }}>Edit User Details & Access</h3>
+                      <p style={{ margin: 0, fontSize: '12px', color: '#6b7280' }}>Modify {editingUser.name}'s info and override role permissions</p>
+                    </div>
+                    <button onClick={() => setShowEditModal(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#9ca3af' }}><X size={20} /></button>
+                  </div>
+
+                  <form onSubmit={handleUserUpdate}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '20px' }}>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Full Name *</label>
+                        <input type="text" required value={editUserForm.name} onChange={e => setEditUserForm({ ...editUserForm, name: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #d1d5db', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }} />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Email *</label>
+                        <input type="email" required value={editUserForm.email} onChange={e => setEditUserForm({ ...editUserForm, email: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #d1d5db', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }} />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Phone</label>
+                        <input type="text" value={editUserForm.phone} onChange={e => setEditUserForm({ ...editUserForm, phone: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #d1d5db', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }} />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Role *</label>
+                        <select
+                          required
+                          value={editUserForm.role}
+                          onChange={e => {
+                            const newRole = e.target.value;
+                            setEditUserForm({ ...editUserForm, role: newRole });
+                            // Auto default user permissions to the new role permissions
+                            const roleObj = roles.find(r => r.name.toLowerCase() === newRole.toLowerCase());
+                            if (roleObj) {
+                              const rPerms = roleObj.permissions
+                                ? (typeof roleObj.permissions === 'string' ? JSON.parse(roleObj.permissions) : roleObj.permissions)
+                                : {};
+                              const merged = { ...defaultPerms };
+                              Object.keys(rPerms).forEach(k => { merged[k] = rPerms[k]; });
+                              setEditUserPermissions(merged);
+                            }
+                          }}
+                          style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #d1d5db', fontSize: '13px', outline: 'none', boxSizing: 'border-box', background: 'white' }}
+                        >
+                          {roles.map(r => <option key={r.id} value={r.name}>{r.name}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '600', color: '#374151' }}>New Password (optional)</label>
+                        <input type="password" value={editUserForm.password} onChange={e => setEditUserForm({ ...editUserForm, password: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #d1d5db', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }} placeholder="Leave blank to keep current" />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Status</label>
+                        <select value={editUserForm.status} onChange={e => setEditUserForm({ ...editUserForm, status: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #d1d5db', fontSize: '13px', outline: 'none', boxSizing: 'border-box', background: 'white' }}>
+                          <option>Active</option>
+                          <option>Inactive</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '16px', marginBottom: '20px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                        <h4 style={{ margin: 0, fontSize: '13px', fontWeight: '700', color: '#374151' }}>Customize Permissions (Overrides Role)</h4>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const all = {};
+                              allModuleKeys.forEach(k => all[k] = { view: true, create: true, edit: true, delete: true });
+                              setEditUserPermissions(all);
+                            }}
+                            style={{ padding: '4px 10px', background: '#e0e7ff', color: '#4338ca', border: 'none', borderRadius: '4px', fontSize: '11px', fontWeight: '600', cursor: 'pointer' }}
+                          >
+                            ✓ Select All
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditUserPermissions({ ...defaultPerms })}
+                            style={{ padding: '4px 10px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '4px', fontSize: '11px', fontWeight: '600', cursor: 'pointer' }}
+                          >
+                            ✕ Clear All
+                          </button>
+                        </div>
+                      </div>
+
+                      <div style={{ maxHeight: '240px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px', paddingRight: '6px' }}>
+                        {moduleGroups.map(group => (
+                          <div key={group.groupLabel}>
+                            <span style={{ fontSize: '12px', fontWeight: '700', color: group.color, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                              {renderGroupIcon(group.groupLabel, group.color, 14)}
+                              {group.groupLabel}
+                            </span>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+                              {group.modules.map(({ key: module, label }) => {
+                                const perms = editUserPermissions[module] || {};
+                                const updatePerm = (pKey, val) => {
+                                  setEditUserPermissions(prev => ({
+                                    ...prev,
+                                    [module]: { ...(prev[module] || {}), [pKey]: val }
+                                  }));
+                                };
+                                return (
+                                  <div key={module} style={{ background: '#f9fafb', padding: '10px', borderRadius: '6px', border: '1px solid #e5e7eb' }}>
+                                    <div style={{ fontWeight: '700', fontSize: '11px', color: '#4b5563', marginBottom: '4px' }}>{label}</div>
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                      {['view', 'create', 'edit', 'delete'].map(action => (
+                                        <label key={action} style={{ display: 'flex', alignItems: 'center', gap: '2px', fontSize: '10px', color: perms[action] ? '#111827' : '#9ca3af', cursor: 'pointer' }}>
+                                          <input
+                                            type="checkbox"
+                                            checked={!!perms[action]}
+                                            onChange={e => updatePerm(action, e.target.checked)}
+                                            style={{ width: '10px', height: '10px', accentColor: group.color }}
+                                          />
+                                          <span style={{ textTransform: 'capitalize' }}>{action}</span>
+                                        </label>
+                                      ))}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <button type="button" onClick={() => setShowEditModal(false)} style={{ flex: 1, padding: '11px', background: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
+                      <button type="submit" style={{ flex: 1, padding: '11px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>Save Changes</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* E. Delete User Modal */}
+            {deleteUserId && (
+              <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.4)', backdropFilter: 'blur(4px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ background: 'white', borderRadius: '16px', padding: '30px', width: '100%', maxWidth: '360px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', textAlign: 'center' }}>
+                  <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#fee2e2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                    <Trash2 size={24} />
+                  </div>
+                  <h3 style={{ margin: '0 0 8px', color: '#1f2937', fontWeight: 700 }}>Delete User</h3>
+                  <p style={{ margin: '0 0 24px', fontSize: '13px', color: '#6b7280' }}>Are you sure you want to delete this user? This action is permanent and cannot be undone.</p>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button onClick={() => setDeleteUserId(null)} style={{ flex: 1, padding: '10px', background: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
+                    <button onClick={handleUserDelete} style={{ flex: 1, padding: '10px', background: '#dc2626', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>Yes, Delete</button>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -541,10 +1116,10 @@ const MailSettingsPanel = ({ showSuccess }) => {
         }),
       });
       const data = await res.json();
-      if (res.ok) showSuccess('✅ SMTP settings saved to database!');
-      else showSuccess('❌ Error: ' + data.error);
+      if (res.ok) showSuccess('SMTP settings saved to database!');
+      else showSuccess('Error: ' + data.error);
     } catch (error) { console.error('FETCH ERROR:', error);
-      showSuccess('❌ Could not connect to backend.');
+      showSuccess('Could not connect to backend.');
     }
   };
 
@@ -653,7 +1228,7 @@ const MailSettingsPanel = ({ showSuccess }) => {
             )}
             {testResult === 'error' && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fee2e2', color: '#dc2626', padding: '10px 16px', borderRadius: 8, fontSize: 14, fontWeight: 500 }}>
-                ✕ Connection failed. Please check your credentials.
+                <X size={16} /> Connection failed. Please check your credentials.
               </div>
             )}
 

@@ -14,6 +14,17 @@ const ROLE_COLORS = {
   employee: { bg: '#d1fae5', color: '#065f46' },
 };
 
+const getRoleColor = (roleName) => {
+  const normalized = (roleName || '').toLowerCase();
+  if (ROLE_COLORS[normalized]) return ROLE_COLORS[normalized];
+  let hash = 0;
+  for (let i = 0; i < normalized.length; i++) {
+    hash = normalized.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const h = Math.abs(hash) % 360;
+  return { bg: `hsl(${h}, 70%, 95%)`, color: `hsl(${h}, 70%, 35%)` };
+};
+
 const defaultForm = { name: '', email: '', phone: '', role: 'employee', password: '', status: 'Active' };
 
 export default function UserManagement() {
@@ -36,10 +47,21 @@ export default function UserManagement() {
   const fetchUsersAndRoles = async () => {
     setLoading(true);
     try {
-      const usersRes = await fetch(`${API}/users`, { headers: { Authorization: `Bearer ${token()}` } });
+      const headers = { Authorization: `Bearer ${token()}` };
+      const [usersRes, rolesRes] = await Promise.all([
+        fetch(`${API}/users`, { headers }),
+        fetch(`${API}/roles`, { headers })
+      ]);
       if (usersRes.ok) setUsers(await usersRes.json());
+      if (rolesRes.ok) {
+        const rolesList = await rolesRes.json();
+        setDbRoles(Array.isArray(rolesList) && rolesList.length ? rolesList : ROLES.map((r, index) => ({ id: index, name: r })));
+      } else {
+        setDbRoles(ROLES.map((r, index) => ({ id: index, name: r })));
+      }
     } catch (e) {
       console.error(e);
+      setDbRoles(ROLES.map((r, index) => ({ id: index, name: r })));
     }
     setLoading(false);
   };
@@ -203,10 +225,10 @@ export default function UserManagement() {
             style={{ padding: '8px 16px', background: roleFilter === 'all' ? '#6366f1' : '#f3f4f6', color: roleFilter === 'all' ? 'white' : '#6b7280', border: 'none', borderRadius: 8, fontWeight: 600, fontSize: 13, cursor: 'pointer', textTransform: 'capitalize', transition: '0.2s' }}>
             All Roles
           </button>
-          {ROLES.map(r => (
-            <button key={r} onClick={() => setRoleFilter(r)}
-              style={{ padding: '8px 16px', background: roleFilter === r ? '#6366f1' : '#f3f4f6', color: roleFilter === r ? 'white' : '#6b7280', border: 'none', borderRadius: 8, fontWeight: 600, fontSize: 13, cursor: 'pointer', textTransform: 'capitalize', transition: '0.2s' }}>
-              {r}
+          {dbRoles.map(r => (
+            <button key={r.id || r.name} onClick={() => setRoleFilter(r.name)}
+              style={{ padding: '8px 16px', background: roleFilter === r.name ? '#6366f1' : '#f3f4f6', color: roleFilter === r.name ? 'white' : '#6b7280', border: 'none', borderRadius: 8, fontWeight: 600, fontSize: 13, cursor: 'pointer', textTransform: 'capitalize', transition: '0.2s' }}>
+              {r.name}
             </button>
           ))}
         </div>
@@ -254,7 +276,7 @@ export default function UserManagement() {
 
                   {/* Role Badge */}
                   <td style={{ padding: '14px 18px' }}>
-                    <span style={{ fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 20, background: ROLE_COLORS[u.role]?.bg || '#f3f4f6', color: ROLE_COLORS[u.role]?.color || '#374151', textTransform: 'capitalize', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 20, background: getRoleColor(u.role).bg, color: getRoleColor(u.role).color, textTransform: 'capitalize', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                       <ShieldCheck size={11} /> {u.role}
                     </span>
                   </td>
@@ -344,7 +366,7 @@ export default function UserManagement() {
                   <label style={lbl}>Role *</label>
                   <select required value={form.role} onChange={e => setForm({ ...form, role: e.target.value })} style={inp}>
                     <option value="">Select Role</option>
-                    {ROLES.map(r => <option key={r} value={r} style={{ textTransform: 'capitalize' }}>{r}</option>)}
+                    {dbRoles.map(r => <option key={r.id || r.name} value={r.name} style={{ textTransform: 'capitalize' }}>{r.name}</option>)}
                   </select>
                 </div>
 
