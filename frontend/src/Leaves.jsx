@@ -201,7 +201,8 @@ const Leaves = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ background: '#f3f4f6', borderBottom: '1px solid #e5e7eb', textAlign: 'left' }}>
-                  <th style={{ padding: '12px', color: '#4b5563', fontSize: '13px' }}>Employee</th>
+                  <th style={{ padding: '12px', color: '#4b5563', fontSize: '13px' }}>Name</th>
+                  <th style={{ padding: '12px', color: '#4b5563', fontSize: '13px' }}>Role</th>
                   <th style={{ padding: '12px', color: '#4b5563', fontSize: '13px' }}>Type</th>
                   <th style={{ padding: '12px', color: '#4b5563', fontSize: '13px' }}>From</th>
                   <th style={{ padding: '12px', color: '#4b5563', fontSize: '13px' }}>To</th>
@@ -212,10 +213,11 @@ const Leaves = () => {
               </thead>
               <tbody>
                 {adminLeaves.length === 0 ? (
-                  <tr><td colSpan="7" style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>No requests found.</td></tr>
+                  <tr><td colSpan="8" style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>No requests found.</td></tr>
                 ) : adminLeaves.map(l => (
                   <tr key={l.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
                     <td style={{ padding: '12px', fontWeight: '500', color: '#1f2937' }}>{l.user_name}</td>
+                    <td style={{ padding: '12px', color: '#4b5563', textTransform: 'capitalize' }}>{l.user_role}</td>
                     <td style={{ padding: '12px', color: '#4b5563' }}>{l.type}</td>
                     <td style={{ padding: '12px', color: '#4b5563' }}>{l.start_date.split('T')[0]}</td>
                     <td style={{ padding: '12px', color: '#4b5563' }}>{l.end_date.split('T')[0]}</td>

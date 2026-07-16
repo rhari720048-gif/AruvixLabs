@@ -926,7 +926,7 @@ app.get('/api/leaves/admin', authenticate, async (req, res) => {
         const canViewLeaves = req.user.permissions?.leaves?.view;
         if (req.user.role !== 'admin' && req.user.role !== 'manager' && !canViewLeaves) return res.status(403).json({ error: 'Unauthorized' });
         const query = `
-            SELECT l.*, u.name as user_name 
+            SELECT l.*, u.name as user_name, u.role as user_role 
             FROM leaves l 
             JOIN users u ON l.user_id = u.id 
             ORDER BY l.created_at DESC
