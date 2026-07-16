@@ -788,17 +788,7 @@ const SettingsPage = () => {
                     ))}
                   </select>
 
-                  {canEditSettings && (
-                    <button
-                      type="button"
-                      onClick={() => setShowAddRoleModal(true)}
-                      style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 16px', background: '#e0e7ff', color: '#4338ca', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', transition: '0.2s' }}
-                      onMouseEnter={e => e.currentTarget.style.background = '#c7d2fe'}
-                      onMouseLeave={e => e.currentTarget.style.background = '#e0e7ff'}
-                    >
-                      <Plus size={16} /> Add Role
-                    </button>
-                  )}
+
                 </div>
               </div>
 
@@ -991,32 +981,6 @@ const SettingsPage = () => {
 
             {/* ── 3. MODALS ── */}
 
-            {/* A. Add Role Modal */}
-            {showAddRoleModal && (
-              <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.4)', backdropFilter: 'blur(4px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ background: 'white', borderRadius: '16px', padding: '30px', width: '100%', maxWidth: '400px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                    <h3 style={{ margin: 0, color: '#1f2937', fontWeight: 700 }}>Add Custom Role</h3>
-                    <button onClick={() => setShowAddRoleModal(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#9ca3af' }}><X size={20} /></button>
-                  </div>
-                  <form onSubmit={handleAddRoleSubmit}>
-                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600', color: '#374151' }}>Role Name *</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. CTO, Developer, Sales Executive"
-                      value={newRoleName}
-                      onChange={e => setNewRoleName(e.target.value)}
-                      style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1.5px solid #d1d5db', fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '20px' }}
-                    />
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                      <button type="button" onClick={() => setShowAddRoleModal(false)} style={{ flex: 1, padding: '10px', background: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
-                      <button type="submit" style={{ flex: 1, padding: '10px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>Create Role</button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )}
 
             {/* B. Add User Modal */}
 
