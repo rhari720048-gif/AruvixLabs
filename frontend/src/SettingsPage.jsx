@@ -845,11 +845,6 @@ const SettingsPage = () => {
                     />
                   </div>
                 </div>
-              ) : (
-                <div style={{ textAlign: 'center', padding: '40px 20px', background: '#f9fafb', borderRadius: '8px', border: '1px dashed #d1d5db' }}>
-                  <ShieldCheck size={36} style={{ opacity: 0.3, color: '#6366f1', marginBottom: '8px' }} />
-                  <p style={{ margin: 0, fontSize: '13px', color: '#6b7280' }}>Select a role from the dropdown above to manage default access levels, or create a new custom role.</p>
-                </div>
               )}
             </div>
 
