@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Plus, X, Video } from 'lucide-react';
+import { getPerms } from './permissions';
 
 const API = 'https://aruvixlabs.onrender.com/api';
 
 const CalendarApp = () => {
+  const perms = getPerms('calendar');
+  const canCreate = perms.create_meeting ?? perms.canCreate;
+
   const [currentDate, setCurrentDate] = useState(new Date());
   const [meetings, setMeetings] = useState([]);
   const [users, setUsers] = useState([]);
@@ -40,6 +44,7 @@ const CalendarApp = () => {
   const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
 
   const handleDayClick = (day) => {
+    if (!canCreate) return;
     const d = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
     // adjust for local timezone offset so it doesn't shift
     const tzOffset = d.getTimezoneOffset() * 60000;

@@ -7,8 +7,18 @@ import { getPerms } from './permissions';
 const API = 'https://aruvixlabs.onrender.com/api';
 
 const Clients = () => {
-  const { canCreate, canEdit, canDelete } = getPerms('clients');
-  const [activeTab, setActiveTab] = useState(canCreate ? 'add' : 'all');
+  const perms = getPerms('clients');
+  const hasAddTab = perms.add_clients ?? perms.canCreate;
+  const hasAllTab = perms.all_clients ?? perms.canView;
+  const canCreate = perms.create ?? perms.canCreate;
+  const canEdit = perms.edit ?? perms.canEdit;
+  const canDelete = perms.delete ?? perms.canDelete;
+
+  const [activeTab, setActiveTab] = useState(() => {
+    if (hasAllTab) return 'all';
+    if (hasAddTab) return 'add';
+    return '';
+  });
   const [clients, setClients] = useState([]);
   const [form, setForm] = useState({ name: '', phone: '', email: '', district: '', source: 'Manual Entry' });
   const [successMessage, setSuccessMessage] = useState('');
@@ -187,10 +197,19 @@ const Clients = () => {
     </div>
   );
 
+  if (!hasAddTab && !hasAllTab) {
+    return (
+      <div style={{ textAlign: 'center', padding: '40px 20px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb' }}>
+        <p style={{ margin: 0, fontSize: '15px', color: '#dc2626', fontWeight: '600' }}>Access Denied</p>
+        <p style={{ margin: '8px 0 0', fontSize: '13px', color: '#6b7280' }}>You do not have permission to access any categories in Clients. Please contact your administrator.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="clients-page">
       <div style={{ display: 'flex', gap: '15px', borderBottom: '2px solid #e5e7eb', paddingBottom: '10px', marginBottom: '25px' }}>
-        {canCreate && (
+        {hasAddTab && (
           <button 
             onClick={() => setActiveTab('add')}
             style={{ padding: '12px 24px', background: activeTab === 'add' ? 'var(--primary)' : 'transparent', color: activeTab === 'add' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
@@ -198,13 +217,15 @@ const Clients = () => {
             <PlusCircle size={18} /> Add Clients
           </button>
         )}
-        <button 
-          onClick={() => setActiveTab('all')}
-          style={{ padding: '12px 24px', background: activeTab === 'all' ? 'var(--primary)' : 'transparent', color: activeTab === 'all' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
-        >
-          <List size={18} /> All Clients
-        </button>
-        {activeTab === 'all' && (
+        {hasAllTab && (
+          <button 
+            onClick={() => setActiveTab('all')}
+            style={{ padding: '12px 24px', background: activeTab === 'all' ? 'var(--primary)' : 'transparent', color: activeTab === 'all' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
+          >
+            <List size={18} /> All Clients
+          </button>
+        )}
+        {activeTab === 'all' && hasAllTab && (
           <button 
             onClick={exportCSV}
             style={{ marginLeft: 'auto', padding: '12px 24px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
@@ -221,7 +242,7 @@ const Clients = () => {
           </div>
         )}
 
-        {activeTab === 'add' && (
+        {activeTab === 'add' && hasAddTab && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
             {/* Manual Form */}
             <div style={{ background: 'white', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb' }}>
@@ -270,7 +291,7 @@ const Clients = () => {
           </div>
         )}
 
-        {activeTab === 'all' && (
+        {activeTab === 'all' && hasAllTab && (
           <div>
             <h2 style={{ marginBottom: '20px', color: 'var(--text-dark)' }}>All Clients ({clients.length})</h2>
             {renderTable(clients)}

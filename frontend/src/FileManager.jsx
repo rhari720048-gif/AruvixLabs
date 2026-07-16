@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Folder, FileText, Image as ImageIcon, Video, Archive, Upload, Download, Trash2, Search, Plus, Filter, MoreVertical, X } from 'lucide-react';
+import { getPerms } from './permissions';
 
 const API = 'https://aruvixlabs.onrender.com/api';
 
 const FileManager = () => {
+  const perms = getPerms('files');
+  const canUpload = perms.upload ?? perms.canCreate;
+  const canDelete = perms.delete ?? perms.canDelete;
+
   const [activeTab, setActiveTab] = useState('all');
   const [files, setFiles] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -130,12 +135,14 @@ const FileManager = () => {
               style={{ padding: '9px 15px 9px 35px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none', width: '250px' }}
             />
           </div>
-          <button 
-            onClick={() => setShowModal(true)}
-            style={{ background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', padding: '0 20px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
-          >
-            <Upload size={18} /> Upload File
-          </button>
+          {canUpload && (
+            <button 
+              onClick={() => setShowModal(true)}
+              style={{ background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', padding: '0 20px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
+              <Upload size={18} /> Upload File
+            </button>
+          )}
         </div>
       </div>
 
@@ -167,9 +174,11 @@ const FileManager = () => {
               <button onClick={() => window.open(file.url, '_blank')} style={{ flex: 1, padding: '8px', background: '#f3f4f6', color: '#374151', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', fontSize: '12px', fontWeight: '500' }}>
                 <Download size={14} /> Open
               </button>
-              <button onClick={() => handleDelete(file.id)} style={{ padding: '8px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Trash2 size={14} />
-              </button>
+              {canDelete && (
+                <button onClick={() => handleDelete(file.id)} style={{ padding: '8px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Trash2 size={14} />
+                </button>
+              )}
             </div>
           </div>
         ))}

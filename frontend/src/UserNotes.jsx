@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, X, Check, Search, Trash2 } from 'lucide-react';
+import { getPerms } from './permissions';
 
 const colors = ['#ffffff', '#f28b82', '#fbbc04', '#fff475', '#ccff90', '#a7ffeb', '#cbf0f8', '#aecbfa', '#d7aefb', '#e6c9a8'];
 const API = 'https://aruvixlabs.onrender.com/api';
 
 const UserNotes = () => {
+  const perms = getPerms('notes');
+  const canCreate = perms.create_note ?? perms.canCreate;
+  const canEdit = perms.edit ?? perms.canEdit;
+  const canDelete = perms.delete ?? perms.canDelete;
+
   const [notes, setNotes] = useState([]);
   const [search, setSearch] = useState('');
   
@@ -107,12 +113,14 @@ const UserNotes = () => {
             style={{ width: '100%', padding: '10px 10px 10px 38px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }}
           />
         </div>
-        <button 
-          onClick={handleCreate} 
-          style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
-        >
-          <Plus size={18} /> Take a note
-        </button>
+        {canCreate && (
+          <button 
+            onClick={handleCreate} 
+            style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+          >
+            <Plus size={18} /> Take a note
+          </button>
+        )}
       </div>
 
       {/* Notes Grid */}
@@ -120,7 +128,9 @@ const UserNotes = () => {
         {filteredNotes.map(note => (
           <div 
             key={note.id} 
-            onClick={() => setActiveNote(note)}
+            onClick={() => {
+              if (canEdit) setActiveNote(note);
+            }}
             style={{ 
               background: note.color, 
               padding: '20px', 
@@ -143,9 +153,11 @@ const UserNotes = () => {
             </p>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '15px' }}>
               <span style={{ fontSize: '11px', color: '#9ca3af' }}>{note.date}</span>
-              <button onClick={(e) => handleDelete(note.id, e)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#9ca3af' }} title="Delete">
-                <Trash2 size={16} />
-              </button>
+              {canDelete && (
+                <button onClick={(e) => handleDelete(note.id, e)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#9ca3af' }} title="Delete">
+                  <Trash2 size={16} />
+                </button>
+              )}
             </div>
           </div>
         ))}

@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Ticket, Search, Filter, Plus, MessageCircle, Clock, AlertCircle, CheckCircle2, ChevronRight, User, MoreVertical } from 'lucide-react';
+import { getPerms } from './permissions';
 
 const API = 'https://aruvixlabs.onrender.com/api';
 const token = () => localStorage.getItem('token');
 
 const SupportTickets = () => {
+  const perms = getPerms('support');
+  const canCreate = perms.create_ticket ?? perms.canCreate;
+  const canReply = perms.reply_ticket ?? perms.canEdit;
+
   const [tickets, setTickets] = useState([]);
   const [clients, setClients] = useState([]);
   const [activeTab, setActiveTab] = useState('All'); // All, Open, In Progress, Resolved
@@ -104,9 +109,11 @@ const SupportTickets = () => {
             <h2 style={{ color: '#1f2937', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Ticket size={24} color="var(--primary)" /> Support Tickets
             </h2>
-            <button onClick={() => setShowNewModal(true)} style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '500' }}>
-              <Plus size={16} /> New Ticket
-            </button>
+            {canCreate && (
+              <button onClick={() => setShowNewModal(true)} style={{ padding: '8px 16px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '500' }}>
+                <Plus size={16} /> New Ticket
+              </button>
+            )}
           </div>
           
           <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '5px' }}>
@@ -217,20 +224,22 @@ const SupportTickets = () => {
           </div>
 
           {/* Reply Input Area */}
-          <div style={{ padding: '20px', borderTop: '1px solid #e5e7eb', background: 'white' }}>
-            <form onSubmit={handleSendReply} style={{ display: 'flex', gap: '10px' }}>
-              <input 
-                type="text" 
-                value={replyText}
-                onChange={(e) => setReplyText(e.target.value)}
-                placeholder="Type your reply here..." 
-                style={{ flex: '1', padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} 
-              />
-              <button type="submit" disabled={!replyText.trim()} style={{ background: replyText.trim() ? 'var(--primary)' : '#9ca3af', color: 'white', border: 'none', padding: '0 20px', borderRadius: '8px', fontWeight: '600', cursor: replyText.trim() ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <MessageCircle size={18} /> Reply
-              </button>
-            </form>
-          </div>
+          {canReply && (
+            <div style={{ padding: '20px', borderTop: '1px solid #e5e7eb', background: 'white' }}>
+              <form onSubmit={handleSendReply} style={{ display: 'flex', gap: '10px' }}>
+                <input 
+                  type="text" 
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  placeholder="Type your reply here..." 
+                  style={{ flex: '1', padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} 
+                />
+                <button type="submit" disabled={!replyText.trim()} style={{ background: replyText.trim() ? 'var(--primary)' : '#9ca3af', color: 'white', border: 'none', padding: '0 20px', borderRadius: '8px', fontWeight: '600', cursor: replyText.trim() ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <MessageCircle size={18} /> Reply
+                </button>
+              </form>
+            </div>
+          )}
         </div>
       ) : (
         <div style={{ flex: '2', background: 'white', borderRadius: '12px', border: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>

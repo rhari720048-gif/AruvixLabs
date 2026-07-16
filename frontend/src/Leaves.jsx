@@ -1,12 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, CheckCircle, Clock, XCircle, Trash2 } from 'lucide-react';
+import { getPerms } from './permissions';
 
 const API = 'https://aruvixlabs.onrender.com/api';
 const leaveTypes = ['Sick Leave', 'Vacation', 'Casual Leave', 'Emergency'];
 
 const Leaves = () => {
+  const perms = getPerms('leaves');
+  const hasMyLeaves = perms.my_leaves ?? perms.canView;
+  const canRequest = perms.request_leave ?? perms.canCreate;
+  const canManage = perms.manage_leaves ?? perms.canEdit;
+  const canDelete = perms.delete ?? perms.canDelete;
+
   const [role, setRole] = useState('');
-  const [activeTab, setActiveTab] = useState('my-leaves');
+  const [activeTab, setActiveTab] = useState(() => {
+    if (hasMyLeaves) return 'my-leaves';
+    if (canRequest) return 'request';
+    if (canManage) return 'admin';
+    return '';
+  });
   const [myLeaves, setMyLeaves] = useState([]);
   const [adminLeaves, setAdminLeaves] = useState([]);
 
@@ -115,16 +127,29 @@ const Leaves = () => {
     );
   };
 
+  if (!hasMyLeaves && !canRequest && !canManage) {
+    return (
+      <div style={{ textAlign: 'center', padding: '40px 20px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb' }}>
+        <p style={{ margin: 0, fontSize: '15px', color: '#dc2626', fontWeight: '600' }}>Access Denied</p>
+        <p style={{ margin: '8px 0 0', fontSize: '13px', color: '#6b7280' }}>You do not have permission to access Leaves.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="leaves-page">
       <div style={{ display: 'flex', gap: '15px', borderBottom: '2px solid #e5e7eb', paddingBottom: '10px', marginBottom: '25px' }}>
-        <button onClick={() => setActiveTab('my-leaves')} style={{ padding: '12px 24px', background: activeTab === 'my-leaves' ? 'var(--primary)' : 'transparent', color: activeTab === 'my-leaves' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Calendar size={18} /> My Leaves
-        </button>
-        <button onClick={() => setActiveTab('request')} style={{ padding: '12px 24px', background: activeTab === 'request' ? 'var(--primary)' : 'transparent', color: activeTab === 'request' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Clock size={18} /> Request Leave
-        </button>
-        {(role === 'admin' || role === 'manager') && (
+        {hasMyLeaves && (
+          <button onClick={() => setActiveTab('my-leaves')} style={{ padding: '12px 24px', background: activeTab === 'my-leaves' ? 'var(--primary)' : 'transparent', color: activeTab === 'my-leaves' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Calendar size={18} /> My Leaves
+          </button>
+        )}
+        {canRequest && (
+          <button onClick={() => setActiveTab('request')} style={{ padding: '12px 24px', background: activeTab === 'request' ? 'var(--primary)' : 'transparent', color: activeTab === 'request' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Clock size={18} /> Request Leave
+          </button>
+        )}
+        {canManage && (role === 'admin' || role === 'manager') && (
           <button onClick={() => setActiveTab('admin')} style={{ padding: '12px 24px', background: activeTab === 'admin' ? 'var(--primary)' : 'transparent', color: activeTab === 'admin' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <CheckCircle size={18} /> Manage Requests
           </button>
@@ -132,7 +157,7 @@ const Leaves = () => {
       </div>
 
       <div className="page-content">
-        {activeTab === 'my-leaves' && (
+        {activeTab === 'my-leaves' && hasMyLeaves && (
           <div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
             <h2 style={{ marginBottom: '20px', color: '#1f2937' }}>My Leave History</h2>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -162,7 +187,7 @@ const Leaves = () => {
           </div>
         )}
 
-        {activeTab === 'request' && (
+        {activeTab === 'request' && canRequest && (
           <div style={{ maxWidth: '600px', background: 'white', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
             <h2 style={{ marginBottom: '20px', color: '#1f2937' }}>Apply for Leave</h2>
             {success && <div style={{ padding: '12px 20px', background: '#d1fae5', color: '#065f46', borderRadius: '8px', marginBottom: '20px' }}>{success}</div>}
@@ -195,7 +220,7 @@ const Leaves = () => {
           </div>
         )}
 
-        {activeTab === 'admin' && (role === 'admin' || role === 'manager') && (
+        {activeTab === 'admin' && canManage && (role === 'admin' || role === 'manager') && (
           <div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
             <h2 style={{ marginBottom: '20px', color: '#1f2937' }}>Manage Staff Leaves</h2>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -231,7 +256,7 @@ const Leaves = () => {
                         </>
                       )}
                       {l.status !== 'Pending' && <span style={{ color: '#9ca3af', fontSize: '12px', marginRight: '8px' }}>Done</span>}
-                      <button onClick={() => handleDeleteLeave(l.id)} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="Delete"><Trash2 size={16} /></button>
+                      {canDelete && <button onClick={() => handleDeleteLeave(l.id)} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="Delete"><Trash2 size={16} /></button>}
                     </td>
                   </tr>
                 ))}

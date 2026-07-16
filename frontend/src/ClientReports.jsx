@@ -1,12 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, PlusCircle, List, CheckCircle, ExternalLink, Trash2, Eye, Filter } from 'lucide-react';
 import ViewModal from './ViewModal';
+import { getPerms } from './permissions';
 
 const API = 'https://aruvixlabs.onrender.com/api';
 const token = () => localStorage.getItem('token');
 
 const ClientReports = () => {
-  const [activeTab, setActiveTab] = useState('add');
+  const perms = getPerms('reports');
+  const hasAddTab = perms.generate_report ?? perms.canCreate;
+  const hasAllTab = perms.all_reports ?? perms.canView;
+  const canDelete = perms.delete ?? perms.canDelete;
+
+  const [activeTab, setActiveTab] = useState(() => {
+    if (hasAllTab) return 'all';
+    if (hasAddTab) return 'add';
+    return '';
+  });
   const [clients, setClients] = useState([]);
   const [reports, setReports] = useState([]);
   
@@ -96,21 +106,34 @@ const ClientReports = () => {
     ? reports 
     : reports.filter(r => String(r.client_id) === String(filterClient));
 
+  if (!hasAddTab && !hasAllTab) {
+    return (
+      <div style={{ textAlign: 'center', padding: '40px 20px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb' }}>
+        <p style={{ margin: 0, fontSize: '15px', color: '#dc2626', fontWeight: '600' }}>Access Denied</p>
+        <p style={{ margin: '8px 0 0', fontSize: '13px', color: '#6b7280' }}>You do not have permission to access Client Reports.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="client-reports-page">
       <div style={{ display: 'flex', gap: '15px', borderBottom: '2px solid #e5e7eb', paddingBottom: '10px', marginBottom: '25px' }}>
-        <button 
-          onClick={() => setActiveTab('add')}
-          style={{ padding: '12px 24px', background: activeTab === 'add' ? 'var(--primary)' : 'transparent', color: activeTab === 'add' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
-        >
-          <PlusCircle size={18} /> Generate Report
-        </button>
-        <button 
-          onClick={() => setActiveTab('all')}
-          style={{ padding: '12px 24px', background: activeTab === 'all' ? 'var(--primary)' : 'transparent', color: activeTab === 'all' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
-        >
-          <List size={18} /> View Reports
-        </button>
+        {hasAddTab && (
+          <button 
+            onClick={() => setActiveTab('add')}
+            style={{ padding: '12px 24px', background: activeTab === 'add' ? 'var(--primary)' : 'transparent', color: activeTab === 'add' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
+          >
+            <PlusCircle size={18} /> Generate Report
+          </button>
+        )}
+        {hasAllTab && (
+          <button 
+            onClick={() => setActiveTab('all')}
+            style={{ padding: '12px 24px', background: activeTab === 'all' ? 'var(--primary)' : 'transparent', color: activeTab === 'all' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
+          >
+            <List size={18} /> View Reports
+          </button>
+        )}
       </div>
 
       <div className="page-content">
@@ -120,7 +143,7 @@ const ClientReports = () => {
           </div>
         )}
 
-        {activeTab === 'add' && (
+        {activeTab === 'add' && hasAddTab && (
           <div style={{ maxWidth: '600px', background: 'white', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb' }}>
             <h2 style={{ marginBottom: '20px', color: '#1f2937', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <FileText size={24} color="var(--primary)" /> Generate Client Report
@@ -194,7 +217,7 @@ const ClientReports = () => {
           </div>
         )}
 
-        {activeTab === 'all' && (
+        {activeTab === 'all' && hasAllTab && (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h2 style={{ color: 'var(--text-dark)' }}>Client Reports Directory</h2>
@@ -241,7 +264,7 @@ const ClientReports = () => {
                       <td style={{ padding: '14px 16px', display: 'flex', justifyContent: 'center', gap: '8px' }}>
                         <button onClick={() => handleView(r)} style={{ background: '#f3f4f6', color: '#374151', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="View Details"><Eye size={16} /></button>
                         <a href={r.file_url} target="_blank" rel="noopener noreferrer" style={{ background: '#d1fae5', color: '#059669', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Open Report Link"><ExternalLink size={16} /></a>
-                        <button onClick={() => handleDelete(r.id)} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="Delete"><Trash2 size={16} /></button>
+                        {canDelete && <button onClick={() => handleDelete(r.id)} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="Delete"><Trash2 size={16} /></button>}
                       </td>
                     </tr>
                   ))}

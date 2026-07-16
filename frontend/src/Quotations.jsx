@@ -1,11 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { PlusCircle, List, CheckCircle, FileText, Plus, Trash2, Eye, Edit2 } from 'lucide-react';
 import ViewModal from './ViewModal';
+import { getPerms } from './permissions';
 
 const API = 'https://aruvixlabs.onrender.com/api';
 
 const Quotations = () => {
-  const [activeTab, setActiveTab] = useState('add');
+  const perms = getPerms('quotes');
+  const hasAddTab = perms.create_quote ?? perms.canCreate;
+  const hasAllTab = perms.all_quotes ?? perms.canView;
+  const canCreate = perms.create ?? perms.canCreate;
+  const canEdit = perms.edit ?? perms.canEdit;
+  const canDelete = perms.delete ?? perms.canDelete;
+
+  const [activeTab, setActiveTab] = useState(() => {
+    if (hasAllTab) return 'all';
+    if (hasAddTab) return 'add';
+    return '';
+  });
   const [quotations, setQuotations] = useState([]);
   const [clients, setClients] = useState([]);
 
@@ -178,8 +190,8 @@ const Quotations = () => {
               </td>
               <td style={{ padding: '14px 16px', display: 'flex', justifyContent: 'center', gap: '8px' }}>
                 <button onClick={() => handleView(q)} style={{ background: '#e0e7ff', color: '#4338ca', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="View Details"><Eye size={16} /></button>
-                <button onClick={() => handleEdit(q)} style={{ background: '#fef3c7', color: '#d97706', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="Edit"><Edit2 size={16} /></button>
-                <button onClick={() => handleDelete(q.id)} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="Delete"><Trash2 size={16} /></button>
+                {canEdit && <button onClick={() => handleEdit(q)} style={{ background: '#fef3c7', color: '#d97706', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="Edit"><Edit2 size={16} /></button>}
+                {canDelete && <button onClick={() => handleDelete(q.id)} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="Delete"><Trash2 size={16} /></button>}
               </td>
             </tr>
           ))}
@@ -188,25 +200,38 @@ const Quotations = () => {
     </div>
   );
 
+  if (!hasAddTab && !hasAllTab) {
+    return (
+      <div style={{ textAlign: 'center', padding: '40px 20px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb' }}>
+        <p style={{ margin: 0, fontSize: '15px', color: '#dc2626', fontWeight: '600' }}>Access Denied</p>
+        <p style={{ margin: '8px 0 0', fontSize: '13px', color: '#6b7280' }}>You do not have permission to access any categories in Quotations. Please contact your administrator.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="quotations-page">
       <div style={{ display: 'flex', gap: '15px', borderBottom: '2px solid #e5e7eb', paddingBottom: '10px', marginBottom: '25px' }}>
-        <button 
-          onClick={() => setActiveTab('add')}
-          style={{ padding: '12px 24px', background: activeTab === 'add' ? 'var(--primary)' : 'transparent', color: activeTab === 'add' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
-        >
-          <PlusCircle size={18} /> New Quotation
-        </button>
-        <button 
-          onClick={() => setActiveTab('all')}
-          style={{ padding: '12px 24px', background: activeTab === 'all' ? 'var(--primary)' : 'transparent', color: activeTab === 'all' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
-        >
-          <List size={18} /> All Quotations
-        </button>
+        {hasAddTab && (
+          <button 
+            onClick={() => setActiveTab('add')}
+            style={{ padding: '12px 24px', background: activeTab === 'add' ? 'var(--primary)' : 'transparent', color: activeTab === 'add' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
+          >
+            <PlusCircle size={18} /> New Quotation
+          </button>
+        )}
+        {hasAllTab && (
+          <button 
+            onClick={() => setActiveTab('all')}
+            style={{ padding: '12px 24px', background: activeTab === 'all' ? 'var(--primary)' : 'transparent', color: activeTab === 'all' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
+          >
+            <List size={18} /> All Quotations
+          </button>
+        )}
       </div>
 
       <div className="page-content">
-        {activeTab === 'add' && (
+        {activeTab === 'add' && hasAddTab && (
           <div style={{ maxWidth: '800px', background: 'white', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb' }}>
             <h2 style={{ marginBottom: '20px', color: '#1f2937', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <FileText size={24} color="var(--primary)" /> Generate New Quotation
@@ -277,7 +302,7 @@ const Quotations = () => {
           </div>
         )}
 
-        {activeTab === 'all' && (
+        {activeTab === 'all' && hasAllTab && (
           <div>
             <h2 style={{ marginBottom: '20px', color: 'var(--text-dark)' }}>All Quotations ({quotations.length})</h2>
             {renderTable(quotations)}

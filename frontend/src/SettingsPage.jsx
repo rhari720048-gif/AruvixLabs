@@ -32,6 +32,86 @@ const getModulePermsFields = (moduleKey) => {
       { key: 'delete',         lbl: 'Delete' }
     ];
   }
+  if (moduleKey === 'leads') {
+    return [
+      { key: 'view',       lbl: 'View Page' },
+      { key: 'add_leads',  lbl: 'Add Leads Tab' },
+      { key: 'all_leads',  lbl: 'All Leads Tab' },
+      { key: 'create',     lbl: 'Create' },
+      { key: 'edit',       lbl: 'Edit' },
+      { key: 'delete',     lbl: 'Delete' }
+    ];
+  }
+  if (moduleKey === 'clients') {
+    return [
+      { key: 'view',        lbl: 'View Page' },
+      { key: 'add_clients', lbl: 'Add Clients Tab' },
+      { key: 'all_clients', lbl: 'All Clients Tab' },
+      { key: 'create',      lbl: 'Create' },
+      { key: 'edit',        lbl: 'Edit' },
+      { key: 'delete',      lbl: 'Delete' }
+    ];
+  }
+  if (moduleKey === 'meetings') {
+    return [
+      { key: 'view',             lbl: 'View Page' },
+      { key: 'schedule_meeting', lbl: 'Schedule Meeting Tab' },
+      { key: 'my_meetings',      lbl: 'My Meetings Tab' },
+      { key: 'create',           lbl: 'Create' },
+      { key: 'edit',             lbl: 'Edit' },
+      { key: 'delete',           lbl: 'Delete' }
+    ];
+  }
+  if (moduleKey === 'accounting') {
+    return [
+      { key: 'view',             lbl: 'View Page' },
+      { key: 'add_transaction',  lbl: 'Add Transaction Tab' },
+      { key: 'transactions_list', lbl: 'Transactions List Tab' },
+      { key: 'create',           lbl: 'Create' },
+      { key: 'edit',             lbl: 'Edit' },
+      { key: 'delete',           lbl: 'Delete' }
+    ];
+  }
+  if (moduleKey === 'invoices') {
+    return [
+      { key: 'view',           lbl: 'View Page' },
+      { key: 'create_invoice', lbl: 'Create Invoice Tab' },
+      { key: 'all_invoices',   lbl: 'All Invoices Tab' },
+      { key: 'create',         lbl: 'Create' },
+      { key: 'edit',           lbl: 'Edit' },
+      { key: 'delete',         lbl: 'Delete' }
+    ];
+  }
+  if (moduleKey === 'quotes') {
+    return [
+      { key: 'view',         lbl: 'View Page' },
+      { key: 'create_quote', lbl: 'Create Quote Tab' },
+      { key: 'all_quotes',   lbl: 'All Quotes Tab' },
+      { key: 'create',       lbl: 'Create' },
+      { key: 'edit',         lbl: 'Edit' },
+      { key: 'delete',       lbl: 'Delete' }
+    ];
+  }
+  if (moduleKey === 'leaves') {
+    return [
+      { key: 'view',            lbl: 'View Page' },
+      { key: 'my_leaves',       lbl: 'My Leaves Tab' },
+      { key: 'request_leave',   lbl: 'Request Leave Tab' },
+      { key: 'manage_requests', lbl: 'Manage Requests Tab' },
+      { key: 'create',          lbl: 'Create' },
+      { key: 'edit',            lbl: 'Edit' },
+      { key: 'delete',          lbl: 'Delete' }
+    ];
+  }
+  if (moduleKey === 'staff_attendance') {
+    return [
+      { key: 'view',              lbl: 'View Page' },
+      { key: 'daily_logs',        lbl: 'Daily Log Tab' },
+      { key: 'attendance_report', lbl: 'Attendance Report Tab' },
+      { key: 'edit',              lbl: 'Edit' },
+      { key: 'delete',            lbl: 'Delete' }
+    ];
+  }
   return [
     { key: 'view',   lbl: 'View' },
     { key: 'create', lbl: 'Create' },

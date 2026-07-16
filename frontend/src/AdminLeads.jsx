@@ -2,23 +2,26 @@ import React, { useState, useEffect } from 'react';
 import AddLeads from './AddLeads';
 import AllLeads from './AllLeads';
 import { UserPlus, Users } from 'lucide-react';
-
 import { useNavigate } from 'react-router-dom';
+import { getPerms } from './permissions';
 
 const API = 'https://aruvixlabs.onrender.com/api';
 
 const AdminLeads = () => {
-  const [activePage, setActivePage] = useState('all'); // 'add' or 'all'
+  const perms = getPerms('leads');
+  const hasAddTab = perms.add_leads ?? perms.canCreate;
+  const hasAllTab = perms.all_leads ?? perms.canView;
+  const canCreate = perms.create ?? perms.canCreate;
+  const canDelete = perms.delete ?? perms.canDelete;
+  const canEdit = perms.edit ?? perms.canEdit;
+
+  const [activePage, setActivePage] = useState(() => {
+    if (hasAllTab) return 'all';
+    if (hasAddTab) return 'add';
+    return '';
+  });
   const [leads, setLeads] = useState([]);
   const navigate = useNavigate();
-  
-  let permissions = {};
-  try { permissions = JSON.parse(localStorage.getItem('permissions') || '{}'); } catch(e){}
-  const role = (localStorage.getItem('role') || 'employee').toLowerCase();
-  
-  const canCreate = role === 'admin' || (permissions.leads && permissions.leads.create);
-  const canDelete = role === 'admin' || (permissions.leads && permissions.leads.delete);
-  const canEdit = role === 'admin' || (permissions.leads && permissions.leads.edit);
 
   useEffect(() => {
     fetchLeads();
@@ -167,10 +170,19 @@ const AdminLeads = () => {
     }
   };
 
+  if (!hasAddTab && !hasAllTab) {
+    return (
+      <div style={{ textAlign: 'center', padding: '40px 20px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb' }}>
+        <p style={{ margin: 0, fontSize: '15px', color: '#dc2626', fontWeight: '600' }}>Access Denied</p>
+        <p style={{ margin: '8px 0 0', fontSize: '13px', color: '#6b7280' }}>You do not have permission to access any categories in Leads. Please contact your administrator.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="admin-leads-page">
       <div style={{ display: 'flex', gap: '15px', borderBottom: '2px solid #e5e7eb', paddingBottom: '10px', marginBottom: '25px' }}>
-        {canCreate && (
+        {hasAddTab && (
           <button 
             onClick={() => setActivePage('add')}
             style={{
@@ -191,31 +203,33 @@ const AdminLeads = () => {
             <UserPlus size={18} /> Add Leads
           </button>
         )}
-        <button 
-          onClick={() => setActivePage('all')}
-          style={{
-            padding: '12px 24px', 
-            background: activePage === 'all' ? 'var(--primary)' : 'transparent', 
-            color: activePage === 'all' ? 'white' : '#4b5563', 
-            border: 'none', 
-            borderRadius: '8px',
-            fontSize: '15px',
-            fontWeight: '600',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            transition: '0.2s'
-          }}
-        >
-          <Users size={18} /> All Leads
-        </button>
+        {hasAllTab && (
+          <button 
+            onClick={() => setActivePage('all')}
+            style={{
+              padding: '12px 24px', 
+              background: activePage === 'all' ? 'var(--primary)' : 'transparent', 
+              color: activePage === 'all' ? 'white' : '#4b5563', 
+              border: 'none', 
+              borderRadius: '8px',
+              fontSize: '15px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: '0.2s'
+            }}
+          >
+            <Users size={18} /> All Leads
+          </button>
+        )}
       </div>
 
       <div className="page-content">
-        {activePage === 'add' && canCreate ? (
+        {activePage === 'add' && hasAddTab ? (
           <AddLeads addLeads={addLeads} />
-        ) : (
+        ) : activePage === 'all' && hasAllTab ? (
           <AllLeads 
             leads={leads} 
             handleConvert={handleConvert} 
@@ -223,7 +237,7 @@ const AdminLeads = () => {
             handleBulkDelete={canDelete ? handleBulkDelete : null}
             handleEdit={canEdit ? handleEdit : null}
           />
-        )}
+        ) : null}
       </div>
     </div>
   );

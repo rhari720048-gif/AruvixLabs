@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Hash, User, Send, Search, MoreVertical, Phone, Video } from 'lucide-react';
+import { getPerms } from './permissions';
 
 const API = 'https://aruvixlabs.onrender.com/api';
 
 const channels = ["general", "engineering", "sales", "marketing"];
 
 const TeamChat = () => {
+  const perms = getPerms('chat');
+  const canSend = perms.send_message ?? perms.canCreate;
+
   const [activeChat, setActiveChat] = useState({ type: 'channel', id: 'general' });
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
@@ -119,23 +123,25 @@ const TeamChat = () => {
         </div>
 
         {/* Input Area */}
-        <div style={{ padding: '20px', borderTop: '1px solid #e5e7eb' }}>
-          <form onSubmit={handleSend} style={{ display: 'flex', gap: '15px' }}>
-            <input 
-              type="text" 
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              placeholder={`Message #${activeChat.id}...`}
-              style={{ flex: 1, padding: '14px 20px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none', background: '#f9fafb' }}
-            />
-            <button 
-              type="submit" 
-              style={{ background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: '0.2s' }}
-            >
-              <Send size={20} />
-            </button>
-          </form>
-        </div>
+        {canSend && (
+          <div style={{ padding: '20px', borderTop: '1px solid #e5e7eb' }}>
+            <form onSubmit={handleSend} style={{ display: 'flex', gap: '15px' }}>
+              <input 
+                type="text" 
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                placeholder={`Message #${activeChat.id}...`}
+                style={{ flex: 1, padding: '14px 20px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none', background: '#f9fafb' }}
+              />
+              <button 
+                type="submit" 
+                style={{ background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: '0.2s' }}
+              >
+                <Send size={20} />
+              </button>
+            </form>
+          </div>
+        )}
 
       </div>
     </div>

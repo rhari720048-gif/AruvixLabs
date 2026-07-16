@@ -1,11 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Video, Clock, CheckCircle, Search, MoreVertical, Plus, Edit2, Trash2 } from 'lucide-react';
 import ViewModal from './ViewModal';
+import { getPerms } from './permissions';
 
 const API = 'https://aruvixlabs.onrender.com/api';
 
 const Meetings = () => {
-  const [activeTab, setActiveTab] = useState('upcoming');
+  const perms = getPerms('meetings');
+  const hasScheduleTab = perms.schedule_meeting ?? perms.canCreate;
+  const hasMyMeetingsTab = perms.my_meetings ?? perms.canView;
+  const canCreate = perms.create ?? perms.canCreate;
+  const canEdit = perms.edit ?? perms.canEdit;
+  const canDelete = perms.delete ?? perms.canDelete;
+
+  const [activeTab, setActiveTab] = useState(() => {
+    if (hasMyMeetingsTab) return 'upcoming';
+    if (hasScheduleTab) return 'schedule';
+    return '';
+  });
   const [meetings, setMeetings] = useState([]);
   const [users, setUsers] = useState([]);
   const [success, setSuccess] = useState('');
@@ -81,22 +93,37 @@ const Meetings = () => {
   const upcoming = meetings.filter(m => m.date >= todayStr);
   const past = meetings.filter(m => m.date < todayStr);
 
+  if (!hasScheduleTab && !hasMyMeetingsTab) {
+    return (
+      <div style={{ textAlign: 'center', padding: '40px 20px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb' }}>
+        <p style={{ margin: 0, fontSize: '15px', color: '#dc2626', fontWeight: '600' }}>Access Denied</p>
+        <p style={{ margin: '8px 0 0', fontSize: '13px', color: '#6b7280' }}>You do not have permission to access any categories in Meetings. Please contact your administrator.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="meetings-page">
       <div style={{ display: 'flex', gap: '15px', borderBottom: '2px solid #e5e7eb', paddingBottom: '10px', marginBottom: '25px' }}>
-        <button onClick={() => setActiveTab('upcoming')} style={{ padding: '12px 24px', background: activeTab === 'upcoming' ? 'var(--primary)' : 'transparent', color: activeTab === 'upcoming' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Calendar size={18} /> Upcoming
-        </button>
-        <button onClick={() => setActiveTab('past')} style={{ padding: '12px 24px', background: activeTab === 'past' ? 'var(--primary)' : 'transparent', color: activeTab === 'past' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Clock size={18} /> Past Meetings
-        </button>
-        <button onClick={() => setActiveTab('schedule')} style={{ padding: '12px 24px', background: activeTab === 'schedule' ? 'var(--primary)' : 'transparent', color: activeTab === 'schedule' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Plus size={18} /> Schedule New
-        </button>
+        {hasMyMeetingsTab && (
+          <>
+            <button onClick={() => setActiveTab('upcoming')} style={{ padding: '12px 24px', background: activeTab === 'upcoming' ? 'var(--primary)' : 'transparent', color: activeTab === 'upcoming' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Calendar size={18} /> Upcoming
+            </button>
+            <button onClick={() => setActiveTab('past')} style={{ padding: '12px 24px', background: activeTab === 'past' ? 'var(--primary)' : 'transparent', color: activeTab === 'past' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Clock size={18} /> Past Meetings
+            </button>
+          </>
+        )}
+        {hasScheduleTab && (
+          <button onClick={() => setActiveTab('schedule')} style={{ padding: '12px 24px', background: activeTab === 'schedule' ? 'var(--primary)' : 'transparent', color: activeTab === 'schedule' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Plus size={18} /> Schedule New
+          </button>
+        )}
       </div>
 
       <div className="page-content">
-        {(activeTab === 'upcoming' || activeTab === 'past') && (
+        {(activeTab === 'upcoming' || activeTab === 'past') && hasMyMeetingsTab && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
             {(activeTab === 'upcoming' ? upcoming : past).length === 0 ? (
               <p style={{ color: '#6b7280' }}>No {activeTab} meetings found.</p>
@@ -133,9 +160,11 @@ const Meetings = () => {
                     <button onClick={() => handleView(m)} style={{ flex: 1, padding: '10px', background: '#f3f4f6', color: '#374151', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       Details
                     </button>
-                    <button onClick={() => handleDelete(m.id)} style={{ padding: '10px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Trash2 size={16} />
-                    </button>
+                    {canDelete && (
+                      <button onClick={() => handleDelete(m.id)} style={{ padding: '10px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Trash2 size={16} />
+                      </button>
+                    )}
                   </div>
                 </div>
               ))
@@ -143,7 +172,7 @@ const Meetings = () => {
           </div>
         )}
 
-        {activeTab === 'schedule' && (
+        {activeTab === 'schedule' && hasScheduleTab && (
           <div style={{ maxWidth: '600px', background: 'white', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb' }}>
             <h2 style={{ marginBottom: '20px', color: '#1f2937' }}>Schedule New Meeting</h2>
             {success && <div style={{ padding: '12px 20px', background: '#d1fae5', color: '#065f46', borderRadius: '8px', marginBottom: '20px' }}>{success}</div>}

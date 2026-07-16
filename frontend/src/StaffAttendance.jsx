@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Clock, Calendar as CalendarIcon, ChevronDown, ChevronUp, CheckCircle, XCircle, Eye, Edit2, Trash2 } from 'lucide-react';
+import { getPerms } from './permissions';
 
 const API = 'https://aruvixlabs.onrender.com/api';
 
@@ -15,6 +16,10 @@ const toDatetimeLocal = (isoString) => {
 };
 
 export default function StaffAttendance() {
+  const perms = getPerms('attendance');
+  const canEdit = perms.edit ?? perms.canEdit;
+  const canDelete = perms.delete ?? perms.canDelete;
+
   const [report, setReport] = useState([]);
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [expanded, setExpanded] = useState(null);
@@ -163,22 +168,26 @@ export default function StaffAttendance() {
                       >
                         <Eye size={15} /> {isExpanded ? 'Hide' : 'View'}
                       </button>
-                      <button 
-                        onClick={() => handleEditClick(user)}
-                        style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#fef3c7', color: '#d97706', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: 600, cursor: isPresent ? 'pointer' : 'not-allowed', opacity: isPresent ? 1 : 0.5 }}
-                        disabled={!isPresent}
-                        title="Edit Attendance"
-                      >
-                        <Edit2 size={15} /> Edit
-                      </button>
-                      <button 
-                        onClick={() => handleDeleteClick(user.attendance_id)}
-                        style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#fee2e2', color: '#dc2626', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: 600, cursor: isPresent ? 'pointer' : 'not-allowed', opacity: isPresent ? 1 : 0.5 }}
-                        disabled={!isPresent}
-                        title="Delete Attendance"
-                      >
-                        <Trash2 size={15} /> Delete
-                      </button>
+                      {canEdit && (
+                        <button 
+                          onClick={() => handleEditClick(user)}
+                          style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#fef3c7', color: '#d97706', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: 600, cursor: isPresent ? 'pointer' : 'not-allowed', opacity: isPresent ? 1 : 0.5 }}
+                          disabled={!isPresent}
+                          title="Edit Attendance"
+                        >
+                          <Edit2 size={15} /> Edit
+                        </button>
+                      )}
+                      {canDelete && (
+                        <button 
+                          onClick={() => handleDeleteClick(user.attendance_id)}
+                          style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#fee2e2', color: '#dc2626', border: 'none', padding: '6px 12px', borderRadius: '6px', fontWeight: 600, cursor: isPresent ? 'pointer' : 'not-allowed', opacity: isPresent ? 1 : 0.5 }}
+                          disabled={!isPresent}
+                          title="Delete Attendance"
+                        >
+                          <Trash2 size={15} /> Delete
+                        </button>
+                      )}
                     </td>
                   </tr>
                   
