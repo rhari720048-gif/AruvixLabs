@@ -15,11 +15,26 @@ const Leaves = () => {
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user'));
-    if (user) setRole(user.role);
+    if (user) setRole((user.role || '').toLowerCase());
+    
     fetchMyLeaves();
-    if (user && (user.role === 'admin' || user.role === 'manager')) {
+    const userRole = (user?.role || '').toLowerCase();
+    if (userRole === 'admin' || userRole === 'manager') {
       fetchAdminLeaves();
     }
+
+    const interval = setInterval(() => {
+      fetchMyLeaves();
+      const u = JSON.parse(localStorage.getItem('user'));
+      if (u) {
+        const uRole = (u.role || '').toLowerCase();
+        if (uRole === 'admin' || uRole === 'manager') {
+          fetchAdminLeaves();
+        }
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const fetchMyLeaves = async () => {
