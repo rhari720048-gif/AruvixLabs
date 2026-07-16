@@ -1040,13 +1040,84 @@ const SettingsPage = () => {
                       </div>
 
                       <div style={{ maxHeight: '360px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px', paddingRight: '6px' }}>
-                        <DragDropPermissions 
-                          permissions={editUserPermissions}
-                          setPermissions={setEditUserPermissions}
-                          canEdit={true}
-                          moduleGroups={moduleGroups}
-                          getModulePermsFields={getModulePermsFields}
-                        />
+                        {moduleGroups.map(group => {
+                          const allGroupChecked = group.modules.every(m => getModulePermsFields(m.key).every(f => (editUserPermissions[m.key] || {})[f.key]));
+                          return (
+                            <div key={group.groupLabel} style={{ background: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb', padding: '16px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e5e7eb', paddingBottom: '10px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  {renderGroupIcon(group.groupLabel, group.color, 18)}
+                                  <h4 style={{ margin: 0, fontSize: '14px', color: '#1f2937' }}>{group.groupLabel}</h4>
+                                </div>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '600', color: '#4b5563', cursor: 'pointer' }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={allGroupChecked}
+                                    onChange={e => {
+                                      const updated = { ...editUserPermissions };
+                                      group.modules.forEach(m => {
+                                        updated[m.key] = {};
+                                        getModulePermsFields(m.key).forEach(f => { updated[m.key][f.key] = e.target.checked; });
+                                      });
+                                      setEditUserPermissions(updated);
+                                    }}
+                                    style={{ cursor: 'pointer', width: '14px', height: '14px', accentColor: group.color }}
+                                  />
+                                  Select All
+                                </label>
+                              </div>
+                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
+                                {group.modules.map(({ key: module, label }) => {
+                                  const perms = editUserPermissions[module] || {};
+                                  const fields = getModulePermsFields(module);
+                                  const allChecked = fields.every(f => perms[f.key]);
+                                  const updatePerm = (pKey, val) => {
+                                    setEditUserPermissions(prev => ({
+                                      ...prev,
+                                      [module]: { ...(prev[module] || {}), [pKey]: val }
+                                    }));
+                                  };
+                                  return (
+                                    <div key={module} style={{ background: 'white', border: `1px solid ${allChecked ? group.color + '60' : '#e5e7eb'}`, borderRadius: '6px', padding: '12px', transition: '0.15s' }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>
+                                        <span style={{ fontWeight: '700', fontSize: '13px', color: '#4b5563' }}>{label}</span>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: '500', color: '#6b7280', cursor: 'pointer' }}>
+                                          <input
+                                            type="checkbox"
+                                            checked={!!allChecked}
+                                            onChange={e => {
+                                              const updatedModule = {};
+                                              fields.forEach(f => { updatedModule[f.key] = e.target.checked; });
+                                              setEditUserPermissions(prev => ({
+                                                ...prev,
+                                                [module]: updatedModule
+                                              }));
+                                            }}
+                                            style={{ cursor: 'pointer', width: '12px', height: '12px', accentColor: group.color }}
+                                          />
+                                          All
+                                        </label>
+                                      </div>
+                                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                                        {fields.map(p => (
+                                          <label key={p.key} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: perms[p.key] ? '#111827' : '#6b7280', cursor: 'pointer' }}>
+                                            <input
+                                              type="checkbox"
+                                              checked={!!perms[p.key]}
+                                              onChange={e => updatePerm(p.key, e.target.checked)}
+                                              style={{ cursor: 'pointer', accentColor: group.color }}
+                                            />
+                                            {p.lbl}
+                                          </label>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
 
