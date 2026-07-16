@@ -13,6 +13,11 @@ export function getPerms(module) {
   const isAdmin = role === 'admin';
   const mod = permissions[module] || {};
 
+  const fields = {};
+  Object.keys(mod).forEach(k => {
+    fields[k] = isAdmin || !!mod[k];
+  });
+
   return {
     canView:   isAdmin || !!mod.view,
     canCreate: isAdmin || !!mod.create,
@@ -20,5 +25,6 @@ export function getPerms(module) {
     canDelete: isAdmin || !!mod.delete,
     isAdmin,
     role,
+    ...fields
   };
 }

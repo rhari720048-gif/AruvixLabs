@@ -2,6 +2,44 @@ import React, { useState, useEffect } from 'react';
 import { Settings as SettingsIcon, Building, FileText, CheckCircle, Upload, Shield, Trash2, Mail, Server, LayoutTemplate, Bell, Send, Eye, EyeOff, Wifi, Pencil, UserPlus, ShieldCheck, Search, RefreshCw, Plus, User, X, Phone, Briefcase, MessageSquare, LayoutDashboard } from 'lucide-react';
 import { getPerms } from './permissions';
 
+const getModulePermsFields = (moduleKey) => {
+  if (moduleKey === 'mail') {
+    return [
+      { key: 'view',    lbl: 'View' },
+      { key: 'inbox',   lbl: 'Inbox Tab' },
+      { key: 'compose', lbl: 'Compose Tab' }
+    ];
+  }
+  if (moduleKey === 'projects') {
+    return [
+      { key: 'view',           lbl: 'View Page' },
+      { key: 'add_projects',   lbl: 'Add Projects Tab' },
+      { key: 'all_projects',   lbl: 'All Projects Tab' },
+      { key: 'assigned_to_me', lbl: 'Assign to me Tab' },
+      { key: 'create',         lbl: 'Create' },
+      { key: 'edit',           lbl: 'Edit' },
+      { key: 'delete',         lbl: 'Delete' }
+    ];
+  }
+  if (moduleKey === 'tasks') {
+    return [
+      { key: 'view',           lbl: 'View Page' },
+      { key: 'add_tasks',      lbl: 'Add Tasks Tab' },
+      { key: 'all_tasks',      lbl: 'All Tasks Tab' },
+      { key: 'assigned_to_me', lbl: 'Assign to me Tab' },
+      { key: 'create',         lbl: 'Create' },
+      { key: 'edit',           lbl: 'Edit' },
+      { key: 'delete',         lbl: 'Delete' }
+    ];
+  }
+  return [
+    { key: 'view',   lbl: 'View' },
+    { key: 'create', lbl: 'Create' },
+    { key: 'edit',   lbl: 'Edit' },
+    { key: 'delete', lbl: 'Delete' }
+  ];
+};
+
 const SettingsPage = () => {
   const { canEdit: canEditSettings } = getPerms('settings');
   const [activeTab, setActiveTab] = useState('company'); // 'company', 'invoice', 'permissions', 'mail'
@@ -93,7 +131,12 @@ const SettingsPage = () => {
 
   const allModuleKeys = moduleGroups.flatMap(g => g.modules.map(m => m.key));
   const defaultPerms = {};
-  allModuleKeys.forEach(m => defaultPerms[m] = { view: false, create: false, edit: false, delete: false });
+  allModuleKeys.forEach(m => {
+    defaultPerms[m] = {};
+    getModulePermsFields(m).forEach(f => {
+      defaultPerms[m][f.key] = false;
+    });
+  });
   const [userPermissions, setUserPermissions] = useState(defaultPerms);
 
   const [roles, setRoles] = useState([]);
@@ -520,7 +563,10 @@ const SettingsPage = () => {
                           type="button"
                           onClick={() => {
                             const all = {};
-                            allModuleKeys.forEach(k => all[k] = { view: true, create: true, edit: true, delete: true });
+                            allModuleKeys.forEach(k => {
+                              all[k] = {};
+                              getModulePermsFields(k).forEach(f => { all[k][f.key] = true; });
+                            });
                             setRolePermissions(all);
                           }}
                           style={{ padding: '8px 14px', background: '#d1fae5', color: '#065f46', border: 'none', borderRadius: '6px', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }}
@@ -529,7 +575,14 @@ const SettingsPage = () => {
                         </button>
                         <button
                           type="button"
-                          onClick={() => setRolePermissions({ ...defaultPerms })}
+                          onClick={() => {
+                            const all = {};
+                            allModuleKeys.forEach(k => {
+                              all[k] = {};
+                              getModulePermsFields(k).forEach(f => { all[k][f.key] = false; });
+                            });
+                            setRolePermissions(all);
+                          }}
                           style={{ padding: '8px 14px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '6px', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }}
                         >
                           ✕ Clear All
@@ -556,7 +609,10 @@ const SettingsPage = () => {
                                 type="button"
                                 onClick={() => {
                                   const updated = { ...rolePermissions };
-                                  group.modules.forEach(m => { updated[m.key] = { view: true, create: true, edit: true, delete: true }; });
+                                  group.modules.forEach(m => {
+                                    updated[m.key] = {};
+                                    getModulePermsFields(m.key).forEach(f => { updated[m.key][f.key] = true; });
+                                  });
                                   setRolePermissions(updated);
                                 }}
                                 style={{ marginLeft: 'auto', padding: '2px 8px', background: group.color + '18', color: group.color, border: 'none', borderRadius: '4px', fontSize: '11px', fontWeight: '600', cursor: 'pointer' }}
@@ -567,7 +623,10 @@ const SettingsPage = () => {
                                 type="button"
                                 onClick={() => {
                                   const updated = { ...rolePermissions };
-                                  group.modules.forEach(m => { updated[m.key] = { view: false, create: false, edit: false, delete: false }; });
+                                  group.modules.forEach(m => {
+                                    updated[m.key] = {};
+                                    getModulePermsFields(m.key).forEach(f => { updated[m.key][f.key] = false; });
+                                  });
                                   setRolePermissions(updated);
                                 }}
                                 style={{ padding: '2px 8px', background: '#f3f4f6', color: '#6b7280', border: 'none', borderRadius: '4px', fontSize: '11px', fontWeight: '600', cursor: 'pointer' }}
@@ -581,7 +640,8 @@ const SettingsPage = () => {
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '12px' }}>
                           {group.modules.map(({ key: module, label }) => {
                             const perms = rolePermissions[module] || {};
-                            const allChecked = perms.view && perms.create && perms.edit && perms.delete;
+                            const fields = getModulePermsFields(module);
+                            const allChecked = fields.every(f => perms[f.key]);
                             const updatePerm = (pKey, val) => {
                               setRolePermissions(prev => ({
                                 ...prev,
@@ -600,21 +660,18 @@ const SettingsPage = () => {
                                     checked={!!allChecked}
                                     disabled={!canEditSettings}
                                     onChange={e => {
+                                      const updatedModule = {};
+                                      fields.forEach(f => { updatedModule[f.key] = e.target.checked; });
                                       setRolePermissions(prev => ({
                                         ...prev,
-                                        [module]: { view: e.target.checked, create: e.target.checked, edit: e.target.checked, delete: e.target.checked }
+                                        [module]: updatedModule
                                       }));
                                     }}
                                     style={{ width: '14px', height: '14px', accentColor: group.color, cursor: canEditSettings ? 'pointer' : 'default' }}
                                   />
                                 </div>
                                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                                  {[
-                                    { key: 'view',   lbl: 'View' },
-                                    { key: 'create', lbl: 'Create' },
-                                    { key: 'edit',   lbl: 'Edit' },
-                                    { key: 'delete', lbl: 'Delete' }
-                                  ].map(p => (
+                                  {fields.map(p => (
                                     <label key={p.key} style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: canEditSettings ? 'pointer' : 'default', fontSize: '11px', color: perms[p.key] ? '#111827' : '#9ca3af', fontWeight: perms[p.key] ? '600' : '400' }}>
                                       <input
                                         type="checkbox"
@@ -880,11 +937,11 @@ const SettingsPage = () => {
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                     {moduleGroups.flatMap(g => g.modules).map(m => {
                       const perms = viewingUser.permissions?.[m.key] || {};
+                      const fields = getModulePermsFields(m.key);
                       const act = [];
-                      if (perms.view) act.push('View');
-                      if (perms.create) act.push('Create');
-                      if (perms.edit) act.push('Edit');
-                      if (perms.delete) act.push('Delete');
+                      fields.forEach(f => {
+                        if (perms[f.key]) act.push(f.lbl);
+                      });
                       if (act.length === 0) return null;
                       return (
                         <div key={m.key} style={{ background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: '6px', padding: '6px 12px', fontSize: '12px' }}>
@@ -971,7 +1028,10 @@ const SettingsPage = () => {
                             type="button"
                             onClick={() => {
                               const all = {};
-                              allModuleKeys.forEach(k => all[k] = { view: true, create: true, edit: true, delete: true });
+                              allModuleKeys.forEach(k => {
+                                all[k] = {};
+                                getModulePermsFields(k).forEach(f => { all[k][f.key] = true; });
+                              });
                               setEditUserPermissions(all);
                             }}
                             style={{ padding: '4px 10px', background: '#e0e7ff', color: '#4338ca', border: 'none', borderRadius: '4px', fontSize: '11px', fontWeight: '600', cursor: 'pointer' }}
@@ -980,7 +1040,14 @@ const SettingsPage = () => {
                           </button>
                           <button
                             type="button"
-                            onClick={() => setEditUserPermissions({ ...defaultPerms })}
+                            onClick={() => {
+                              const all = {};
+                              allModuleKeys.forEach(k => {
+                                all[k] = {};
+                                getModulePermsFields(k).forEach(f => { all[k][f.key] = false; });
+                              });
+                              setEditUserPermissions(all);
+                            }}
                             style={{ padding: '4px 10px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '4px', fontSize: '11px', fontWeight: '600', cursor: 'pointer' }}
                           >
                             ✕ Clear All
@@ -1007,16 +1074,16 @@ const SettingsPage = () => {
                                 return (
                                   <div key={module} style={{ background: '#f9fafb', padding: '10px', borderRadius: '6px', border: '1px solid #e5e7eb' }}>
                                     <div style={{ fontWeight: '700', fontSize: '11px', color: '#4b5563', marginBottom: '4px' }}>{label}</div>
-                                    <div style={{ display: 'flex', gap: '8px' }}>
-                                      {['view', 'create', 'edit', 'delete'].map(action => (
-                                        <label key={action} style={{ display: 'flex', alignItems: 'center', gap: '2px', fontSize: '10px', color: perms[action] ? '#111827' : '#9ca3af', cursor: 'pointer' }}>
+                                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                      {getModulePermsFields(module).map(field => (
+                                        <label key={field.key} style={{ display: 'flex', alignItems: 'center', gap: '2px', fontSize: '10px', color: perms[field.key] ? '#111827' : '#9ca3af', cursor: 'pointer' }}>
                                           <input
                                             type="checkbox"
-                                            checked={!!perms[action]}
-                                            onChange={e => updatePerm(action, e.target.checked)}
+                                            checked={!!perms[field.key]}
+                                            onChange={e => updatePerm(field.key, e.target.checked)}
                                             style={{ width: '10px', height: '10px', accentColor: group.color }}
                                           />
-                                          <span style={{ textTransform: 'capitalize' }}>{action}</span>
+                                          <span>{field.lbl}</span>
                                         </label>
                                       ))}
                                     </div>

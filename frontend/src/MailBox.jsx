@@ -1,10 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Send, Inbox, CheckCircle, Plus } from 'lucide-react';
+import { getPerms } from './permissions';
 
 const API = 'https://aruvixlabs.onrender.com/api';
 
 const MailBox = () => {
-  const [activeTab, setActiveTab] = useState('inbox');
+  const perms = getPerms('mail');
+  const hasInbox = perms.inbox ?? perms.canView;
+  const hasCompose = perms.compose ?? perms.canView;
+
+  const [activeTab, setActiveTab] = useState(() => {
+    if (hasInbox) return 'inbox';
+    if (hasCompose) return 'compose';
+    return '';
+  });
   const [mails, setMails] = useState([]);
   const [users, setUsers] = useState([]);
   
@@ -61,19 +70,32 @@ const MailBox = () => {
     } catch (e) { console.error(e); }
   };
 
+  if (!hasInbox && !hasCompose) {
+    return (
+      <div style={{ textAlign: 'center', padding: '40px 20px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb' }}>
+        <p style={{ margin: 0, fontSize: '15px', color: '#dc2626', fontWeight: '600' }}>Access Denied</p>
+        <p style={{ margin: '8px 0 0', fontSize: '13px', color: '#6b7280' }}>You do not have permission to access any folders in Mail Box. Please contact your administrator.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="mail-page">
       <div style={{ display: 'flex', gap: '15px', borderBottom: '2px solid #e5e7eb', paddingBottom: '10px', marginBottom: '25px' }}>
-        <button onClick={() => setActiveTab('inbox')} style={{ padding: '12px 24px', background: activeTab === 'inbox' ? 'var(--primary)' : 'transparent', color: activeTab === 'inbox' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Inbox size={18} /> Inbox
-        </button>
-        <button onClick={() => setActiveTab('compose')} style={{ padding: '12px 24px', background: activeTab === 'compose' ? 'var(--primary)' : 'transparent', color: activeTab === 'compose' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Plus size={18} /> Compose
-        </button>
+        {hasInbox && (
+          <button onClick={() => setActiveTab('inbox')} style={{ padding: '12px 24px', background: activeTab === 'inbox' ? 'var(--primary)' : 'transparent', color: activeTab === 'inbox' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Inbox size={18} /> Inbox
+          </button>
+        )}
+        {hasCompose && (
+          <button onClick={() => setActiveTab('compose')} style={{ padding: '12px 24px', background: activeTab === 'compose' ? 'var(--primary)' : 'transparent', color: activeTab === 'compose' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Plus size={18} /> Compose
+          </button>
+        )}
       </div>
-
+ 
       <div className="page-content">
-        {activeTab === 'inbox' && (
+        {activeTab === 'inbox' && hasInbox && (
           <div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
             <h2 style={{ marginBottom: '20px', color: '#1f2937' }}>Inbox ({mails.filter(m => m.status === 'Unread').length} unread)</h2>
             {mails.length === 0 ? <p style={{ color: '#6b7280' }}>No messages found.</p> : (
@@ -94,8 +116,8 @@ const MailBox = () => {
             )}
           </div>
         )}
-
-        {activeTab === 'compose' && (
+ 
+        {activeTab === 'compose' && hasCompose && (
           <div style={{ maxWidth: '600px', background: 'white', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
             <h2 style={{ marginBottom: '20px', color: '#1f2937' }}>Compose Message</h2>
             {success && <div style={{ padding: '12px 20px', background: '#d1fae5', color: '#065f46', borderRadius: '8px', marginBottom: '20px' }}><CheckCircle size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }}/>{success}</div>}

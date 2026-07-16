@@ -1,11 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { PlusCircle, List, UserCheck, CheckCircle, Eye, Edit2, Trash2 } from 'lucide-react';
 import ViewModal from './ViewModal';
+import { getPerms } from './permissions';
 
 const API = 'https://aruvixlabs.onrender.com/api';
 
 const Projects = () => {
-  const [activeTab, setActiveTab] = useState('all'); // 'add', 'all', 'mine'
+  const perms = getPerms('projects');
+  const hasAddTab = perms.add_projects ?? perms.canCreate;
+  const hasAllTab = perms.all_projects ?? perms.canView;
+  const hasMineTab = perms.assigned_to_me ?? perms.canView;
+  const canCreate = perms.create ?? perms.canCreate;
+  const canEdit = perms.edit ?? perms.canEdit;
+  const canDelete = perms.delete ?? perms.canDelete;
+
+  const [activeTab, setActiveTab] = useState(() => {
+    if (hasAllTab) return 'all';
+    if (hasMineTab) return 'mine';
+    if (hasAddTab) return 'add';
+    return '';
+  });
   const [projects, setProjects] = useState([]);
   const [clientsList, setClientsList] = useState([]);
   const [usersList, setUsersList] = useState([]);
@@ -182,8 +196,8 @@ const Projects = () => {
               </td>
               <td style={{ padding: '14px 16px', display: 'flex', justifyContent: 'center', gap: '8px' }}>
                 <button onClick={() => handleView(p)} style={{ background: '#e0e7ff', color: '#4338ca', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="View Details"><Eye size={16} /></button>
-                <button onClick={() => handleEdit(p)} style={{ background: '#fef3c7', color: '#d97706', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="Edit"><Edit2 size={16} /></button>
-                <button onClick={() => handleDelete(p.id)} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="Delete"><Trash2 size={16} /></button>
+                {canEdit && <button onClick={() => handleEdit(p)} style={{ background: '#fef3c7', color: '#d97706', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="Edit"><Edit2 size={16} /></button>}
+                {canDelete && <button onClick={() => handleDelete(p.id)} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="Delete"><Trash2 size={16} /></button>}
               </td>
             </tr>
           ))}
@@ -192,31 +206,46 @@ const Projects = () => {
     </div>
   );
 
+  if (!hasAllTab && !hasMineTab && !hasAddTab) {
+    return (
+      <div style={{ textAlign: 'center', padding: '40px 20px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb' }}>
+        <p style={{ margin: 0, fontSize: '15px', color: '#dc2626', fontWeight: '600' }}>Access Denied</p>
+        <p style={{ margin: '8px 0 0', fontSize: '13px', color: '#6b7280' }}>You do not have permission to access any categories in Projects. Please contact your administrator.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="projects-page">
       <div style={{ display: 'flex', gap: '15px', borderBottom: '2px solid #e5e7eb', paddingBottom: '10px', marginBottom: '25px' }}>
-        <button 
-          onClick={() => setActiveTab('add')}
-          style={{ padding: '12px 24px', background: activeTab === 'add' ? 'var(--primary)' : 'transparent', color: activeTab === 'add' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
-        >
-          <PlusCircle size={18} /> Add Projects
-        </button>
-        <button 
-          onClick={() => setActiveTab('all')}
-          style={{ padding: '12px 24px', background: activeTab === 'all' ? 'var(--primary)' : 'transparent', color: activeTab === 'all' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
-        >
-          <List size={18} /> All Projects
-        </button>
-        <button 
-          onClick={() => setActiveTab('mine')}
-          style={{ padding: '12px 24px', background: activeTab === 'mine' ? 'var(--primary)' : 'transparent', color: activeTab === 'mine' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
-        >
-          <UserCheck size={18} /> Assign to me
-        </button>
+        {hasAddTab && (
+          <button 
+            onClick={() => setActiveTab('add')}
+            style={{ padding: '12px 24px', background: activeTab === 'add' ? 'var(--primary)' : 'transparent', color: activeTab === 'add' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
+          >
+            <PlusCircle size={18} /> Add Projects
+          </button>
+        )}
+        {hasAllTab && (
+          <button 
+            onClick={() => setActiveTab('all')}
+            style={{ padding: '12px 24px', background: activeTab === 'all' ? 'var(--primary)' : 'transparent', color: activeTab === 'all' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
+          >
+            <List size={18} /> All Projects
+          </button>
+        )}
+        {hasMineTab && (
+          <button 
+            onClick={() => setActiveTab('mine')}
+            style={{ padding: '12px 24px', background: activeTab === 'mine' ? 'var(--primary)' : 'transparent', color: activeTab === 'mine' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
+          >
+            <UserCheck size={18} /> Assign to me
+          </button>
+        )}
       </div>
 
       <div className="page-content">
-        {activeTab === 'add' && (
+        {activeTab === 'add' && hasAddTab && (
           <div style={{ maxWidth: '700px', background: 'white', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb' }}>
             <h2 style={{ marginBottom: '20px', color: '#1f2937' }}>Add New Project</h2>
             
@@ -292,14 +321,14 @@ const Projects = () => {
           </div>
         )}
 
-        {activeTab === 'all' && (
+        {activeTab === 'all' && hasAllTab && (
           <div>
             <h2 style={{ marginBottom: '20px', color: 'var(--text-dark)' }}>All Projects ({projects.length})</h2>
             {renderTable(projects)}
           </div>
         )}
 
-        {activeTab === 'mine' && (
+        {activeTab === 'mine' && hasMineTab && (
           <div>
             <h2 style={{ marginBottom: '20px', color: 'var(--text-dark)' }}>Projects Assigned to Me ({projects.filter(p => p.assignedTo === currentUser).length})</h2>
             {renderTable(projects.filter(p => p.assignedTo === currentUser))}
