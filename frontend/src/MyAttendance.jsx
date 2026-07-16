@@ -8,6 +8,8 @@ export default function MyAttendance() {
   
   useEffect(() => {
     fetchHistory();
+    const interval = setInterval(fetchHistory, 5000);
+    return () => clearInterval(interval);
   }, []);
   
   const fetchHistory = async () => {

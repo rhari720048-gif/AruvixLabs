@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { Calendar, CheckCircle, Clock, XCircle, Trash2 } from 'lucide-react';
 
 const API = 'https://aruvixlabs.onrender.com/api';
 const leaveTypes = ['Sick Leave', 'Vacation', 'Casual Leave', 'Emergency'];
@@ -65,6 +65,20 @@ const Leaves = () => {
         body: JSON.stringify({ action }) // 'Approved' or 'Rejected'
       });
       fetchAdminLeaves();
+    } catch (e) { console.error(e); }
+  };
+
+  const handleDeleteLeave = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this leave request?")) return;
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API}/leaves/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        fetchAdminLeaves();
+      }
     } catch (e) { console.error(e); }
   };
 
@@ -192,13 +206,15 @@ const Leaves = () => {
                     <td style={{ padding: '12px', color: '#4b5563' }}>{l.end_date.split('T')[0]}</td>
                     <td style={{ padding: '12px', color: '#4b5563' }}>{l.reason}</td>
                     <td style={{ padding: '12px' }}>{renderStatus(l.status)}</td>
-                    <td style={{ padding: '12px', display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                      {l.status === 'Pending' ? (
+                    <td style={{ padding: '12px', display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
+                      {l.status === 'Pending' && (
                         <>
                           <button onClick={() => handleAction(l.id, 'Approved')} style={{ background: '#d1fae5', color: '#059669', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="Approve"><CheckCircle size={16} /></button>
                           <button onClick={() => handleAction(l.id, 'Rejected')} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="Reject"><XCircle size={16} /></button>
                         </>
-                      ) : <span style={{ color: '#9ca3af', fontSize: '12px' }}>Done</span>}
+                      )}
+                      {l.status !== 'Pending' && <span style={{ color: '#9ca3af', fontSize: '12px', marginRight: '8px' }}>Done</span>}
+                      <button onClick={() => handleDeleteLeave(l.id)} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="Delete"><Trash2 size={16} /></button>
                     </td>
                   </tr>
                 ))}

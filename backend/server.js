@@ -254,8 +254,11 @@ app.put('/api/users/:id', authenticate, async (req, res) => {
 
 // DELETE user
 app.delete('/api/users/:id', authenticate, async (req, res) => {
+    const userId = req.params.id;
     try {
-        await pool.query('DELETE FROM users WHERE id = ?', [req.params.id]);
+        // Set assigned_to to NULL in customers table first to avoid FK constraint failures
+        await pool.query('UPDATE customers SET assigned_to = NULL WHERE assigned_to = ?', [userId]);
+        await pool.query('DELETE FROM users WHERE id = ?', [userId]);
         res.json({ success: true });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -497,6 +500,41 @@ app.post('/api/attendance/admin/passes/:id/action', authenticate, async (req, re
         } else {
             await pool.query('UPDATE attendance_passes SET status = "rejected" WHERE id = ?', [passId]);
         }
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Admin edit attendance record
+app.put('/api/attendance/admin/:id', authenticate, async (req, res) => {
+    try {
+        const canEditAttendance = req.user.permissions?.staff_attendance?.edit;
+        if (req.user.role !== 'admin' && req.user.role !== 'manager' && !canEditAttendance) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+        const { check_in, check_out, status } = req.body;
+        // Parse dates or set to NULL
+        const ci = check_in ? new Date(check_in) : null;
+        const co = check_out ? new Date(check_out) : null;
+        await pool.query(
+            'UPDATE attendance SET check_in = ?, check_out = ?, status = ? WHERE id = ?',
+            [ci, co, status, req.params.id]
+        );
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Admin delete attendance record
+app.delete('/api/attendance/admin/:id', authenticate, async (req, res) => {
+    try {
+        const canDeleteAttendance = req.user.permissions?.staff_attendance?.delete;
+        if (req.user.role !== 'admin' && req.user.role !== 'manager' && !canDeleteAttendance) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+        await pool.query('DELETE FROM attendance WHERE id = ?', [req.params.id]);
         res.json({ success: true });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -880,6 +918,15 @@ app.put('/api/leaves/:id/action', authenticate, async (req, res) => {
         if (req.user.role !== 'admin' && req.user.role !== 'manager' && !canEditLeaves) return res.status(403).json({ error: 'Unauthorized' });
         const { action } = req.body; // 'Approved' or 'Rejected'
         await pool.query('UPDATE leaves SET status = ? WHERE id = ?', [action, req.params.id]);
+        res.json({ success: true });
+    } catch (error) { res.status(500).json({ error: error.message }); }
+});
+
+app.delete('/api/leaves/:id', authenticate, async (req, res) => {
+    try {
+        const canDeleteLeaves = req.user.permissions?.leaves?.delete;
+        if (req.user.role !== 'admin' && req.user.role !== 'manager' && !canDeleteLeaves) return res.status(403).json({ error: 'Unauthorized' });
+        await pool.query('DELETE FROM leaves WHERE id = ?', [req.params.id]);
         res.json({ success: true });
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
