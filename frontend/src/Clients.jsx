@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { PlusCircle, List, CheckCircle, Download, Upload, Users, Eye, Edit2, Trash2 } from 'lucide-react';
 import Papa from 'papaparse';
 import ViewModal from './ViewModal';
+import { getPerms } from './permissions';
 
 const API = 'https://aruvixlabs.onrender.com/api';
 
 const Clients = () => {
-  const [activeTab, setActiveTab] = useState('all');
+  const { canCreate, canEdit, canDelete } = getPerms('clients');
+  const [activeTab, setActiveTab] = useState(canCreate ? 'add' : 'all');
   const [clients, setClients] = useState([]);
   const [form, setForm] = useState({ name: '', phone: '', email: '', district: '', source: 'Manual Entry' });
   const [successMessage, setSuccessMessage] = useState('');
@@ -175,8 +177,8 @@ const Clients = () => {
               </td>
               <td style={{ padding: '14px 16px', display: 'flex', justifyContent: 'center', gap: '8px' }}>
                 <button onClick={() => handleView(c)} style={{ background: '#e0e7ff', color: '#4338ca', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="View"><Eye size={16} /></button>
-                <button onClick={() => handleEdit(c)} style={{ background: '#fef3c7', color: '#d97706', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="Edit"><Edit2 size={16} /></button>
-                <button onClick={() => handleDelete(c.id)} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="Delete"><Trash2 size={16} /></button>
+                {canEdit && <button onClick={() => handleEdit(c)} style={{ background: '#fef3c7', color: '#d97706', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="Edit"><Edit2 size={16} /></button>}
+                {canDelete && <button onClick={() => handleDelete(c.id)} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="Delete"><Trash2 size={16} /></button>}
               </td>
             </tr>
           ))}
@@ -188,12 +190,14 @@ const Clients = () => {
   return (
     <div className="clients-page">
       <div style={{ display: 'flex', gap: '15px', borderBottom: '2px solid #e5e7eb', paddingBottom: '10px', marginBottom: '25px' }}>
-        <button 
-          onClick={() => setActiveTab('add')}
-          style={{ padding: '12px 24px', background: activeTab === 'add' ? 'var(--primary)' : 'transparent', color: activeTab === 'add' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
-        >
-          <PlusCircle size={18} /> Add Clients
-        </button>
+        {canCreate && (
+          <button 
+            onClick={() => setActiveTab('add')}
+            style={{ padding: '12px 24px', background: activeTab === 'add' ? 'var(--primary)' : 'transparent', color: activeTab === 'add' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
+          >
+            <PlusCircle size={18} /> Add Clients
+          </button>
+        )}
         <button 
           onClick={() => setActiveTab('all')}
           style={{ padding: '12px 24px', background: activeTab === 'all' ? 'var(--primary)' : 'transparent', color: activeTab === 'all' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}

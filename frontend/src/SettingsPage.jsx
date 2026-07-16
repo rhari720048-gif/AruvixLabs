@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Settings as SettingsIcon, Building, FileText, CheckCircle, Upload, Shield, Trash2, Mail, Server, LayoutTemplate, Bell, Send, Eye, EyeOff, Wifi, Pencil, UserPlus, ShieldCheck, Search, RefreshCw, Plus, User, X, Phone, Briefcase, MessageSquare, LayoutDashboard } from 'lucide-react';
+import { getPerms } from './permissions';
 
 const SettingsPage = () => {
+  const { canEdit: canEditSettings } = getPerms('settings');
   const [activeTab, setActiveTab] = useState('company'); // 'company', 'invoice', 'permissions', 'mail'
   const [successMessage, setSuccessMessage] = useState('');
 
@@ -362,15 +364,19 @@ const SettingsPage = () => {
                   <div style={{ width: '60px', height: '60px', background: '#f3f4f6', borderRadius: '8px', border: '1px dashed #d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {companyForm.logo ? <img src={companyForm.logo} alt="Logo" style={{ maxWidth: '100%', maxHeight: '100%' }} /> : <Building size={24} color="#9ca3af" />}
                   </div>
-                  <label style={{ background: '#e0e7ff', color: '#4338ca', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: '500', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                    <Upload size={14} /> Upload New Logo
-                    <input type="file" style={{ display: 'none' }} accept="image/*" onChange={(e) => {
-                      if (e.target.files[0]) {
-                         // Mocking upload by creating a local URL for preview
-                         setCompanyForm({...companyForm, logo: URL.createObjectURL(e.target.files[0])});
-                      }
-                    }} />
-                  </label>
+                  {canEditSettings ? (
+                    <label style={{ background: '#e0e7ff', color: '#4338ca', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: '500', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <Upload size={14} /> Upload New Logo
+                      <input type="file" style={{ display: 'none' }} accept="image/*" onChange={(e) => {
+                        if (e.target.files[0]) {
+                           // Mocking upload by creating a local URL for preview
+                           setCompanyForm({...companyForm, logo: URL.createObjectURL(e.target.files[0])});
+                        }
+                      }} />
+                    </label>
+                  ) : (
+                    <span style={{ color: '#9ca3af', fontSize: '13px', fontWeight: '500' }}>Upload disabled</span>
+                  )}
                 </div>
               </div>
 
@@ -390,11 +396,13 @@ const SettingsPage = () => {
                 </div>
               </div>
 
-              <div style={{ marginTop: '10px' }}>
-                <button type="submit" style={{ background: 'var(--primary)', color: 'white', padding: '12px 24px', borderRadius: '8px', border: 'none', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <CheckCircle size={18} /> Save Company Details
-                </button>
-              </div>
+              {canEditSettings && (
+                <div style={{ marginTop: '10px' }}>
+                  <button type="submit" style={{ background: 'var(--primary)', color: 'white', padding: '12px 24px', borderRadius: '8px', border: 'none', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <CheckCircle size={18} /> Save Company Details
+                  </button>
+                </div>
+              )}
             </form>
           </div>
         )}
@@ -416,14 +424,18 @@ const SettingsPage = () => {
                   <div style={{ width: '60px', height: '60px', background: '#f3f4f6', borderRadius: '8px', border: '1px dashed #d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {invoiceForm.watermark ? <img src={invoiceForm.watermark} alt="Watermark" style={{ maxWidth: '100%', maxHeight: '100%', opacity: 0.5 }} /> : <FileText size={24} color="#9ca3af" />}
                   </div>
-                  <label style={{ background: '#e0e7ff', color: '#4338ca', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: '500', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                    <Upload size={14} /> Upload Watermark
-                    <input type="file" style={{ display: 'none' }} accept="image/*" onChange={(e) => {
-                      if (e.target.files[0]) {
-                         setInvoiceForm({...invoiceForm, watermark: URL.createObjectURL(e.target.files[0])});
-                      }
-                    }} />
-                  </label>
+                  {canEditSettings ? (
+                    <label style={{ background: '#e0e7ff', color: '#4338ca', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: '500', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <Upload size={14} /> Upload Watermark
+                      <input type="file" style={{ display: 'none' }} accept="image/*" onChange={(e) => {
+                        if (e.target.files[0]) {
+                           setInvoiceForm({...invoiceForm, watermark: URL.createObjectURL(e.target.files[0])});
+                        }
+                      }} />
+                    </label>
+                  ) : (
+                    <span style={{ color: '#9ca3af', fontSize: '13px', fontWeight: '500' }}>Upload disabled</span>
+                  )}
                 </div>
               </div>
 
@@ -433,11 +445,13 @@ const SettingsPage = () => {
                 <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>These terms will be automatically attached to the bottom of new invoices.</p>
               </div>
 
-              <div style={{ marginTop: '10px' }}>
-                <button type="submit" style={{ background: 'var(--primary)', color: 'white', padding: '12px 24px', borderRadius: '8px', border: 'none', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <CheckCircle size={18} /> Save Settings
-                </button>
-              </div>
+              {canEditSettings && (
+                <div style={{ marginTop: '10px' }}>
+                  <button type="submit" style={{ background: 'var(--primary)', color: 'white', padding: '12px 24px', borderRadius: '8px', border: 'none', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <CheckCircle size={18} /> Save Settings
+                  </button>
+                </div>
+              )}
             </form>
           </div>
         )}
@@ -483,45 +497,51 @@ const SettingsPage = () => {
                     ))}
                   </select>
 
-                  <button
-                    type="button"
-                    onClick={() => setShowAddRoleModal(true)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 16px', background: '#e0e7ff', color: '#4338ca', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', transition: '0.2s' }}
-                    onMouseEnter={e => e.currentTarget.style.background = '#c7d2fe'}
-                    onMouseLeave={e => e.currentTarget.style.background = '#e0e7ff'}
-                  >
-                    <Plus size={16} /> Add Role
-                  </button>
+                  {canEditSettings && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAddRoleModal(true)}
+                      style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 16px', background: '#e0e7ff', color: '#4338ca', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', transition: '0.2s' }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#c7d2fe'}
+                      onMouseLeave={e => e.currentTarget.style.background = '#e0e7ff'}
+                    >
+                      <Plus size={16} /> Add Role
+                    </button>
+                  )}
                 </div>
               </div>
 
               {selectedRole ? (
                 <div>
                   <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginBottom: '20px' }}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const all = {};
-                        allModuleKeys.forEach(k => all[k] = { view: true, create: true, edit: true, delete: true });
-                        setRolePermissions(all);
-                      }}
-                      style={{ padding: '8px 14px', background: '#d1fae5', color: '#065f46', border: 'none', borderRadius: '6px', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }}
-                    >
-                      ✓ Grant All
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setRolePermissions({ ...defaultPerms })}
-                      style={{ padding: '8px 14px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '6px', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }}
-                    >
-                      ✕ Clear All
-                    </button>
-                    <button
-                      onClick={handleRolePermsSubmit}
-                      style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '6px', fontWeight: '600', fontSize: '12px', cursor: 'pointer', boxShadow: '0 2px 6px rgba(99,102,241,0.3)' }}
-                    >
-                      <CheckCircle size={14} /> Save Role Permissions
-                    </button>
+                    {canEditSettings && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const all = {};
+                            allModuleKeys.forEach(k => all[k] = { view: true, create: true, edit: true, delete: true });
+                            setRolePermissions(all);
+                          }}
+                          style={{ padding: '8px 14px', background: '#d1fae5', color: '#065f46', border: 'none', borderRadius: '6px', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }}
+                        >
+                          ✓ Grant All
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setRolePermissions({ ...defaultPerms })}
+                          style={{ padding: '8px 14px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '6px', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }}
+                        >
+                          ✕ Clear All
+                        </button>
+                        <button
+                          onClick={handleRolePermsSubmit}
+                          style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '6px', fontWeight: '600', fontSize: '12px', cursor: 'pointer', boxShadow: '0 2px 6px rgba(99,102,241,0.3)' }}
+                        >
+                          <CheckCircle size={14} /> Save Role Permissions
+                        </button>
+                      </>
+                    )}
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -530,28 +550,32 @@ const SettingsPage = () => {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                           {renderGroupIcon(group.groupLabel, group.color, 18)}
                           <span style={{ fontWeight: '700', fontSize: '14px', color: '#374151' }}>{group.groupLabel}</span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const updated = { ...rolePermissions };
-                              group.modules.forEach(m => { updated[m.key] = { view: true, create: true, edit: true, delete: true }; });
-                              setRolePermissions(updated);
-                            }}
-                            style={{ marginLeft: 'auto', padding: '2px 8px', background: group.color + '18', color: group.color, border: 'none', borderRadius: '4px', fontSize: '11px', fontWeight: '600', cursor: 'pointer' }}
-                          >
-                            All
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const updated = { ...rolePermissions };
-                              group.modules.forEach(m => { updated[m.key] = { view: false, create: false, edit: false, delete: false }; });
-                              setRolePermissions(updated);
-                            }}
-                            style={{ padding: '2px 8px', background: '#f3f4f6', color: '#6b7280', border: 'none', borderRadius: '4px', fontSize: '11px', fontWeight: '600', cursor: 'pointer' }}
-                          >
-                            Clear
-                          </button>
+                          {canEditSettings && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const updated = { ...rolePermissions };
+                                  group.modules.forEach(m => { updated[m.key] = { view: true, create: true, edit: true, delete: true }; });
+                                  setRolePermissions(updated);
+                                }}
+                                style={{ marginLeft: 'auto', padding: '2px 8px', background: group.color + '18', color: group.color, border: 'none', borderRadius: '4px', fontSize: '11px', fontWeight: '600', cursor: 'pointer' }}
+                              >
+                                All
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const updated = { ...rolePermissions };
+                                  group.modules.forEach(m => { updated[m.key] = { view: false, create: false, edit: false, delete: false }; });
+                                  setRolePermissions(updated);
+                                }}
+                                style={{ padding: '2px 8px', background: '#f3f4f6', color: '#6b7280', border: 'none', borderRadius: '4px', fontSize: '11px', fontWeight: '600', cursor: 'pointer' }}
+                              >
+                                Clear
+                              </button>
+                            </>
+                          )}
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '12px' }}>
@@ -574,13 +598,14 @@ const SettingsPage = () => {
                                   <input
                                     type="checkbox"
                                     checked={!!allChecked}
+                                    disabled={!canEditSettings}
                                     onChange={e => {
                                       setRolePermissions(prev => ({
                                         ...prev,
                                         [module]: { view: e.target.checked, create: e.target.checked, edit: e.target.checked, delete: e.target.checked }
                                       }));
                                     }}
-                                    style={{ width: '14px', height: '14px', accentColor: group.color, cursor: 'pointer' }}
+                                    style={{ width: '14px', height: '14px', accentColor: group.color, cursor: canEditSettings ? 'pointer' : 'default' }}
                                   />
                                 </div>
                                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -590,12 +615,13 @@ const SettingsPage = () => {
                                     { key: 'edit',   lbl: 'Edit' },
                                     { key: 'delete', lbl: 'Delete' }
                                   ].map(p => (
-                                    <label key={p.key} style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '11px', color: perms[p.key] ? '#111827' : '#9ca3af', fontWeight: perms[p.key] ? '600' : '400' }}>
+                                    <label key={p.key} style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: canEditSettings ? 'pointer' : 'default', fontSize: '11px', color: perms[p.key] ? '#111827' : '#9ca3af', fontWeight: perms[p.key] ? '600' : '400' }}>
                                       <input
                                         type="checkbox"
                                         checked={!!perms[p.key]}
+                                        disabled={!canEditSettings}
                                         onChange={e => updatePerm(p.key, e.target.checked)}
-                                        style={{ width: '12px', height: '12px', accentColor: group.color, cursor: 'pointer' }}
+                                        style={{ width: '12px', height: '12px', accentColor: group.color, cursor: canEditSettings ? 'pointer' : 'default' }}
                                       />
                                       {p.lbl}
                                     </label>
@@ -637,12 +663,14 @@ const SettingsPage = () => {
                     />
                   </div>
 
-                  <button
-                    onClick={() => setShowAddUserModal(true)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', boxShadow: '0 2px 8px rgba(99,102,241,0.3)' }}
-                  >
-                    <UserPlus size={15} /> Add User
-                  </button>
+                  {canEditSettings && (
+                    <button
+                      onClick={() => setShowAddUserModal(true)}
+                      style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', boxShadow: '0 2px 8px rgba(99,102,241,0.3)' }}
+                    >
+                      <UserPlus size={15} /> Add User
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -709,29 +737,33 @@ const SettingsPage = () => {
                                 >
                                   <Eye size={14} />
                                 </button>
-                                <button
-                                  onClick={() => {
-                                    setEditingUser(u);
-                                    setEditUserForm({ name: u.name, email: u.email, phone: u.phone || '', role: u.role || 'employee', password: '', status: u.status || 'Active' });
-                                    
-                                    const loaded = u.permissions || {};
-                                    const merged = { ...defaultPerms };
-                                    Object.keys(loaded).forEach(k => { merged[k] = loaded[k]; });
-                                    setEditUserPermissions(merged);
-                                    setShowEditModal(true);
-                                  }}
-                                  title="Edit Permissions"
-                                  style={{ width: '30px', height: '30px', borderRadius: '6px', border: 'none', background: '#eef2ff', color: '#4338ca', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                >
-                                  <Pencil size={14} />
-                                </button>
-                                <button
-                                  onClick={() => setDeleteUserId(u.id)}
-                                  title="Delete User"
-                                  style={{ width: '30px', height: '30px', borderRadius: '6px', border: 'none', background: '#fee2e2', color: '#dc2626', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                >
-                                  <Trash2 size={14} />
-                                </button>
+                                {canEditSettings && (
+                                  <>
+                                    <button
+                                      onClick={() => {
+                                        setEditingUser(u);
+                                        setEditUserForm({ name: u.name, email: u.email, phone: u.phone || '', role: u.role || 'employee', password: '', status: u.status || 'Active' });
+                                        
+                                        const loaded = u.permissions || {};
+                                        const merged = { ...defaultPerms };
+                                        Object.keys(loaded).forEach(k => { merged[k] = loaded[k]; });
+                                        setEditUserPermissions(merged);
+                                        setShowEditModal(true);
+                                      }}
+                                      title="Edit Permissions"
+                                      style={{ width: '30px', height: '30px', borderRadius: '6px', border: 'none', background: '#eef2ff', color: '#4338ca', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                    >
+                                      <Pencil size={14} />
+                                    </button>
+                                    <button
+                                      onClick={() => setDeleteUserId(u.id)}
+                                      title="Delete User"
+                                      style={{ width: '30px', height: '30px', borderRadius: '6px', border: 'none', background: '#fee2e2', color: '#dc2626', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                    >
+                                      <Trash2 size={14} />
+                                    </button>
+                                  </>
+                                )}
                               </div>
                             </td>
                           </tr>

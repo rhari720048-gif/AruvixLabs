@@ -3,6 +3,7 @@ import {
   Users, UserPlus, Search, Pencil, Trash2, X, CheckCircle,
   ShieldCheck, User, Eye, EyeOff, RefreshCw, Mail, Phone
 } from 'lucide-react';
+import { getPerms } from './permissions';
 
 const API = 'https://aruvixlabs.onrender.com/api';
 const token = () => localStorage.getItem('token');
@@ -28,6 +29,7 @@ const getRoleColor = (roleName) => {
 const defaultForm = { name: '', email: '', phone: '', role: 'employee', password: '', status: 'Active' };
 
 export default function UserManagement() {
+  const { canCreate, canEdit, canDelete } = getPerms('user_management');
   const [users, setUsers]         = useState([]);
   const [loading, setLoading]     = useState(true);
   const [search, setSearch]       = useState('');
@@ -188,9 +190,11 @@ export default function UserManagement() {
           <button onClick={fetchUsersAndRoles} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 16px', background: '#f3f4f6', color: '#374151', border: '1px solid #e5e7eb', borderRadius: 10, fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
             <RefreshCw size={15} /> Refresh
           </button>
-          <button onClick={openAdd} id="add-user-btn" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: '#6366f1', color: 'white', border: 'none', borderRadius: 10, fontWeight: 600, fontSize: 14, cursor: 'pointer', boxShadow: '0 2px 8px rgba(99,102,241,0.35)' }}>
-            <UserPlus size={16} /> Add User
-          </button>
+          {canCreate && (
+            <button onClick={openAdd} id="add-user-btn" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: '#6366f1', color: 'white', border: 'none', borderRadius: 10, fontWeight: 600, fontSize: 14, cursor: 'pointer', boxShadow: '0 2px 8px rgba(99,102,241,0.35)' }}>
+              <UserPlus size={16} /> Add User
+            </button>
+          )}
         </div>
       </div>
 
@@ -283,8 +287,9 @@ export default function UserManagement() {
 
                   {/* Status Toggle */}
                   <td style={{ padding: '14px 18px' }}>
-                    <button onClick={() => toggleStatus(u.id)}
-                      style={{ fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 20, background: u.status === 'Active' ? '#d1fae5' : '#fee2e2', color: u.status === 'Active' ? '#065f46' : '#dc2626', border: 'none', cursor: 'pointer' }}>
+                    <button onClick={() => canEdit && toggleStatus(u.id)}
+                      disabled={!canEdit}
+                      style={{ fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 20, background: u.status === 'Active' ? '#d1fae5' : '#fee2e2', color: u.status === 'Active' ? '#065f46' : '#dc2626', border: 'none', cursor: canEdit ? 'pointer' : 'default', opacity: canEdit ? 1 : 0.7 }}>
                       {u.status === 'Active' ? '● Active' : '○ Inactive'}
                     </button>
                   </td>
@@ -296,14 +301,18 @@ export default function UserManagement() {
                   {/* Actions */}
                   <td style={{ padding: '14px 18px' }}>
                     <div style={{ display: 'flex', gap: 8 }}>
-                      <button onClick={() => openEdit(u)} title="Edit User"
-                        style={{ width: 34, height: 34, borderRadius: 8, background: '#eef2ff', color: '#6366f1', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Pencil size={15} />
-                      </button>
-                      <button onClick={() => setDeleteId(u.id)} title="Delete User"
-                        style={{ width: 34, height: 34, borderRadius: 8, background: '#fee2e2', color: '#dc2626', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Trash2 size={15} />
-                      </button>
+                      {canEdit && (
+                        <button onClick={() => openEdit(u)} title="Edit User"
+                          style={{ width: 34, height: 34, borderRadius: 8, background: '#eef2ff', color: '#6366f1', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <Pencil size={15} />
+                        </button>
+                      )}
+                      {canDelete && (
+                        <button onClick={() => setDeleteId(u.id)} title="Delete User"
+                          style={{ width: 34, height: 34, borderRadius: 8, background: '#fee2e2', color: '#dc2626', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <Trash2 size={15} />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

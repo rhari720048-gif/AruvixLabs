@@ -20,12 +20,29 @@ initDB()
     .then(() => setPool(pool))
     .catch(console.error);
 
-const authenticate = (req, res, next) => {
+const authenticate = async (req, res, next) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     if (!token) return res.status(401).json({ error: 'Access denied' });
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded;
+        
+        // Fetch fresh role and permissions from DB
+        const [rows] = await pool.query('SELECT role, permissions FROM users WHERE id = ?', [decoded.id]);
+        if (rows.length > 0) {
+            let permissions = {};
+            if (rows[0].permissions) {
+                try {
+                    permissions = typeof rows[0].permissions === 'string' ? JSON.parse(rows[0].permissions) : rows[0].permissions;
+                } catch(e){}
+            }
+            req.user = {
+                ...decoded,
+                role: rows[0].role,
+                permissions: permissions
+            };
+        } else {
+            req.user = decoded;
+        }
         next();
     } catch (err) {
         res.status(400).json({ error: 'Invalid token' });
@@ -183,8 +200,10 @@ app.get('/api/users', authenticate, async (req, res) => {
     }
 });
 
- // Add new user
+// Add new user
 app.post('/api/users', authenticate, async (req, res) => {
+    const canCreate = req.user.role === 'admin' || req.user.permissions?.user_management?.create;
+    if (!canCreate) return res.status(403).json({ error: 'Access denied: You do not have create permissions for user management.' });
     const { name, email, phone, role, password, status } = req.body;
     try {
         const [existing] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
@@ -211,6 +230,8 @@ app.post('/api/users', authenticate, async (req, res) => {
 
 // Edit User
 app.put('/api/users/:id', authenticate, async (req, res) => {
+    const canEdit = req.user.role === 'admin' || req.user.permissions?.user_management?.edit;
+    if (!canEdit) return res.status(403).json({ error: 'Access denied: You do not have edit permissions for user management.' });
     const { name, email, phone, role, password, status, permissions } = req.body;
     try {
         const [existing] = await pool.query('SELECT role, permissions FROM users WHERE id = ?', [req.params.id]);
@@ -254,6 +275,8 @@ app.put('/api/users/:id', authenticate, async (req, res) => {
 
 // DELETE user
 app.delete('/api/users/:id', authenticate, async (req, res) => {
+    const canDelete = req.user.role === 'admin' || req.user.permissions?.user_management?.delete;
+    if (!canDelete) return res.status(403).json({ error: 'Access denied: You do not have delete permissions for user management.' });
     const userId = req.params.id;
     try {
         // Set assigned_to to NULL in customers table first to avoid FK constraint failures
@@ -267,6 +290,8 @@ app.delete('/api/users/:id', authenticate, async (req, res) => {
 
 // Update User Permissions
 app.put('/api/users/:id/permissions', authenticate, async (req, res) => {
+    const canEditSettings = req.user.role === 'admin' || req.user.permissions?.settings?.edit;
+    if (!canEditSettings) return res.status(403).json({ error: 'Access denied: You do not have permission to edit settings.' });
     const { permissions } = req.body;
     try {
         await pool.query('UPDATE users SET permissions=? WHERE id=?', [JSON.stringify(permissions), req.params.id]);
@@ -297,6 +322,8 @@ app.post('/api/users/:id/send-welcome', authenticate, async (req, res) => {
 });
 
 app.post('/api/config/email/test', authenticate, async (req, res) => {
+    const canEditSettings = req.user.role === 'admin' || req.user.permissions?.settings?.edit;
+    if (!canEditSettings) return res.status(403).json({ error: 'Access denied: You do not have permission to edit settings.' });
     try {
         await testConnection();
         res.json({ success: true, message: 'SMTP connection successful!' });
@@ -325,6 +352,8 @@ app.get('/api/config/email', authenticate, async (req, res) => {
 });
 
 app.post('/api/config/email', authenticate, async (req, res) => {
+    const canEditSettings = req.user.role === 'admin' || req.user.permissions?.settings?.edit;
+    if (!canEditSettings) return res.status(403).json({ error: 'Access denied: You do not have permission to edit settings.' });
     const { host, port, secure, username, password, senderName, senderEmail } = req.body;
     try {
         const [rows] = await pool.query('SELECT id FROM smtp_settings LIMIT 1');
@@ -387,6 +416,8 @@ app.get('/api/roles', authenticate, async (req, res) => {
 });
 
 app.post('/api/roles', authenticate, async (req, res) => {
+    const canEditSettings = req.user.role === 'admin' || req.user.permissions?.settings?.edit;
+    if (!canEditSettings) return res.status(403).json({ error: 'Access denied: You do not have permission to edit settings.' });
     const { name, permissions } = req.body;
     try {
         const result = await pool.query('INSERT INTO roles (name, permissions) VALUES (?, ?)', [name, JSON.stringify(permissions)]);
@@ -397,6 +428,8 @@ app.post('/api/roles', authenticate, async (req, res) => {
 });
 
 app.put('/api/roles/:id', authenticate, async (req, res) => {
+    const canEditSettings = req.user.role === 'admin' || req.user.permissions?.settings?.edit;
+    if (!canEditSettings) return res.status(403).json({ error: 'Access denied: You do not have permission to edit settings.' });
     const { name, permissions } = req.body;
     try {
         await pool.query('UPDATE roles SET name=?, permissions=? WHERE id=?', [name, JSON.stringify(permissions), req.params.id]);
@@ -407,6 +440,8 @@ app.put('/api/roles/:id', authenticate, async (req, res) => {
 });
 
 app.delete('/api/roles/:id', authenticate, async (req, res) => {
+    const canEditSettings = req.user.role === 'admin' || req.user.permissions?.settings?.edit;
+    if (!canEditSettings) return res.status(403).json({ error: 'Access denied: You do not have permission to edit settings.' });
     try {
         await pool.query('DELETE FROM roles WHERE id=?', [req.params.id]);
         res.json({ success: true });

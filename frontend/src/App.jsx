@@ -200,6 +200,17 @@ const DummyPage = ({ title, columns, data, stats }) => (
 );
 
 const ProfilePage = () => {
+  const getProfilePerms = () => {
+    let permissions = {};
+    try { permissions = JSON.parse(localStorage.getItem('permissions') || '{}'); } catch(e){}
+    const role = (localStorage.getItem('role') || 'employee').toLowerCase();
+    const isAdmin = role === 'admin';
+    const mod = permissions['profile'] || {};
+    return {
+      canEdit: isAdmin || !!mod.edit
+    };
+  };
+  const { canEdit } = getProfilePerms();
   const [isEditing, setIsEditing] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -313,7 +324,7 @@ const ProfilePage = () => {
               <h2 style={{ margin: 0, color: '#111827', fontSize: 22 }}>{form.name}</h2>
               <p style={{ margin: '4px 0 0', color: '#6b7280', fontSize: 14 }}>{form.role} · {form.department}</p>
             </div>
-            {!isEditing ? (
+            {canEdit && !isEditing ? (
               <button
                 onClick={handleEdit}
                 id="edit-profile-btn"
@@ -323,7 +334,7 @@ const ProfilePage = () => {
               >
                 <Pencil size={16} /> Edit Profile
               </button>
-            ) : (
+            ) : isEditing ? (
               <div style={{ display: 'flex', gap: 10 }}>
                 <button onClick={handleCancel} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', background: '#f3f4f6', color: '#374151', border: '1px solid #e5e7eb', borderRadius: 10, fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
                   <X size={15} /> Cancel
@@ -332,7 +343,7 @@ const ProfilePage = () => {
                   <CheckCircle size={15} /> Save Changes
                 </button>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
