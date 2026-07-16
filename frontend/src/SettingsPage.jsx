@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Building, FileText, CheckCircle, Upload, Shield, Trash2, Mail, Server, LayoutTemplate, Bell, Send, Eye, EyeOff, Wifi, Pencil, UserPlus, ShieldCheck, Search, RefreshCw, Plus, User, X, Phone, Briefcase, MessageSquare, LayoutDashboard, ChevronDown } from 'lucide-react';
+import { Settings as SettingsIcon, Building, FileText, CheckCircle, Upload, Shield, Trash2, Mail, Server, LayoutTemplate, Bell, Send, Eye, EyeOff, Wifi, Pencil, UserPlus, ShieldCheck, Search, RefreshCw, Plus, Minus, User, X, Phone, Briefcase, MessageSquare, LayoutDashboard, ChevronDown } from 'lucide-react';
 import { getPerms } from './permissions';
 
 const getModulePermsFields = (moduleKey) => {
@@ -156,6 +156,144 @@ const ToggleSwitch = ({ checked, onChange, disabled, color = '#6366f1' }) => (
     </span>
   </label>
 );
+
+const DragDropPermissions = ({ permissions, setPermissions, canEdit, moduleGroups }) => {
+  const [draggedModule, setDraggedModule] = useState(null);
+
+  const handleDragStart = (e, moduleKey) => {
+    if (!canEdit) return;
+    setDraggedModule(moduleKey);
+    e.dataTransfer.setData('moduleKey', moduleKey);
+  };
+
+  const handleAction = (targetZone, moduleKeyOverride) => {
+    if (!canEdit) return;
+    const moduleKey = moduleKeyOverride || draggedModule;
+    if (!moduleKey) return;
+    
+    const isAssigning = targetZone === 'assigned';
+    
+    setPermissions(prev => {
+      const newPerms = { ...prev };
+      newPerms[moduleKey] = {};
+      const fields = getModulePermsFields(moduleKey);
+      
+      fields.forEach(f => {
+        newPerms[moduleKey][f.key] = isAssigning;
+      });
+      return newPerms;
+    });
+    setDraggedModule(null);
+  };
+
+  const handleDrop = (e, targetZone) => {
+    e.preventDefault();
+    handleAction(targetZone);
+  };
+
+  const availableModules = [];
+  const assignedModules = [];
+
+  moduleGroups.forEach(g => {
+    g.modules.forEach(m => {
+      const isAssigned = (permissions[m.key] || {}).view;
+      const modWithContext = { ...m, groupColor: g.color, groupLabel: g.groupLabel };
+      if (isAssigned) {
+        assignedModules.push(modWithContext);
+      } else {
+        availableModules.push(modWithContext);
+      }
+    });
+  });
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+      {/* Available Column */}
+      <div 
+        onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
+        onDrop={e => handleDrop(e, 'available')}
+        style={{ background: '#f9fafb', border: '2px dashed #d1d5db', borderRadius: '12px', padding: '16px', minHeight: '400px', display: 'flex', flexDirection: 'column' }}
+      >
+        <h4 style={{ margin: '0 0 16px', color: '#4b5563', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          Available Modules
+          <span style={{ background: '#e5e7eb', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }}>{availableModules.length}</span>
+        </h4>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flex: 1 }}>
+          {availableModules.map(m => (
+            <div 
+              key={m.key} 
+              draggable={canEdit} 
+              onDragStart={e => handleDragStart(e, m.key)}
+              style={{ background: 'white', border: `1px solid ${m.groupColor}40`, borderLeft: `4px solid ${m.groupColor}`, borderRadius: '6px', padding: '12px', cursor: canEdit ? 'grab' : 'default', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}
+            >
+              <div>
+                <div style={{ fontWeight: '600', fontSize: '14px', color: '#1f2937' }}>{m.label}</div>
+                <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: '500' }}>{m.groupLabel}</div>
+              </div>
+              {canEdit && (
+                <button 
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); handleAction('assigned', m.key); }} 
+                  style={{ background: '#e0e7ff', color: '#4338ca', border: 'none', borderRadius: '4px', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                  title="Grant Access"
+                >
+                  <Plus size={16} />
+                </button>
+              )}
+            </div>
+          ))}
+          {availableModules.length === 0 && (
+            <div style={{ textAlign: 'center', color: '#9ca3af', padding: '40px 0', fontSize: '13px', border: '1px dashed #d1d5db', borderRadius: '8px', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              All modules assigned
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Assigned Column */}
+      <div 
+        onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
+        onDrop={e => handleDrop(e, 'assigned')}
+        style={{ background: '#f0fdf4', border: '2px dashed #86efac', borderRadius: '12px', padding: '16px', minHeight: '400px', display: 'flex', flexDirection: 'column' }}
+      >
+        <h4 style={{ margin: '0 0 16px', color: '#166534', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          Assigned Modules (Full Access)
+          <span style={{ background: '#bbf7d0', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }}>{assignedModules.length}</span>
+        </h4>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flex: 1 }}>
+          {assignedModules.map(m => (
+            <div 
+              key={m.key} 
+              draggable={canEdit} 
+              onDragStart={e => handleDragStart(e, m.key)}
+              style={{ background: 'white', border: `1px solid ${m.groupColor}40`, borderLeft: `4px solid ${m.groupColor}`, borderRadius: '6px', padding: '12px', cursor: canEdit ? 'grab' : 'default', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}
+            >
+              <div>
+                <div style={{ fontWeight: '600', fontSize: '14px', color: '#1f2937' }}>{m.label}</div>
+                <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: '500' }}>{m.groupLabel}</div>
+              </div>
+              {canEdit && (
+                <button 
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); handleAction('available', m.key); }} 
+                  style={{ background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '4px', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                  title="Revoke Access"
+                >
+                  <Minus size={16} />
+                </button>
+              )}
+            </div>
+          ))}
+          {assignedModules.length === 0 && (
+            <div style={{ textAlign: 'center', color: '#9ca3af', padding: '40px 0', fontSize: '13px', border: '1px dashed #86efac', borderRadius: '8px', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              Drag modules here to grant access
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const SettingsPage = () => {
   const { canEdit: canEditSettings } = getPerms('settings');
@@ -719,89 +857,13 @@ const SettingsPage = () => {
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    {moduleGroups.map(group => {
-                      const allGroupChecked = group.modules.every(m => getModulePermsFields(m.key).every(f => (rolePermissions[m.key] || {})[f.key]));
-                      return (
-                        <div key={group.groupLabel} style={{ background: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb', padding: '16px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e5e7eb', paddingBottom: '10px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              {renderGroupIcon(group.groupLabel, group.color, 20)}
-                              <h4 style={{ margin: 0, fontSize: '15px', color: '#1f2937' }}>{group.groupLabel}</h4>
-                            </div>
-                            {canEditSettings && (
-                              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '600', color: '#4b5563', cursor: 'pointer' }}>
-                                <input 
-                                  type="checkbox" 
-                                  checked={allGroupChecked}
-                                  onChange={e => {
-                                    const updated = { ...rolePermissions };
-                                    group.modules.forEach(m => {
-                                      updated[m.key] = {};
-                                      getModulePermsFields(m.key).forEach(f => { updated[m.key][f.key] = e.target.checked; });
-                                    });
-                                    setRolePermissions(updated);
-                                  }}
-                                  style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: group.color }}
-                                />
-                                Select All {group.groupLabel}
-                              </label>
-                            )}
-                          </div>
-                          
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
-                            {group.modules.map(({ key: module, label }) => {
-                              const perms = rolePermissions[module] || {};
-                              const fields = getModulePermsFields(module);
-                              const allChecked = fields.every(f => perms[f.key]);
-                              const updatePerm = (pKey, val) => {
-                                setRolePermissions(prev => ({
-                                  ...prev,
-                                  [module]: { ...(prev[module] || {}), [pKey]: val }
-                                }));
-                              };
-                              return (
-                                <div key={module} style={{ background: 'white', border: `1px solid ${allChecked ? group.color + '60' : '#e5e7eb'}`, borderRadius: '6px', padding: '14px', transition: '0.15s' }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>
-                                    <span style={{ fontWeight: '700', fontSize: '14px', color: '#4b5563' }}>{label}</span>
-                                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '500', color: '#6b7280', cursor: canEditSettings ? 'pointer' : 'default' }}>
-                                      <input 
-                                        type="checkbox" 
-                                        checked={!!allChecked}
-                                        disabled={!canEditSettings}
-                                        onChange={e => {
-                                          const updatedModule = {};
-                                          fields.forEach(f => { updatedModule[f.key] = e.target.checked; });
-                                          setRolePermissions(prev => ({
-                                            ...prev,
-                                            [module]: updatedModule
-                                          }));
-                                        }}
-                                        style={{ cursor: canEditSettings ? 'pointer' : 'default', width: '14px', height: '14px', accentColor: group.color }}
-                                      />
-                                      Select All
-                                    </label>
-                                  </div>
-                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                                    {fields.map(p => (
-                                      <label key={p.key} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: perms[p.key] ? '#111827' : '#6b7280', cursor: canEditSettings ? 'pointer' : 'default' }}>
-                                        <input 
-                                          type="checkbox" 
-                                          checked={!!perms[p.key]}
-                                          disabled={!canEditSettings}
-                                          onChange={e => updatePerm(p.key, e.target.checked)}
-                                          style={{ cursor: canEditSettings ? 'pointer' : 'default', accentColor: group.color }}
-                                        />
-                                        {p.lbl}
-                                      </label>
-                                    ))}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    })}
+                    <DragDropPermissions 
+                      permissions={rolePermissions}
+                      setPermissions={setRolePermissions}
+                      canEdit={canEditSettings}
+                      moduleGroups={moduleGroups}
+                      getModulePermsFields={getModulePermsFields}
+                    />
                   </div>
                 </div>
               ) : (
@@ -1172,85 +1234,13 @@ const SettingsPage = () => {
                       </div>
 
                       <div style={{ maxHeight: '360px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px', paddingRight: '6px' }}>
-                        {moduleGroups.map(group => {
-                          const allGroupChecked = group.modules.every(m => getModulePermsFields(m.key).every(f => (editUserPermissions[m.key] || {})[f.key]));
-                          return (
-                            <div key={group.groupLabel} style={{ background: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb', padding: '16px' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e5e7eb', paddingBottom: '10px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                  {renderGroupIcon(group.groupLabel, group.color, 18)}
-                                  <h4 style={{ margin: 0, fontSize: '14px', color: '#1f2937' }}>{group.groupLabel}</h4>
-                                </div>
-                                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '600', color: '#4b5563', cursor: 'pointer' }}>
-                                  <input 
-                                    type="checkbox" 
-                                    checked={allGroupChecked}
-                                    onChange={e => {
-                                      const updated = { ...editUserPermissions };
-                                      group.modules.forEach(m => {
-                                        updated[m.key] = {};
-                                        getModulePermsFields(m.key).forEach(f => { updated[m.key][f.key] = e.target.checked; });
-                                      });
-                                      setEditUserPermissions(updated);
-                                    }}
-                                    style={{ cursor: 'pointer', width: '14px', height: '14px', accentColor: group.color }}
-                                  />
-                                  Select All
-                                </label>
-                              </div>
-                              
-                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
-                                {group.modules.map(({ key: module, label }) => {
-                                  const perms = editUserPermissions[module] || {};
-                                  const fields = getModulePermsFields(module);
-                                  const allChecked = fields.every(f => perms[f.key]);
-                                  const updatePerm = (pKey, val) => {
-                                    setEditUserPermissions(prev => ({
-                                      ...prev,
-                                      [module]: { ...(prev[module] || {}), [pKey]: val }
-                                    }));
-                                  };
-                                  return (
-                                    <div key={module} style={{ background: 'white', border: `1px solid ${allChecked ? group.color + '60' : '#e5e7eb'}`, borderRadius: '6px', padding: '12px', transition: '0.15s' }}>
-                                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>
-                                        <span style={{ fontWeight: '700', fontSize: '13px', color: '#4b5563' }}>{label}</span>
-                                        <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: '500', color: '#6b7280', cursor: 'pointer' }}>
-                                          <input 
-                                            type="checkbox" 
-                                            checked={!!allChecked}
-                                            onChange={e => {
-                                              const updatedModule = {};
-                                              fields.forEach(f => { updatedModule[f.key] = e.target.checked; });
-                                              setEditUserPermissions(prev => ({
-                                                ...prev,
-                                                [module]: updatedModule
-                                              }));
-                                            }}
-                                            style={{ cursor: 'pointer', width: '12px', height: '12px', accentColor: group.color }}
-                                          />
-                                          All
-                                        </label>
-                                      </div>
-                                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                                        {fields.map(p => (
-                                          <label key={p.key} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: perms[p.key] ? '#111827' : '#6b7280', cursor: 'pointer' }}>
-                                            <input 
-                                              type="checkbox" 
-                                              checked={!!perms[p.key]}
-                                              onChange={e => updatePerm(p.key, e.target.checked)}
-                                              style={{ cursor: 'pointer', accentColor: group.color }}
-                                            />
-                                            {p.lbl}
-                                          </label>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          );
-                        })}
+                        <DragDropPermissions 
+                          permissions={editUserPermissions}
+                          setPermissions={setEditUserPermissions}
+                          canEdit={true}
+                          moduleGroups={moduleGroups}
+                          getModulePermsFields={getModulePermsFields}
+                        />
                       </div>
                     </div>
 
