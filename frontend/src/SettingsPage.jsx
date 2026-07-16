@@ -755,22 +755,11 @@ const SettingsPage = () => {
             </form>
           </div>
         )}
-
         {activeTab === 'permissions' && (
           <div>
             {/* ── 1. Roles & Default Permissions Section ── */}
             <div style={{ background: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb', marginBottom: '32px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{ width: '38px', height: '38px', borderRadius: '8px', background: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Shield size={20} color="white" />
-                  </div>
-                  <div>
-                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: '#1f2937' }}>Manage Roles & Default Permissions</h3>
-                    <p style={{ margin: 0, fontSize: '12px', color: '#6b7280' }}>Add custom roles and define their default page permissions</p>
-                  </div>
-                </div>
-
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <select
                     value={selectedRole?.id || ''}
