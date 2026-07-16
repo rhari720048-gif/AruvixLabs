@@ -402,6 +402,13 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'token') {
+        window.location.reload();
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    
     const token = localStorage.getItem('token');
     if (token) {
       setIsAuthenticated(true);
@@ -428,6 +435,7 @@ function App() {
       })
       .catch(() => {}); // silently fail if offline
     }
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   if (!isAuthenticated) {
