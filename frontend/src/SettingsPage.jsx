@@ -259,7 +259,7 @@ const SettingsPage = () => {
   const [roles, setRoles] = useState([]);
   const [selectedRole, setSelectedRole] = useState(null);
   const [rolePermissions, setRolePermissions] = useState(defaultPerms);
-  const [expandedRoleGroup, setExpandedRoleGroup] = useState(null);
+
   
   // Add role state
   const [showAddRoleModal, setShowAddRoleModal] = useState(false);
@@ -273,7 +273,7 @@ const SettingsPage = () => {
   const [editingUser, setEditingUser] = useState(null);
   const [editUserForm, setEditUserForm] = useState({ name: '', email: '', phone: '', role: '', password: '', status: 'Active' });
   const [editUserPermissions, setEditUserPermissions] = useState(defaultPerms);
-  const [expandedEditUserGroup, setExpandedEditUserGroup] = useState(null);
+
   
   // Add User modal state
   const [showAddUserModal, setShowAddUserModal] = useState(false);
@@ -718,23 +718,21 @@ const SettingsPage = () => {
                     )}
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     {moduleGroups.map(group => {
-                      const isExpanded = expandedRoleGroup === group.groupLabel;
+                      const allGroupChecked = group.modules.every(m => getModulePermsFields(m.key).every(f => (rolePermissions[m.key] || {})[f.key]));
                       return (
-                        <div key={group.groupLabel} style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden', background: 'white' }}>
-                          <div 
-                            onClick={() => setExpandedRoleGroup(isExpanded ? null : group.groupLabel)}
-                            style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '16px 20px', background: isExpanded ? group.color + '10' : '#f9fafb', cursor: 'pointer', transition: '0.2s' }}
-                          >
-                            {renderGroupIcon(group.groupLabel, group.color, 18)}
-                            <span style={{ fontWeight: '700', fontSize: '15px', color: '#374151', flex: 1 }}>{group.groupLabel}</span>
-                            
+                        <div key={group.groupLabel} style={{ background: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb', padding: '16px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e5e7eb', paddingBottom: '10px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              {renderGroupIcon(group.groupLabel, group.color, 20)}
+                              <h4 style={{ margin: 0, fontSize: '15px', color: '#1f2937' }}>{group.groupLabel}</h4>
+                            </div>
                             {canEditSettings && (
-                              <div onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: '12px', alignItems: 'center', marginRight: '16px' }}>
-                                <span style={{ fontSize: '12px', fontWeight: '600', color: '#6b7280' }}>Category Toggle:</span>
-                                <ToggleSwitch 
-                                  checked={group.modules.every(m => getModulePermsFields(m.key).every(f => (rolePermissions[m.key] || {})[f.key]))}
+                              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '600', color: '#4b5563', cursor: 'pointer' }}>
+                                <input 
+                                  type="checkbox" 
+                                  checked={allGroupChecked}
                                   onChange={e => {
                                     const updated = { ...rolePermissions };
                                     group.modules.forEach(m => {
@@ -743,68 +741,64 @@ const SettingsPage = () => {
                                     });
                                     setRolePermissions(updated);
                                   }}
-                                  color={group.color}
+                                  style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: group.color }}
                                 />
-                              </div>
+                                Select All {group.groupLabel}
+                              </label>
                             )}
-                            <div style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.2s', display: 'flex' }}>
-                              <ChevronDown size={18} color="#6b7280" />
-                            </div>
                           </div>
                           
-                          {isExpanded && (
-                            <div style={{ padding: '24px', background: 'white', borderTop: '1px solid #e5e7eb' }}>
-                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
-                                {group.modules.map(({ key: module, label }) => {
-                                  const perms = rolePermissions[module] || {};
-                                  const fields = getModulePermsFields(module);
-                                  const allChecked = fields.every(f => perms[f.key]);
-                                  const updatePerm = (pKey, val) => {
-                                    setRolePermissions(prev => ({
-                                      ...prev,
-                                      [module]: { ...(prev[module] || {}), [pKey]: val }
-                                    }));
-                                  };
-                                  return (
-                                    <div
-                                      key={module}
-                                      style={{ background: '#f9fafb', borderRadius: '8px', border: `1px solid ${allChecked ? group.color + '60' : '#e5e7eb'}`, padding: '16px', transition: '0.15s' }}
-                                    >
-                                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', borderBottom: '1px solid #e5e7eb', paddingBottom: '10px' }}>
-                                        <span style={{ fontWeight: '700', fontSize: '14px', color: '#4b5563' }}>{label}</span>
-                                        <ToggleSwitch 
-                                          checked={!!allChecked}
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+                            {group.modules.map(({ key: module, label }) => {
+                              const perms = rolePermissions[module] || {};
+                              const fields = getModulePermsFields(module);
+                              const allChecked = fields.every(f => perms[f.key]);
+                              const updatePerm = (pKey, val) => {
+                                setRolePermissions(prev => ({
+                                  ...prev,
+                                  [module]: { ...(prev[module] || {}), [pKey]: val }
+                                }));
+                              };
+                              return (
+                                <div key={module} style={{ background: 'white', border: `1px solid ${allChecked ? group.color + '60' : '#e5e7eb'}`, borderRadius: '6px', padding: '14px', transition: '0.15s' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>
+                                    <span style={{ fontWeight: '700', fontSize: '14px', color: '#4b5563' }}>{label}</span>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '500', color: '#6b7280', cursor: canEditSettings ? 'pointer' : 'default' }}>
+                                      <input 
+                                        type="checkbox" 
+                                        checked={!!allChecked}
+                                        disabled={!canEditSettings}
+                                        onChange={e => {
+                                          const updatedModule = {};
+                                          fields.forEach(f => { updatedModule[f.key] = e.target.checked; });
+                                          setRolePermissions(prev => ({
+                                            ...prev,
+                                            [module]: updatedModule
+                                          }));
+                                        }}
+                                        style={{ cursor: canEditSettings ? 'pointer' : 'default', width: '14px', height: '14px', accentColor: group.color }}
+                                      />
+                                      Select All
+                                    </label>
+                                  </div>
+                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                    {fields.map(p => (
+                                      <label key={p.key} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: perms[p.key] ? '#111827' : '#6b7280', cursor: canEditSettings ? 'pointer' : 'default' }}>
+                                        <input 
+                                          type="checkbox" 
+                                          checked={!!perms[p.key]}
                                           disabled={!canEditSettings}
-                                          onChange={e => {
-                                            const updatedModule = {};
-                                            fields.forEach(f => { updatedModule[f.key] = e.target.checked; });
-                                            setRolePermissions(prev => ({
-                                              ...prev,
-                                              [module]: updatedModule
-                                            }));
-                                          }}
-                                          color={group.color}
+                                          onChange={e => updatePerm(p.key, e.target.checked)}
+                                          style={{ cursor: canEditSettings ? 'pointer' : 'default', accentColor: group.color }}
                                         />
-                                      </div>
-                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                        {fields.map(p => (
-                                          <div key={p.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                            <span style={{ fontSize: '13px', color: perms[p.key] ? '#111827' : '#9ca3af', fontWeight: perms[p.key] ? '600' : '500' }}>{p.lbl}</span>
-                                            <ToggleSwitch 
-                                              checked={!!perms[p.key]}
-                                              disabled={!canEditSettings}
-                                              onChange={e => updatePerm(p.key, e.target.checked)}
-                                              color={group.color}
-                                            />
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          )}
+                                        {p.lbl}
+                                      </label>
+                                    ))}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
                       );
                     })}
@@ -1177,22 +1171,20 @@ const SettingsPage = () => {
                         </div>
                       </div>
 
-                      <div style={{ maxHeight: '360px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px', paddingRight: '6px' }}>
+                      <div style={{ maxHeight: '360px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px', paddingRight: '6px' }}>
                         {moduleGroups.map(group => {
-                          const isExpanded = expandedEditUserGroup === group.groupLabel;
+                          const allGroupChecked = group.modules.every(m => getModulePermsFields(m.key).every(f => (editUserPermissions[m.key] || {})[f.key]));
                           return (
-                            <div key={group.groupLabel} style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden', background: 'white' }}>
-                              <div 
-                                onClick={() => setExpandedEditUserGroup(isExpanded ? null : group.groupLabel)}
-                                style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', background: isExpanded ? group.color + '10' : '#f9fafb', cursor: 'pointer', transition: '0.2s' }}
-                              >
-                                {renderGroupIcon(group.groupLabel, group.color, 16)}
-                                <span style={{ fontWeight: '700', fontSize: '13px', color: '#374151', flex: 1 }}>{group.groupLabel}</span>
-                                
-                                <div onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: '8px', alignItems: 'center', marginRight: '12px' }}>
-                                  <span style={{ fontSize: '11px', fontWeight: '600', color: '#6b7280' }}>Category Toggle:</span>
-                                  <ToggleSwitch 
-                                    checked={group.modules.every(m => getModulePermsFields(m.key).every(f => (editUserPermissions[m.key] || {})[f.key]))}
+                            <div key={group.groupLabel} style={{ background: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb', padding: '16px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e5e7eb', paddingBottom: '10px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  {renderGroupIcon(group.groupLabel, group.color, 18)}
+                                  <h4 style={{ margin: 0, fontSize: '14px', color: '#1f2937' }}>{group.groupLabel}</h4>
+                                </div>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '600', color: '#4b5563', cursor: 'pointer' }}>
+                                  <input 
+                                    type="checkbox" 
+                                    checked={allGroupChecked}
                                     onChange={e => {
                                       const updated = { ...editUserPermissions };
                                       group.modules.forEach(m => {
@@ -1201,65 +1193,61 @@ const SettingsPage = () => {
                                       });
                                       setEditUserPermissions(updated);
                                     }}
-                                    color={group.color}
+                                    style={{ cursor: 'pointer', width: '14px', height: '14px', accentColor: group.color }}
                                   />
-                                </div>
-                                <div style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.2s', display: 'flex' }}>
-                                  <ChevronDown size={16} color="#6b7280" />
-                                </div>
+                                  Select All
+                                </label>
                               </div>
                               
-                              {isExpanded && (
-                                <div style={{ padding: '16px', background: 'white', borderTop: '1px solid #e5e7eb' }}>
-                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
-                                    {group.modules.map(({ key: module, label }) => {
-                                      const perms = editUserPermissions[module] || {};
-                                      const fields = getModulePermsFields(module);
-                                      const allChecked = fields.every(f => perms[f.key]);
-                                      const updatePerm = (pKey, val) => {
-                                        setEditUserPermissions(prev => ({
-                                          ...prev,
-                                          [module]: { ...(prev[module] || {}), [pKey]: val }
-                                        }));
-                                      };
-                                      return (
-                                        <div
-                                          key={module}
-                                          style={{ background: '#f9fafb', borderRadius: '8px', border: `1px solid ${allChecked ? group.color + '60' : '#e5e7eb'}`, padding: '12px', transition: '0.15s' }}
-                                        >
-                                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>
-                                            <span style={{ fontWeight: '700', fontSize: '12px', color: '#4b5563' }}>{label}</span>
-                                            <ToggleSwitch 
-                                              checked={!!allChecked}
-                                              onChange={e => {
-                                                const updatedModule = {};
-                                                fields.forEach(f => { updatedModule[f.key] = e.target.checked; });
-                                                setEditUserPermissions(prev => ({
-                                                  ...prev,
-                                                  [module]: updatedModule
-                                                }));
-                                              }}
-                                              color={group.color}
+                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
+                                {group.modules.map(({ key: module, label }) => {
+                                  const perms = editUserPermissions[module] || {};
+                                  const fields = getModulePermsFields(module);
+                                  const allChecked = fields.every(f => perms[f.key]);
+                                  const updatePerm = (pKey, val) => {
+                                    setEditUserPermissions(prev => ({
+                                      ...prev,
+                                      [module]: { ...(prev[module] || {}), [pKey]: val }
+                                    }));
+                                  };
+                                  return (
+                                    <div key={module} style={{ background: 'white', border: `1px solid ${allChecked ? group.color + '60' : '#e5e7eb'}`, borderRadius: '6px', padding: '12px', transition: '0.15s' }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>
+                                        <span style={{ fontWeight: '700', fontSize: '13px', color: '#4b5563' }}>{label}</span>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: '500', color: '#6b7280', cursor: 'pointer' }}>
+                                          <input 
+                                            type="checkbox" 
+                                            checked={!!allChecked}
+                                            onChange={e => {
+                                              const updatedModule = {};
+                                              fields.forEach(f => { updatedModule[f.key] = e.target.checked; });
+                                              setEditUserPermissions(prev => ({
+                                                ...prev,
+                                                [module]: updatedModule
+                                              }));
+                                            }}
+                                            style={{ cursor: 'pointer', width: '12px', height: '12px', accentColor: group.color }}
+                                          />
+                                          All
+                                        </label>
+                                      </div>
+                                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                                        {fields.map(p => (
+                                          <label key={p.key} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: perms[p.key] ? '#111827' : '#6b7280', cursor: 'pointer' }}>
+                                            <input 
+                                              type="checkbox" 
+                                              checked={!!perms[p.key]}
+                                              onChange={e => updatePerm(p.key, e.target.checked)}
+                                              style={{ cursor: 'pointer', accentColor: group.color }}
                                             />
-                                          </div>
-                                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                                            {fields.map(p => (
-                                              <div key={p.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                                <span style={{ fontSize: '11px', color: perms[p.key] ? '#111827' : '#9ca3af', fontWeight: perms[p.key] ? '600' : '500' }}>{p.lbl}</span>
-                                                <ToggleSwitch 
-                                                  checked={!!perms[p.key]}
-                                                  onChange={e => updatePerm(p.key, e.target.checked)}
-                                                  color={group.color}
-                                                />
-                                              </div>
-                                            ))}
-                                          </div>
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              )}
+                                            {p.lbl}
+                                          </label>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
                             </div>
                           );
                         })}
