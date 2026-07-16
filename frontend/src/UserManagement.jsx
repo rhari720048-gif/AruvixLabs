@@ -364,10 +364,14 @@ export default function UserManagement() {
 
                 <div>
                   <label style={lbl}>Role *</label>
-                  <select required value={form.role} onChange={e => setForm({ ...form, role: e.target.value })} style={inp}>
-                    <option value="">Select Role</option>
-                    {dbRoles.map(r => <option key={r.id || r.name} value={r.name} style={{ textTransform: 'capitalize' }}>{r.name}</option>)}
-                  </select>
+                  <input 
+                    required 
+                    type="text" 
+                    value={form.role} 
+                    onChange={e => setForm({ ...form, role: e.target.value })} 
+                    style={inp} 
+                    placeholder="e.g. Employee, Admin" 
+                  />
                 </div>
 
                 <div>
