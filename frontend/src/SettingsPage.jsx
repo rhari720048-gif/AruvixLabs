@@ -3,35 +3,6 @@ import { Settings as SettingsIcon, Building, FileText, CheckCircle, Upload, Shie
 import { getPerms } from './permissions';
 
 const getModulePermsFields = (moduleKey) => {
-  if (moduleKey === 'mail') {
-    return [
-      { key: 'view',    lbl: 'View' },
-      { key: 'inbox',   lbl: 'Inbox Tab' },
-      { key: 'compose', lbl: 'Compose Tab' }
-    ];
-  }
-  if (moduleKey === 'projects') {
-    return [
-      { key: 'view',           lbl: 'View Page' },
-      { key: 'add_projects',   lbl: 'Add Projects Tab' },
-      { key: 'all_projects',   lbl: 'All Projects Tab' },
-      { key: 'assigned_to_me', lbl: 'Assign to me Tab' },
-      { key: 'create',         lbl: 'Create' },
-      { key: 'edit',           lbl: 'Edit' },
-      { key: 'delete',         lbl: 'Delete' }
-    ];
-  }
-  if (moduleKey === 'tasks') {
-    return [
-      { key: 'view',           lbl: 'View Page' },
-      { key: 'add_tasks',      lbl: 'Add Tasks Tab' },
-      { key: 'all_tasks',      lbl: 'All Tasks Tab' },
-      { key: 'assigned_to_me', lbl: 'Assign to me Tab' },
-      { key: 'create',         lbl: 'Create' },
-      { key: 'edit',           lbl: 'Edit' },
-      { key: 'delete',         lbl: 'Delete' }
-    ];
-  }
   if (moduleKey === 'leads') {
     return [
       { key: 'view',       lbl: 'View Page' },
@@ -49,80 +20,6 @@ const getModulePermsFields = (moduleKey) => {
       { key: 'add_clients', lbl: 'Add Clients Tab' },
       { key: 'all_clients', lbl: 'All Clients Tab' },
       { key: 'my_clients',  lbl: 'My Clients Tab' },
-      { key: 'create',      lbl: 'Create' },
-      { key: 'edit',        lbl: 'Edit' },
-      { key: 'delete',      lbl: 'Delete' }
-    ];
-  }
-  if (moduleKey === 'meetings') {
-    return [
-      { key: 'view',             lbl: 'View Page' },
-      { key: 'schedule_meeting', lbl: 'Schedule Meeting Tab' },
-      { key: 'my_meetings',      lbl: 'My Meetings Tab' },
-      { key: 'create',           lbl: 'Create' },
-      { key: 'edit',             lbl: 'Edit' },
-      { key: 'delete',           lbl: 'Delete' }
-    ];
-  }
-  if (moduleKey === 'accounting') {
-    return [
-      { key: 'view',             lbl: 'View Page' },
-      { key: 'add_transaction',  lbl: 'Add Transaction Tab' },
-      { key: 'transactions_list', lbl: 'Transactions List Tab' },
-      { key: 'my_transactions',  lbl: 'My Transactions Tab' },
-      { key: 'create',           lbl: 'Create' },
-      { key: 'edit',             lbl: 'Edit' },
-      { key: 'delete',           lbl: 'Delete' }
-    ];
-  }
-  if (moduleKey === 'invoices') {
-    return [
-      { key: 'view',           lbl: 'View Page' },
-      { key: 'create_invoice', lbl: 'Create Invoice Tab' },
-      { key: 'all_invoices',   lbl: 'All Invoices Tab' },
-      { key: 'my_invoices',    lbl: 'My Invoices Tab' },
-      { key: 'create',         lbl: 'Create' },
-      { key: 'edit',           lbl: 'Edit' },
-      { key: 'delete',         lbl: 'Delete' }
-    ];
-  }
-  if (moduleKey === 'quotes') {
-    return [
-      { key: 'view',         lbl: 'View Page' },
-      { key: 'create_quote', lbl: 'Create Quote Tab' },
-      { key: 'all_quotes',   lbl: 'All Quotes Tab' },
-      { key: 'my_quotes',    lbl: 'My Quotes Tab' },
-      { key: 'create',       lbl: 'Create' },
-      { key: 'edit',         lbl: 'Edit' },
-      { key: 'delete',       lbl: 'Delete' }
-    ];
-  }
-  if (moduleKey === 'leaves') {
-    return [
-      { key: 'view',            lbl: 'View Page' },
-      { key: 'my_leaves',       lbl: 'My Leaves Tab' },
-      { key: 'request_leave',   lbl: 'Request Leave Tab' },
-      { key: 'manage_requests', lbl: 'Manage Requests Tab' },
-      { key: 'create',          lbl: 'Create' },
-      { key: 'edit',            lbl: 'Edit' },
-      { key: 'delete',          lbl: 'Delete' }
-    ];
-  }
-  if (moduleKey === 'staff_attendance') {
-    return [
-      { key: 'view',              lbl: 'View Page' },
-      { key: 'daily_logs',        lbl: 'Daily Log Tab' },
-      { key: 'attendance_report', lbl: 'Attendance Report Tab' },
-      { key: 'edit',              lbl: 'Edit' },
-      { key: 'delete',            lbl: 'Delete' }
-    ];
-  }
-  if (moduleKey === 'user_notes') {
-    return [
-      { key: 'view',        lbl: 'View Page' },
-      { key: 'add_notes',   lbl: 'Add Notes Tab' },
-      { key: 'all_notes',   lbl: 'All Notes Tab' },
-      { key: 'my_notes',    lbl: 'My Notes Tab' },
       { key: 'create',      lbl: 'Create' },
       { key: 'edit',        lbl: 'Edit' },
       { key: 'delete',      lbl: 'Delete' }
@@ -330,8 +227,6 @@ const SettingsPage = () => {
       modules: [
         { key: 'dashboard',       label: 'Dashboard'        },
         { key: 'profile',         label: 'My Profile'       },
-        { key: 'mail',            label: 'Mail Box'         },
-        { key: 'user_notes',      label: 'User Notes'       },
         { key: 'settings',        label: 'Settings'         },
       ]
     },
@@ -341,45 +236,13 @@ const SettingsPage = () => {
       modules: [
         { key: 'leads',           label: 'Leads'            },
         { key: 'clients',         label: 'Clients'          },
-        { key: 'client_reports',  label: 'Client Reports'   },
-      ]
-    },
-    {
-      groupLabel: 'Work Management',
-      color: '#8b5cf6',
-      modules: [
-        { key: 'projects',        label: 'Projects'         },
-        { key: 'tasks',           label: 'Tasks'            },
-        { key: 'meetings',        label: 'Meetings'         },
-        { key: 'calendar',        label: 'Calendar'         },
-        { key: 'files',           label: 'File Manager'     },
-      ]
-    },
-    {
-      groupLabel: 'Finance',
-      color: '#10b981',
-      modules: [
-        { key: 'accounting',      label: 'Accounting'       },
-        { key: 'invoices',        label: 'Invoices'         },
-        { key: 'quotes',          label: 'Quotations'       },
       ]
     },
     {
       groupLabel: 'HR & Attendance',
       color: '#f59e0b',
       modules: [
-        { key: 'staff_attendance',label: 'Staff Attendance' },
-        { key: 'my_attendance',   label: 'My Attendance'    },
-        { key: 'leaves',          label: 'Leave Management' },
         { key: 'user_management', label: 'User Management'  },
-      ]
-    },
-    {
-      groupLabel: 'Communication',
-      color: '#ef4444',
-      modules: [
-        { key: 'team_chat',       label: 'Team Chat'        },
-        { key: 'support',         label: 'Support Tickets'  },
       ]
     },
   ];
@@ -622,22 +485,10 @@ const SettingsPage = () => {
           <Building size={18} /> Company Details
         </button>
         <button 
-          onClick={() => setActiveTab('invoice')}
-          style={{ padding: '12px 24px', background: activeTab === 'invoice' ? 'var(--primary)' : 'transparent', color: activeTab === 'invoice' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
-        >
-          <FileText size={18} /> Invoice Settings
-        </button>
-        <button 
           onClick={() => setActiveTab('permissions')}
           style={{ padding: '12px 24px', background: activeTab === 'permissions' ? 'var(--primary)' : 'transparent', color: activeTab === 'permissions' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
         >
           <Shield size={18} /> User Permissions
-        </button>
-        <button 
-          onClick={() => setActiveTab('mail')}
-          style={{ padding: '12px 24px', background: activeTab === 'mail' ? 'var(--primary)' : 'transparent', color: activeTab === 'mail' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
-        >
-          <Mail size={18} /> Mail
         </button>
       </div>
 
@@ -707,54 +558,6 @@ const SettingsPage = () => {
           </div>
         )}
 
-        {activeTab === 'invoice' && (
-          <div style={{ maxWidth: '600px', background: 'white', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb' }}>
-            <h2 style={{ marginBottom: '20px', color: '#1f2937' }}>Invoice Settings</h2>
-            
-            <form onSubmit={handleInvoiceSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>Invoice Prefix</label>
-                <input type="text" value={invoiceForm.prefix} onChange={e => setInvoiceForm({...invoiceForm, prefix: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="e.g. INV-" required />
-                <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>Invoices will be generated as {invoiceForm.prefix}001, {invoiceForm.prefix}002, etc.</p>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>Watermark Logo</label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                  <div style={{ width: '60px', height: '60px', background: '#f3f4f6', borderRadius: '8px', border: '1px dashed #d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {invoiceForm.watermark ? <img src={invoiceForm.watermark} alt="Watermark" style={{ maxWidth: '100%', maxHeight: '100%', opacity: 0.5 }} /> : <FileText size={24} color="#9ca3af" />}
-                  </div>
-                  {canEditSettings ? (
-                    <label style={{ background: '#e0e7ff', color: '#4338ca', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: '500', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                      <Upload size={14} /> Upload Watermark
-                      <input type="file" style={{ display: 'none' }} accept="image/*" onChange={(e) => {
-                        if (e.target.files[0]) {
-                           setInvoiceForm({...invoiceForm, watermark: URL.createObjectURL(e.target.files[0])});
-                        }
-                      }} />
-                    </label>
-                  ) : (
-                    <span style={{ color: '#9ca3af', fontSize: '13px', fontWeight: '500' }}>Upload disabled</span>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>Default Terms and Conditions</label>
-                <textarea value={invoiceForm.terms} onChange={e => setInvoiceForm({...invoiceForm, terms: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', outline: 'none', minHeight: '120px' }} required></textarea>
-                <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>These terms will be automatically attached to the bottom of new invoices.</p>
-              </div>
-
-              {canEditSettings && (
-                <div style={{ marginTop: '10px' }}>
-                  <button type="submit" style={{ background: 'var(--primary)', color: 'white', padding: '12px 24px', borderRadius: '8px', border: 'none', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <CheckCircle size={18} /> Save Settings
-                  </button>
-                </div>
-              )}
-            </form>
-          </div>
-        )}
         {activeTab === 'permissions' && (
           <div>
 
@@ -1149,332 +952,13 @@ const SettingsPage = () => {
           </div>
         )}
 
-        {activeTab === 'mail' && <MailSettingsPanel showSuccess={showSuccess} />}
+
       </div>
     </div>
   );
 };
 
-// ─── Mail Settings Panel ───────────────────────────────────────────────────
-const MailSettingsPanel = ({ showSuccess }) => {
-  const [mailTab, setMailTab] = useState('smtp');
-  const [showPass, setShowPass] = useState(false);
-  const [testing, setTesting] = useState(false);
-  const [testResult, setTestResult] = useState(null);
 
-  const [smtp, setSmtp] = useState({
-    host: 'smtp.gmail.com',
-    port: '587',
-    username: '',
-    password: '',
-    encryption: 'TLS',
-    senderName: 'AruvixLabs CRM',
-    senderEmail: 'noreply@aruvixlabs.com',
-  });
-
-  const [templates, setTemplates] = useState([
-    { id: 1, name: 'Welcome Email', subject: 'Welcome to AruvixLabs CRM!', body: 'Hi {{name}},\n\nWelcome aboard! Your account is ready.\n\nBest regards,\nAruvixLabs Team', active: true },
-    { id: 2, name: 'Invoice Sent',  subject: 'Invoice {{invoice_no}} from AruvixLabs', body: 'Dear {{client_name}},\n\nPlease find attached invoice {{invoice_no}} for {{amount}}.\n\nDue Date: {{due_date}}\n\nThank you!', active: true },
-    { id: 3, name: 'Follow-up Reminder', subject: 'Following up on your enquiry', body: 'Hi {{name}},\n\nJust checking in to see if you had a chance to review our proposal.\n\nPlease feel free to reach out!\n\nBest,\nAruvixLabs Team', active: false },
-  ]);
-  const [editingTpl, setEditingTpl] = useState(null);
-
-  const [notifications, setNotifications] = useState([
-    { id: 'lead_assigned',    label: 'Lead Assigned',          desc: 'Notify when a lead is assigned to an employee',    enabled: true  },
-    { id: 'invoice_sent',     label: 'Invoice Sent',           desc: 'Notify client when an invoice is emailed',         enabled: true  },
-    { id: 'ticket_created',   label: 'Support Ticket Created', desc: 'Notify admin when a new support ticket is raised', enabled: true  },
-    { id: 'ticket_resolved',  label: 'Support Ticket Resolved',desc: 'Notify client when their ticket is resolved',      enabled: false },
-    { id: 'daily_digest',     label: 'Daily Digest Email',     desc: 'Send a daily summary to admin every morning',      enabled: false },
-    { id: 'weekly_report',    label: 'Weekly Report',          desc: 'Send a weekly performance report to admin',        enabled: true  },
-    { id: 'payment_received', label: 'Payment Received',       desc: 'Notify admin when a payment is logged',           enabled: true  },
-    { id: 'project_deadline', label: 'Project Deadline Alert', desc: 'Remind team 2 days before a project deadline',    enabled: false },
-  ]);
-
-  const card = { background: 'white', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb', padding: '28px' };
-  const inp  = { width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1.5px solid #e5e7eb', outline: 'none', fontSize: '14px', color: '#1f2937', background: '#fafafa', boxSizing: 'border-box' };
-  const label= { display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600', color: '#374151' };
-
-  const mailSubTabs = [
-    { key: 'smtp',          label: 'SMTP Configuration', icon: <Server size={16} />      },
-    { key: 'templates',     label: 'Email Templates',    icon: <LayoutTemplate size={16} /> },
-    { key: 'notifications', label: 'Notification Rules', icon: <Bell size={16} />         },
-  ];
-
-  const API = 'https://aruvixlabs.onrender.com/api';
-  const authHeader = { Authorization: `Bearer ${localStorage.getItem('token')}` };
-
-  // Load SMTP settings from backend on mount
-  useEffect(() => {
-    fetch(`${API}/config/email`, { headers: authHeader })
-      .then(r => r.json())
-      .then(data => {
-        if (data.host) {
-          setSmtp({
-            host:        data.host        || 'smtp.gmail.com',
-            port:        String(data.port || '587'),
-            username:    data.username    || '',
-            password:    data.password    || '',   // will be '••••••••' if set
-            encryption:  data.secure ? 'SSL' : 'TLS',
-            senderName:  data.senderName  || 'AruvixLabs CRM',
-            senderEmail: data.senderEmail || '',
-          });
-        }
-      })
-      .catch(() => {});
-  }, []);
-
-  const handleSmtpSave = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await fetch(`${API}/config/email`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeader },
-        body: JSON.stringify({
-          host:        smtp.host,
-          port:        smtp.port,
-          secure:      smtp.encryption === 'SSL',
-          username:    smtp.username,
-          password:    smtp.password,
-          senderName:  smtp.senderName,
-          senderEmail: smtp.senderEmail,
-        }),
-      });
-      const data = await res.json();
-      if (res.ok) showSuccess('SMTP settings saved to database!');
-      else showSuccess('Error: ' + data.error);
-    } catch (error) { console.error('FETCH ERROR:', error);
-      showSuccess('Could not connect to backend.');
-    }
-  };
-
-  const handleTestConnection = async () => {
-    setTesting(true);
-    setTestResult(null);
-    try {
-      const res = await fetch(`${API}/config/email/test`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeader },
-      });
-      setTestResult(res.ok ? 'success' : 'error');
-    } catch {
-      setTestResult('error');
-    }
-    setTesting(false);
-  };
-
-  const handleToggleNotif = (id) => {
-    setNotifications(notifications.map(n => n.id === id ? { ...n, enabled: !n.enabled } : n));
-  };
-  const handleSaveNotifications = () => showSuccess('Notification rules saved!');
-
-  const handleSaveTemplate = () => {
-    setTemplates(templates.map(t => t.id === editingTpl.id ? editingTpl : t));
-    setEditingTpl(null);
-    showSuccess('Email template saved!');
-  };
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '780px' }}>
-      {/* Sub-tab bar */}
-      <div style={{ display: 'flex', gap: '10px', background: '#f3f4f6', padding: '6px', borderRadius: '10px', width: 'fit-content' }}>
-        {mailSubTabs.map(t => (
-          <button key={t.key} onClick={() => setMailTab(t.key)}
-            style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 18px', background: mailTab === t.key ? 'white' : 'transparent', color: mailTab === t.key ? '#6366f1' : '#6b7280', border: 'none', borderRadius: '8px', fontWeight: mailTab === t.key ? '700' : '500', fontSize: '14px', cursor: 'pointer', boxShadow: mailTab === t.key ? '0 2px 8px rgba(0,0,0,0.08)' : 'none', transition: '0.2s' }}>
-            {t.icon} {t.label}
-          </button>
-        ))}
-      </div>
-
-      {/* ── SMTP Tab ── */}
-      {mailTab === 'smtp' && (
-        <div style={card}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
-            <div style={{ width: 40, height: 40, borderRadius: '10px', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Server size={20} color="white" />
-            </div>
-            <div>
-              <h3 style={{ margin: 0, color: '#111827', fontSize: '17px' }}>SMTP Configuration</h3>
-              <p style={{ margin: 0, color: '#6b7280', fontSize: '13px' }}>Configure your outgoing mail server</p>
-            </div>
-          </div>
-
-          <form onSubmit={handleSmtpSave} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <div style={{ gridColumn: '1/-1' }}>
-                <label style={label}>SMTP Host</label>
-                <input value={smtp.host} onChange={e => setSmtp({ ...smtp, host: e.target.value })} style={inp} placeholder="e.g. smtp.gmail.com" />
-              </div>
-              <div>
-                <label style={label}>Port</label>
-                <select value={smtp.port} onChange={e => setSmtp({ ...smtp, port: e.target.value })} style={inp}>
-                  <option value="25">25 (SMTP)</option>
-                  <option value="465">465 (SSL)</option>
-                  <option value="587">587 (TLS)</option>
-                  <option value="2525">2525 (Alt)</option>
-                </select>
-              </div>
-              <div>
-                <label style={label}>Encryption</label>
-                <select value={smtp.encryption} onChange={e => setSmtp({ ...smtp, encryption: e.target.value })} style={inp}>
-                  <option value="TLS">TLS / STARTTLS</option>
-                  <option value="SSL">SSL</option>
-                  <option value="None">None</option>
-                </select>
-              </div>
-              <div>
-                <label style={label}>Username / Email</label>
-                <input value={smtp.username} onChange={e => setSmtp({ ...smtp, username: e.target.value })} style={inp} placeholder="your@email.com" />
-              </div>
-              <div>
-                <label style={label}>Password</label>
-                <div style={{ position: 'relative' }}>
-                  <input type={showPass ? 'text' : 'password'} value={smtp.password} onChange={e => setSmtp({ ...smtp, password: e.target.value })} autoComplete="new-password" style={{ ...inp, paddingRight: '40px' }} placeholder="App password or SMTP password" />
-                  <button type="button" onClick={() => setShowPass(!showPass)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}>
-                    {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-              </div>
-              <div>
-                <label style={label}>Sender Name</label>
-                <input value={smtp.senderName} onChange={e => setSmtp({ ...smtp, senderName: e.target.value })} style={inp} placeholder="AruvixLabs CRM" />
-              </div>
-              <div>
-                <label style={label}>Sender Email</label>
-                <input type="email" value={smtp.senderEmail} onChange={e => setSmtp({ ...smtp, senderEmail: e.target.value })} style={inp} placeholder="noreply@yourcompany.com" />
-              </div>
-            </div>
-
-            {/* Test connection result */}
-            {testResult === 'success' && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#d1fae5', color: '#065f46', padding: '10px 16px', borderRadius: 8, fontSize: 14, fontWeight: 500 }}>
-                <CheckCircle size={16} /> Connection successful! SMTP is working correctly.
-              </div>
-            )}
-            {testResult === 'error' && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fee2e2', color: '#dc2626', padding: '10px 16px', borderRadius: 8, fontSize: 14, fontWeight: 500 }}>
-                <X size={16} /> Connection failed. Please check your credentials.
-              </div>
-            )}
-
-            <div style={{ display: 'flex', gap: '12px', marginTop: '6px' }}>
-              <button type="button" onClick={handleTestConnection} disabled={testing}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 22px', background: testing ? '#e0e7ff' : '#eef2ff', color: '#4f46e5', border: '1.5px solid #c7d2fe', borderRadius: '8px', fontWeight: '600', fontSize: '14px', cursor: testing ? 'not-allowed' : 'pointer' }}>
-                <Wifi size={16} /> {testing ? 'Testing...' : 'Test Connection'}
-              </button>
-              <button type="submit" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 22px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '14px', cursor: 'pointer', boxShadow: '0 2px 8px rgba(99,102,241,0.3)' }}>
-                <CheckCircle size={16} /> Save SMTP Settings
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {/* ── Templates Tab ── */}
-      {mailTab === 'templates' && (
-        <div>
-          {editingTpl ? (
-            <div style={card}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h3 style={{ margin: 0, color: '#111827' }}>Edit: {editingTpl.name}</h3>
-                <button onClick={() => setEditingTpl(null)} style={{ background: '#f3f4f6', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', color: '#374151' }}>✕ Cancel</button>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div>
-                  <label style={label}>Subject Line</label>
-                  <input value={editingTpl.subject} onChange={e => setEditingTpl({ ...editingTpl, subject: e.target.value })} style={inp} />
-                  <p style={{ margin: '5px 0 0', fontSize: '12px', color: '#9ca3af' }}>Use {'{{name}}'}, {'{{invoice_no}}'}, {'{{amount}}'}, {'{{due_date}}'}, {'{{client_name}}'} as variables</p>
-                </div>
-                <div>
-                  <label style={label}>Email Body</label>
-                  <textarea value={editingTpl.body} onChange={e => setEditingTpl({ ...editingTpl, body: e.target.value })} rows={10} style={{ ...inp, resize: 'vertical', lineHeight: 1.6 }} />
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <input type="checkbox" id="tpl-active" checked={editingTpl.active} onChange={e => setEditingTpl({ ...editingTpl, active: e.target.checked })} style={{ width: 16, height: 16, accentColor: '#6366f1' }} />
-                  <label htmlFor="tpl-active" style={{ fontSize: '14px', color: '#374151', cursor: 'pointer' }}>Active (send this template automatically)</label>
-                </div>
-                <div>
-                  <button onClick={handleSaveTemplate} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 22px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '14px', cursor: 'pointer' }}>
-                    <CheckCircle size={16} /> Save Template
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
-                <div style={{ width: 40, height: 40, borderRadius: '10px', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <LayoutTemplate size={20} color="white" />
-                </div>
-                <div>
-                  <h3 style={{ margin: 0, color: '#111827', fontSize: '17px' }}>Email Templates</h3>
-                  <p style={{ margin: 0, color: '#6b7280', fontSize: '13px' }}>Manage auto-sent email templates</p>
-                </div>
-              </div>
-              {templates.map(tpl => (
-                <div key={tpl.id} style={{ ...card, padding: '18px 22px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <div style={{ width: 42, height: 42, borderRadius: '10px', background: tpl.active ? '#eef2ff' : '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Mail size={20} color={tpl.active ? '#6366f1' : '#9ca3af'} />
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: '700', color: '#111827', fontSize: '15px' }}>{tpl.name}</div>
-                      <div style={{ color: '#6b7280', fontSize: '13px', marginTop: '2px' }}>{tpl.subject}</div>
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ fontSize: '12px', padding: '4px 10px', borderRadius: '20px', fontWeight: '600', background: tpl.active ? '#d1fae5' : '#f3f4f6', color: tpl.active ? '#065f46' : '#9ca3af' }}>
-                      {tpl.active ? '● Active' : '○ Inactive'}
-                    </span>
-                    <button onClick={() => setEditingTpl({ ...tpl })} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: '#eef2ff', color: '#4f46e5', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '13px', cursor: 'pointer' }}>
-                      Edit
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ── Notifications Tab ── */}
-      {mailTab === 'notifications' && (
-        <div style={card}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
-            <div style={{ width: 40, height: 40, borderRadius: '10px', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Bell size={20} color="white" />
-            </div>
-            <div>
-              <h3 style={{ margin: 0, color: '#111827', fontSize: '17px' }}>Notification Rules</h3>
-              <p style={{ margin: 0, color: '#6b7280', fontSize: '13px' }}>Control which email notifications are sent automatically</p>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {notifications.map(n => (
-              <div key={n.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 18px', background: n.enabled ? '#fafeff' : '#f9fafb', border: `1.5px solid ${n.enabled ? '#c7d2fe' : '#e5e7eb'}`, borderRadius: '10px', transition: '0.2s' }}>
-                <div>
-                  <div style={{ fontWeight: '600', color: '#1f2937', fontSize: '14px' }}>{n.label}</div>
-                  <div style={{ color: '#6b7280', fontSize: '13px', marginTop: '2px' }}>{n.desc}</div>
-                </div>
-                {/* Toggle Switch */}
-                <button onClick={() => handleToggleNotif(n.id)}
-                  style={{ position: 'relative', width: '48px', height: '26px', borderRadius: '13px', background: n.enabled ? '#6366f1' : '#d1d5db', border: 'none', cursor: 'pointer', transition: '0.3s', flexShrink: 0 }}>
-                  <span style={{ position: 'absolute', top: '3px', left: n.enabled ? '25px' : '3px', width: '20px', height: '20px', borderRadius: '50%', background: 'white', transition: '0.3s', boxShadow: '0 1px 4px rgba(0,0,0,0.2)' }} />
-                </button>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ marginTop: '22px' }}>
-            <button onClick={handleSaveNotifications} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 22px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '14px', cursor: 'pointer', boxShadow: '0 2px 8px rgba(99,102,241,0.3)' }}>
-              <CheckCircle size={16} /> Save Notification Rules
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
 
 export default SettingsPage;
 

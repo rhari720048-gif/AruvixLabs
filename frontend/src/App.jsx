@@ -2,28 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import Landing from './Landing';
 import Login from './Login';
-import { LayoutDashboard, User, Mail, Briefcase, ClipboardCheck, Folder, Calendar, Users, Archive, FileText, Files, UserPlus, Clock, UserCheck, FileSpreadsheet, CalendarOff, CalendarDays, BarChart2, BarChart, PieChart, MessageSquare, Ticket, Settings, ChevronRight, Pencil, X, CheckCircle, Camera } from 'lucide-react';
+import { LayoutDashboard, User, UserPlus, Users, Settings, ChevronRight, Pencil, X, CheckCircle, Camera, Eye, Edit2, Trash2 } from 'lucide-react';
 import AdminLeads from './AdminLeads';
-import Projects from './Projects';
-import Tasks from './Tasks';
-import FileManager from './FileManager';
-import CalendarApp from './CalendarApp';
-import Meetings from './Meetings';
-import Accounting from './Accounting';
-import Invoices from './Invoices';
 import SettingsPage from './SettingsPage';
-import Quotations from './Quotations';
-import UserNotes from './UserNotes';
 import Clients from './Clients';
-import ClientReports from './ClientReports';
-import TeamChat from './TeamChat';
-import SupportTickets from './SupportTickets';
 import UserManagement from './UserManagement';
 import Header from './Header';
-import StaffAttendance from './StaffAttendance';
-import MyAttendance from './MyAttendance';
-import MailBox from './MailBox';
-import Leaves from './Leaves';
+import ViewModal from './ViewModal';
+import { getPerms } from './permissions';
 import './index.css';
 
 // Mock Data removed as data is now fetched from APIs
@@ -53,25 +39,9 @@ const Sidebar = () => {
       <ul className="nav-links" style={{ overflowY: 'auto', paddingBottom: '20px' }}>
         {hasPerm('dashboard') && <li><Link to="/" className={`nav-link ${isActive('/')}`}><LayoutDashboard size={20} /> Dashboard</Link></li>}
         {hasPerm('profile') && <li><Link to="/profile" className={`nav-link ${isActive('/profile')}`}><User size={20} /> My Profile</Link></li>}
-        {hasPerm('mail') && <li><Link to="/mail" className={`nav-link ${isActive('/mail')}`} style={{ justifyContent: 'space-between' }}><div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><Mail size={20} /> Mail Box</div> <ChevronRight size={16} /></Link></li>}
-        {hasPerm('projects') && <li><Link to="/projects" className={`nav-link ${isActive('/projects')}`}><Briefcase size={20} /> Projects</Link></li>}
-        {hasPerm('tasks') && <li><Link to="/tasks" className={`nav-link ${isActive('/tasks')}`}><ClipboardCheck size={20} /> Tasks</Link></li>}
-        {hasPerm('files') && <li><Link to="/files" className={`nav-link ${isActive('/files')}`}><Folder size={20} /> File Manager</Link></li>}
-        {hasPerm('calendar') && <li><Link to="/calendar" className={`nav-link ${isActive('/calendar')}`}><Calendar size={20} /> Calendar</Link></li>}
-        {hasPerm('meetings') && <li><Link to="/meetings" className={`nav-link ${isActive('/meetings')}`}><Users size={20} /> Meetings</Link></li>}
-        {hasPerm('accounting') && <li><Link to="/accounting" className={`nav-link ${isActive('/accounting')}`}><Archive size={20} /> Accounting</Link></li>}
-        {hasPerm('invoices') && <li><Link to="/invoices" className={`nav-link ${isActive('/invoices')}`}><FileText size={20} /> Invoices</Link></li>}
-        {hasPerm('quotes') && <li><Link to="/quotes" className={`nav-link ${isActive('/quotes')}`}><Files size={20} /> Quotes</Link></li>}
         {hasPerm('leads') && <li><Link to="/leads" className={`nav-link ${isActive('/leads')}`}><UserPlus size={20} /> Leads</Link></li>}
-        {hasPerm('staff_attendance') && <li><Link to="/staff-attendance" className={`nav-link ${isActive('/staff-attendance')}`}><Clock size={20} /> Staff Attendance</Link></li>}
-        {hasPerm('my_attendance') && <li><Link to="/my-attendance" className={`nav-link ${isActive('/my-attendance')}`}><UserCheck size={20} /> My Attendance</Link></li>}
-        {hasPerm('user_notes') && <li><Link to="/user-notes" className={`nav-link ${isActive('/user-notes')}`}><FileSpreadsheet size={20} /> User Notes</Link></li>}
-        {hasPerm('user_management') && <li><Link to="/user-management" className={`nav-link ${isActive('/user-management')}`}><Users size={20} /> User Management</Link></li>}
         {hasPerm('clients') && <li><Link to="/clients" className={`nav-link ${isActive('/clients')}`}><Users size={20} /> Clients / Customers</Link></li>}
-        {hasPerm('leaves') && <li><Link to="/leaves" className={`nav-link ${isActive('/leaves')}`}><CalendarOff size={20} /> Leave Management</Link></li>}
-        {hasPerm('client_reports') && <li><Link to="/client-reports" className={`nav-link ${isActive('/client-reports')}`}><PieChart size={20} /> Client Reports</Link></li>}
-        {hasPerm('team_chat') && <li><Link to="/team-chat" className={`nav-link ${isActive('/team-chat')}`}><MessageSquare size={20} /> Team Chat</Link></li>}
-        {hasPerm('support') && <li><Link to="/support" className={`nav-link ${isActive('/support')}`}><Ticket size={20} /> Support Ticket</Link></li>}
+        {hasPerm('user_management') && <li><Link to="/user-management" className={`nav-link ${isActive('/user-management')}`}><Users size={20} /> Staff Management</Link></li>}
         {hasPerm('settings') && <li style={{marginTop: '20px'}}><Link to="/settings" className={`nav-link ${isActive('/settings')}`}><Settings size={20} /> Settings</Link></li>}
       </ul>
     </aside>
@@ -82,6 +52,11 @@ const Sidebar = () => {
 
 const Dashboard = () => {
   const [data, setData] = useState([]);
+  const [viewRecord, setViewRecord] = useState(null);
+
+  const perms = getPerms('dashboard');
+  const canEdit = perms.edit ?? perms.canEdit ?? true;
+  const canDelete = perms.delete ?? perms.canDelete ?? true;
   
   useEffect(() => {
     fetch('https://aruvixlabs.onrender.com/api/customers', {
@@ -90,6 +65,14 @@ const Dashboard = () => {
       if(Array.isArray(resData)) setData(resData);
     }).catch(e => console.error(e));
   }, []);
+
+  const handleView = (c) => setViewRecord(c);
+  const handleEdit = (c) => alert(`Editing ${c.name}`);
+  const handleDelete = (id) => {
+    if(window.confirm('Delete this record?')) {
+      alert("Delete via API not fully implemented. Contact admin.");
+    }
+  };
 
   const total = data.length;
   const pending = data.filter(c => c.status === 'Pending').length;
@@ -128,6 +111,7 @@ const Dashboard = () => {
               <th>Phone</th>
               <th>Location</th>
               <th>Status</th>
+              <th style={{ textAlign: 'center' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -140,14 +124,28 @@ const Dashboard = () => {
                 <td>
                   <span className={`badge ${c.status ? c.status.toLowerCase().replace(' ', '-') : ''}`}>{c.status}</span>
                 </td>
+                <td style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
+                  <button onClick={() => handleView(c)} style={{ background: '#e0e7ff', color: '#4338ca', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="View"><Eye size={16} /></button>
+                  {canEdit && <button onClick={() => handleEdit(c)} style={{ background: '#fef3c7', color: '#d97706', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="Edit"><Edit2 size={16} /></button>}
+                  {canDelete && <button onClick={() => handleDelete(c.id)} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="Delete"><Trash2 size={16} /></button>}
+                </td>
               </tr>
             ))}
             {data.length === 0 && (
-              <tr><td colSpan="5" style={{textAlign: 'center', padding: '20px', color: '#6b7280'}}>No records found</td></tr>
+              <tr><td colSpan="6" style={{textAlign: 'center', padding: '20px', color: '#6b7280'}}>No records found</td></tr>
             )}
           </tbody>
         </table>
       </div>
+
+      {viewRecord && (
+        <ViewModal 
+          isOpen={!!viewRecord}
+          onClose={() => setViewRecord(null)}
+          data={viewRecord}
+          type={viewRecord.status === 'Converted' ? 'client' : 'lead'}
+        />
+      )}
     </div>
   );
 };
@@ -471,26 +469,10 @@ function App() {
             <Routes>
               <Route path="/" element={<ProtectedRoute module="dashboard"><Dashboard /></ProtectedRoute>} />
               <Route path="/leads" element={<ProtectedRoute module="leads"><AdminLeads /></ProtectedRoute>} />
-              <Route path="/projects" element={<ProtectedRoute module="projects"><Projects /></ProtectedRoute>} />
-              <Route path="/tasks" element={<ProtectedRoute module="tasks"><Tasks /></ProtectedRoute>} />
-              <Route path="/files" element={<ProtectedRoute module="files"><FileManager /></ProtectedRoute>} />
-              <Route path="/calendar" element={<ProtectedRoute module="calendar"><CalendarApp /></ProtectedRoute>} />
-              <Route path="/meetings" element={<ProtectedRoute module="meetings"><Meetings /></ProtectedRoute>} />
-              <Route path="/accounting" element={<ProtectedRoute module="accounting"><Accounting /></ProtectedRoute>} />
-              <Route path="/staff-attendance" element={<ProtectedRoute module="staff_attendance"><StaffAttendance /></ProtectedRoute>} />
-              <Route path="/my-attendance" element={<ProtectedRoute module="my_attendance"><MyAttendance /></ProtectedRoute>} />
-              <Route path="/invoices" element={<ProtectedRoute module="invoices"><Invoices /></ProtectedRoute>} />
-              <Route path="/quotes" element={<ProtectedRoute module="quotes"><Quotations /></ProtectedRoute>} />
-              <Route path="/user-notes" element={<ProtectedRoute module="user_notes"><UserNotes /></ProtectedRoute>} />
               <Route path="/clients" element={<ProtectedRoute module="clients"><Clients /></ProtectedRoute>} />
-              <Route path="/client-reports" element={<ProtectedRoute module="client_reports"><ClientReports /></ProtectedRoute>} />
-              <Route path="/team-chat" element={<ProtectedRoute module="team_chat"><TeamChat /></ProtectedRoute>} />
-              <Route path="/support" element={<ProtectedRoute module="support"><SupportTickets /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute module="settings"><SettingsPage /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute module="profile"><ProfilePage /></ProtectedRoute>} />
               <Route path="/user-management" element={<ProtectedRoute module="user_management"><UserManagement /></ProtectedRoute>} />
-              <Route path="/mail" element={<ProtectedRoute module="mail"><MailBox /></ProtectedRoute>} />
-              <Route path="/leaves" element={<ProtectedRoute module="leaves"><Leaves /></ProtectedRoute>} />
             </Routes>
           </div>
         </main>
