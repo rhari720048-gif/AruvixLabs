@@ -1,26 +1,55 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, PhoneCall, Clock, MapPin, Car, CheckCircle } from 'lucide-react';
+import { Calendar, PhoneCall, Clock, MapPin, Car, CheckCircle, PlusCircle, Users, User, Edit3 } from 'lucide-react';
+import SearchableSelect from './SearchableSelect';
 
 const API = 'https://aruvixlabs.onrender.com/api';
 
 const Appointments = () => {
+  const [activeTab, setActiveTab] = useState('my'); // 'my', 'all', 'manual'
   const [leads, setLeads] = useState([]);
   const [selectedLead, setSelectedLead] = useState(null);
+  
+  // Feedback state for existing appointments
   const [feedback, setFeedback] = useState({ status: 'Interested', notes: '', callback_time: '' });
   const [successMsg, setSuccessMsg] = useState('');
+  
+  // Manual form state
+  const [manualForm, setManualForm] = useState({ name: '', phone: '', location: '', car_name: '', car_number: '', requirements: '', assignedTo: [], callback_time: '', notes: '' });
+  const [users, setUsers] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    fetchLeads();
-  }, []);
+    if (activeTab !== 'manual') {
+      fetchLeads(activeTab);
+    } else {
+      fetchUsers();
+    }
+  }, [activeTab]);
 
-  const fetchLeads = async () => {
+  const fetchLeads = async (type) => {
     try {
-      const res = await fetch(`${API}/telecalling/appointments`, {
+      const res = await fetch(`${API}/telecalling/appointments?type=${type}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       if (res.ok) {
         const data = await res.json();
         setLeads(data);
+        setSelectedLead(null); // Reset selection on tab change
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const fetchUsers = async () => {
+    if (users.length > 0) return;
+    try {
+      const res = await fetch(`${API}/users`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUsers(data);
       }
     } catch (e) {
       console.error(e);
@@ -46,7 +75,7 @@ const Appointments = () => {
         setSuccessMsg('Feedback submitted successfully!');
         setSelectedLead(null);
         setFeedback({ status: 'Interested', notes: '', callback_time: '' });
-        fetchLeads();
+        fetchLeads(activeTab);
         setTimeout(() => setSuccessMsg(''), 3000);
       }
     } catch (e) {
@@ -54,132 +83,256 @@ const Appointments = () => {
     }
   };
 
+  const handleManualSubmit = async (e) => {
+    e.preventDefault();
+    if (!manualForm.name || !manualForm.phone || !manualForm.callback_time) {
+      return alert("Name, Phone, and Appointment Time are required!");
+    }
+    
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(`${API}/telecalling/manual-appointment`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(manualForm)
+      });
+      if (res.ok) {
+        setSuccessMsg('Manual appointment added successfully!');
+        setManualForm({ name: '', phone: '', location: '', car_name: '', car_number: '', requirements: '', assignedTo: [], callback_time: '', notes: '' });
+        setTimeout(() => setSuccessMsg(''), 3000);
+      } else {
+        const err = await res.json();
+        alert(err.error || "Failed to save appointment");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("An error occurred");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <div className="page-container" style={{ display: 'flex', gap: '20px', height: 'calc(100vh - 100px)' }}>
-      {/* Sidebar List of Leads */}
-      <div style={{ flex: '0 0 300px', background: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', overflowY: 'auto' }}>
-        <h3 style={{ padding: '15px 20px', borderBottom: '1px solid #e5e7eb', margin: 0, position: 'sticky', top: 0, background: 'white' }}>
-          My Appointments ({leads.length})
-        </h3>
-        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-          {leads.map(lead => (
-            <li 
-              key={lead.id} 
-              onClick={() => setSelectedLead(lead)}
-              style={{ 
-                padding: '15px 20px', 
-                borderBottom: '1px solid #f3f4f6', 
-                cursor: 'pointer',
-                background: selectedLead?.id === lead.id ? '#eff6ff' : 'transparent',
-                transition: '0.2s'
-              }}
-            >
-              <div style={{ fontWeight: '600', color: '#1f2937' }}>{lead.name}</div>
-              <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <Car size={12} /> {lead.car_model || lead.car_name || 'No Car'} {lead.registration_number ? `(${lead.registration_number})` : ''}
-              </div>
-              <div style={{ fontSize: '12px', color: '#10b981', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <Calendar size={12} /> {lead.callback_time ? new Date(lead.callback_time).toLocaleString() : 'No time set'}
-              </div>
-            </li>
-          ))}
-          {leads.length === 0 && (
-            <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>No appointments scheduled.</div>
-          )}
-        </ul>
+    <div className="page-container" style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: 'calc(100vh - 100px)' }}>
+      
+      <div style={{ display: 'flex', gap: '10px', background: 'white', padding: '15px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+        <button 
+          onClick={() => setActiveTab('my')}
+          style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: activeTab === 'my' ? 'var(--primary)' : '#e5e7eb', color: activeTab === 'my' ? 'white' : '#374151', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', transition: '0.3s', fontWeight: '500' }}
+        >
+          <User size={18} /> My Appointments
+        </button>
+        <button 
+          onClick={() => setActiveTab('all')}
+          style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: activeTab === 'all' ? 'var(--primary)' : '#e5e7eb', color: activeTab === 'all' ? 'white' : '#374151', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', transition: '0.3s', fontWeight: '500' }}
+        >
+          <Users size={18} /> All Appointments
+        </button>
+        <button 
+          onClick={() => setActiveTab('manual')}
+          style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: activeTab === 'manual' ? 'var(--primary)' : '#e5e7eb', color: activeTab === 'manual' ? 'white' : '#374151', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', transition: '0.3s', fontWeight: '500' }}
+        >
+          <PlusCircle size={18} /> Manual Appointment Entry
+        </button>
       </div>
 
-      {/* Main Dialing/Feedback Area */}
-      <div style={{ flex: 1, background: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', padding: '24px', overflowY: 'auto' }}>
-        {successMsg && (
-          <div style={{ background: '#d1fae5', color: '#065f46', padding: '12px', borderRadius: '8px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <CheckCircle size={18} /> {successMsg}
-          </div>
-        )}
+      {successMsg && (
+        <div style={{ background: '#d1fae5', color: '#065f46', padding: '12px 20px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '500' }}>
+          <CheckCircle size={18} /> {successMsg}
+        </div>
+      )}
 
-        {selectedLead ? (
-          <div>
-            <div style={{ borderBottom: '2px solid #f3f4f6', paddingBottom: '20px', marginBottom: '20px' }}>
-              <h2 style={{ margin: '0 0 15px', color: '#111827', fontSize: '24px' }}>{selectedLead.name}</h2>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563' }}>
-                  <PhoneCall size={18} color="#6366f1" /> <strong>Phone:</strong> {selectedLead.phone}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563' }}>
-                  <MapPin size={18} color="#10b981" /> <strong>Location:</strong> {selectedLead.district || '-'}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563' }}>
-                  <Car size={18} color="#f59e0b" /> <strong>Vehicle:</strong> {selectedLead.car_model || selectedLead.car_name || '-'} {selectedLead.registration_number ? `(${selectedLead.registration_number})` : ''}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563' }}>
-                  <Calendar size={18} color="#10b981" /> <strong>Appointment Time:</strong> {selectedLead.callback_time ? new Date(selectedLead.callback_time).toLocaleString() : 'No time set'}
-                </div>
-              </div>
-              </div>
-              
-              {selectedLead.last_note && (
-                <div style={{ marginTop: '15px', padding: '15px', background: '#f8fafc', borderRadius: '8px', borderLeft: '4px solid #6366f1' }}>
-                  <strong style={{ color: '#374151', display: 'block', marginBottom: '5px' }}>Previous Notes / Feedback:</strong>
-                  <span style={{ color: '#4b5563', whiteSpace: 'pre-wrap' }}>{selectedLead.last_note}</span>
-                </div>
-              )}
-
-            <form onSubmit={handleFeedbackSubmit}>
-              <h3 style={{ marginBottom: '15px' }}>Update Status</h3>
-              
-              <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#374151' }}>Call Status</label>
-                <select 
-                  value={feedback.status} 
-                  onChange={e => setFeedback({...feedback, status: e.target.value})}
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }}
-                  required
-                >
-                  <option value="Interested">Interested / Follow-up</option>
-                  <option value="Converted">Converted (Deal Closed)</option>
-                  <option value="Call Later">Reschedule Appointment</option>
-                  <option value="Not Interested">Not Interested (NI)</option>
-                  <option value="No Answer">No Answer / Busy</option>
-                </select>
-              </div>
-
-              {['Call Later', 'Appointment'].includes(feedback.status) && (
-                <div style={{ marginBottom: '15px' }}>
-                  <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#374151' }}>New Date & Time</label>
-                  <input 
-                    type="datetime-local" 
-                    value={feedback.callback_time} 
-                    onChange={e => setFeedback({...feedback, callback_time: e.target.value})}
-                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }}
-                    required
-                  />
-                </div>
-              )}
-
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#374151' }}>Meeting Notes</label>
-                <textarea 
-                  value={feedback.notes} 
-                  onChange={e => setFeedback({...feedback, notes: e.target.value})}
-                  rows="4"
-                  placeholder="Enter details of the meeting..."
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none', resize: 'vertical' }}
-                  required
-                ></textarea>
-              </div>
-
-              <button type="submit" style={{ padding: '12px 24px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', fontSize: '15px' }}>
-                Submit Feedback & Next
+      {activeTab === 'manual' ? (
+        <div style={{ background: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', padding: '30px', overflowY: 'auto' }}>
+          <h2 style={{ marginBottom: '20px', color: '#111827', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Edit3 size={24} color="var(--primary)" /> Add Appointment Manually
+          </h2>
+          <form onSubmit={handleManualSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', maxWidth: '800px' }}>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Customer Name *</label>
+              <input type="text" value={manualForm.name} onChange={e => setManualForm({...manualForm, name: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="Enter name" required />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Phone Number *</label>
+              <input type="tel" value={manualForm.phone} onChange={e => setManualForm({...manualForm, phone: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="Enter phone" required />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Location</label>
+              <input type="text" value={manualForm.location} onChange={e => setManualForm({...manualForm, location: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="Enter location" />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Car Name / Model</label>
+              <input type="text" value={manualForm.car_name} onChange={e => setManualForm({...manualForm, car_name: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="E.g., Honda City" />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Car Registration Number</label>
+              <input type="text" value={manualForm.car_number} onChange={e => setManualForm({...manualForm, car_number: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="E.g., TN-01-AB-1234" />
+            </div>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Customer Requirements</label>
+              <input type="text" value={manualForm.requirements} onChange={e => setManualForm({...manualForm, requirements: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="Brief requirements..." />
+            </div>
+            
+            <div style={{ gridColumn: '1 / -1', borderTop: '1px solid #e5e7eb', paddingTop: '20px', marginTop: '10px' }}>
+              <h3 style={{ marginBottom: '15px', color: '#111827' }}>Appointment Details</h3>
+            </div>
+            
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Appointment Date & Time *</label>
+              <input type="datetime-local" value={manualForm.callback_time} onChange={e => setManualForm({...manualForm, callback_time: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} required />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Assign To (Optional, defaults to you)</label>
+              <SearchableSelect 
+                options={users.map(u => ({ value: u.id, label: `${u.name} (${u.role})` }))}
+                value={manualForm.assignedTo}
+                onChange={val => setManualForm({...manualForm, assignedTo: val})}
+                placeholder="-- Select Assignee --"
+                isMulti={true}
+              />
+            </div>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Initial Meeting Notes / Feedback</label>
+              <textarea 
+                value={manualForm.notes} 
+                onChange={e => setManualForm({...manualForm, notes: e.target.value})}
+                rows="3"
+                placeholder="Enter details about this appointment..."
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none', resize: 'vertical' }}
+              ></textarea>
+            </div>
+            <div style={{ gridColumn: '1 / -1', marginTop: '10px' }}>
+              <button type="submit" disabled={isSubmitting} style={{ padding: '12px 30px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: isSubmitting ? 'not-allowed' : 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px', opacity: isSubmitting ? 0.7 : 1 }}>
+                <CheckCircle size={20} /> {isSubmitting ? 'Saving...' : 'Save Appointment'}
               </button>
-            </form>
+            </div>
+          </form>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', gap: '20px', flex: 1, overflow: 'hidden' }}>
+          {/* Sidebar List of Leads */}
+          <div style={{ flex: '0 0 300px', background: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+            <h3 style={{ padding: '15px 20px', borderBottom: '1px solid #e5e7eb', margin: 0, position: 'sticky', top: 0, background: 'white', zIndex: 10 }}>
+              {activeTab === 'my' ? 'My Appointments' : 'All Appointments'} ({leads.length})
+            </h3>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, flex: 1 }}>
+              {leads.map(lead => (
+                <li 
+                  key={lead.id} 
+                  onClick={() => setSelectedLead(lead)}
+                  style={{ 
+                    padding: '15px 20px', 
+                    borderBottom: '1px solid #f3f4f6', 
+                    cursor: 'pointer',
+                    background: selectedLead?.id === lead.id ? '#eff6ff' : 'transparent',
+                    transition: '0.2s'
+                  }}
+                >
+                  <div style={{ fontWeight: '600', color: '#1f2937' }}>{lead.name}</div>
+                  <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Car size={12} /> {lead.car_model || lead.car_name || 'No Car'} {lead.registration_number ? `(${lead.registration_number})` : ''}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#10b981', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Calendar size={12} /> {lead.callback_time ? new Date(lead.callback_time).toLocaleString() : 'No time set'}
+                  </div>
+                </li>
+              ))}
+              {leads.length === 0 && (
+                <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>No appointments scheduled.</div>
+              )}
+            </ul>
           </div>
-        ) : (
-          <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', flexDirection: 'column' }}>
-            <Calendar size={48} style={{ marginBottom: '15px', opacity: 0.5 }} />
-            <p>Select an appointment from the list to update its status.</p>
+
+          {/* Main Dialing/Feedback Area */}
+          <div style={{ flex: 1, background: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', padding: '24px', overflowY: 'auto' }}>
+            {selectedLead ? (
+              <div>
+                <div style={{ borderBottom: '2px solid #f3f4f6', paddingBottom: '20px', marginBottom: '20px' }}>
+                  <h2 style={{ margin: '0 0 15px', color: '#111827', fontSize: '24px' }}>{selectedLead.name}</h2>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563' }}>
+                      <PhoneCall size={18} color="#6366f1" /> <strong>Phone:</strong> {selectedLead.phone}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563' }}>
+                      <MapPin size={18} color="#10b981" /> <strong>Location:</strong> {selectedLead.district || '-'}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563' }}>
+                      <Car size={18} color="#f59e0b" /> <strong>Vehicle:</strong> {selectedLead.car_model || selectedLead.car_name || '-'} {selectedLead.registration_number ? `(${selectedLead.registration_number})` : ''}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563' }}>
+                      <Calendar size={18} color="#10b981" /> <strong>Appointment Time:</strong> {selectedLead.callback_time ? new Date(selectedLead.callback_time).toLocaleString() : 'No time set'}
+                    </div>
+                  </div>
+                  </div>
+                  
+                  {selectedLead.last_note && (
+                    <div style={{ marginTop: '15px', padding: '15px', background: '#f8fafc', borderRadius: '8px', borderLeft: '4px solid #6366f1', marginBottom: '20px' }}>
+                      <strong style={{ color: '#374151', display: 'block', marginBottom: '5px' }}>Previous Notes / Feedback:</strong>
+                      <span style={{ color: '#4b5563', whiteSpace: 'pre-wrap' }}>{selectedLead.last_note}</span>
+                    </div>
+                  )}
+
+                <form onSubmit={handleFeedbackSubmit}>
+                  <h3 style={{ marginBottom: '15px' }}>Update Status</h3>
+                  
+                  <div style={{ marginBottom: '15px' }}>
+                    <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#374151' }}>Call Status</label>
+                    <select 
+                      value={feedback.status} 
+                      onChange={e => setFeedback({...feedback, status: e.target.value})}
+                      style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }}
+                      required
+                    >
+                      <option value="Interested">Interested / Follow-up</option>
+                      <option value="Converted">Converted (Deal Closed)</option>
+                      <option value="Call Later">Reschedule Appointment</option>
+                      <option value="Not Interested">Not Interested (NI)</option>
+                      <option value="No Answer">No Answer / Busy</option>
+                    </select>
+                  </div>
+
+                  {['Call Later', 'Appointment'].includes(feedback.status) && (
+                    <div style={{ marginBottom: '15px' }}>
+                      <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#374151' }}>New Date & Time</label>
+                      <input 
+                        type="datetime-local" 
+                        value={feedback.callback_time} 
+                        onChange={e => setFeedback({...feedback, callback_time: e.target.value})}
+                        style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }}
+                        required
+                      />
+                    </div>
+                  )}
+
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#374151' }}>Meeting Notes</label>
+                    <textarea 
+                      value={feedback.notes} 
+                      onChange={e => setFeedback({...feedback, notes: e.target.value})}
+                      rows="4"
+                      placeholder="Enter details of the meeting..."
+                      style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none', resize: 'vertical' }}
+                      required
+                    ></textarea>
+                  </div>
+
+                  <button type="submit" style={{ padding: '12px 24px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <CheckCircle size={18} /> Submit Feedback
+                  </button>
+                </form>
+              </div>
+            ) : (
+              <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', flexDirection: 'column' }}>
+                <Calendar size={48} style={{ marginBottom: '15px', opacity: 0.5 }} />
+                <p>Select an appointment from the list to view and update.</p>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

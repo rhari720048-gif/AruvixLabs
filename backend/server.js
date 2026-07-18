@@ -1304,6 +1304,8 @@ app.get('/api/telecalling/callbacks', authenticate, async (req, res) => {
 
 app.get('/api/telecalling/appointments', authenticate, async (req, res) => {
     try {
+        const { type } = req.query; // 'my' or 'all'
+        
         let query = `
             SELECT c.*, l.notes as last_note, l.callback_time 
             FROM customers c
@@ -1314,27 +1316,58 @@ app.get('/api/telecalling/appointments', authenticate, async (req, res) => {
             ) l_max ON c.id = l_max.customer_id
             LEFT JOIN call_logs l ON l_max.max_id = l.id
             WHERE c.status = 'Appointment'
-            ORDER BY l.callback_time ASC
         `;
+        
         let params = [];
-        if (req.user.role !== 'admin') {
-            query = `
-                SELECT c.*, l.notes as last_note, l.callback_time 
-                FROM customers c
-                LEFT JOIN (
-                    SELECT customer_id, MAX(id) as max_id
-                    FROM call_logs
-                    GROUP BY customer_id
-                ) l_max ON c.id = l_max.customer_id
-                LEFT JOIN call_logs l ON l_max.max_id = l.id
-                WHERE JSON_CONTAINS(c.assigned_to, CAST(? AS JSON), '$') AND c.status = 'Appointment'
-                ORDER BY l.callback_time ASC
-            `;
-            params = [req.user.id];
+        
+        // If they explicitly want 'my' appointments, or if they are not an admin and didn't ask for 'all'
+        // (Wait, the user wants everyone to see 'all' if they click the tab. So we filter only if type === 'my')
+        if (type === 'my') {
+            query += ` AND JSON_CONTAINS(c.assigned_to, CAST(? AS JSON), '$')`;
+            params.push(req.user.id);
         }
+        
+        query += ` ORDER BY l.callback_time ASC`;
+        
         const [rows] = await pool.query(query, params);
         res.json(rows);
     } catch (error) { res.status(500).json({ error: error.message }); }
+});
+
+app.post('/api/telecalling/manual-appointment', authenticate, async (req, res) => {
+    const { name, phone, location, car_name, car_number, requirements, callback_time, notes, assignedTo } = req.body;
+    
+    let assignedToStr = '[]';
+    if (Array.isArray(assignedTo)) {
+        assignedToStr = JSON.stringify(assignedTo.map(id => parseInt(id, 10)).filter(id => !isNaN(id)));
+    } else if (assignedTo) {
+        assignedToStr = JSON.stringify([parseInt(assignedTo, 10)]);
+    } else {
+        assignedToStr = JSON.stringify([req.user.id]);
+    }
+
+    try {
+        // Generate a random customer_id similar to other places (e.g. L- timestamp)
+        const customer_id = 'M-' + Date.now() + Math.floor(Math.random() * 1000);
+        
+        // 1. Insert customer
+        const [result] = await pool.query(
+            'INSERT INTO customers (customer_id, name, phone, district, source, notes, status, assigned_to, car_model, registration_number, last_dial_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())',
+            [customer_id, name, phone, location || '', 'Manual', requirements || '', 'Appointment', assignedToStr, car_name || '', car_number || '']
+        );
+        
+        const insertId = result.insertId; // The auto-increment id
+
+        // 2. Insert call log so it shows up in Appointments
+        await pool.query(
+            'INSERT INTO call_logs (customer_id, employee_id, status, notes, callback_time, duration) VALUES (?, ?, ?, ?, ?, ?)',
+            [insertId, req.user.id, 'Appointment', notes || 'Manual entry', callback_time, 0]
+        );
+
+        res.json({ success: true, id: insertId });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 app.get('/api/telecalling/nibox', authenticate, async (req, res) => {
