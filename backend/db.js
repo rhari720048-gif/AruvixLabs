@@ -71,10 +71,25 @@ async function initDB() {
             FOREIGN KEY (assigned_to) REFERENCES users(id)
         );
     `;
+    const callLogsTable = `
+        CREATE TABLE IF NOT EXISTS call_logs (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            customer_id INT,
+            employee_id INT,
+            status VARCHAR(100),
+            notes TEXT,
+            callback_time DATETIME,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
+            FOREIGN KEY (employee_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+    `;
 
     try {
         await pool.query(rolesTable);
         await pool.query(usersTable);
+        await pool.query(customersTable);
+        await pool.query(callLogsTable);
 
         // Custom roles & user profile migrations
         try {
