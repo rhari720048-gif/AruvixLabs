@@ -87,8 +87,9 @@ const AdminLeads = () => {
           name: lead.name,
           phone: lead.phone,
           district: lead.location,
-          notes: (lead.requirements || 'N/A') + ' | ' + (lead.feedback || 'None') + ' | ' + (lead.assignedTo || 'Unassigned'),
-          source: lead.source || 'Manual'
+          notes: (lead.requirements || 'N/A') + ' | ' + (lead.feedback || 'None'),
+          source: lead.source || 'Manual',
+          assigned_to: lead.assignedTo || null
         };
         
         await fetch(`${API}/customers`, {

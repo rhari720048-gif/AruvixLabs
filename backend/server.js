@@ -174,11 +174,14 @@ app.post('/api/customers/bulk-delete', authenticate, async (req, res) => {
 });
 
 app.post('/api/customers', authenticate, async (req, res) => {
-    const { customer_id, name, phone, district, source, notes } = req.body;
+    const { customer_id, name, phone, district, source, notes, assigned_to } = req.body;
+    let finalAssignee = parseInt(assigned_to, 10);
+    if (isNaN(finalAssignee)) finalAssignee = null;
+    
     try {
         await pool.query(
-            'INSERT INTO customers (customer_id, name, phone, district, source, notes, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [customer_id, name, phone, district, source, notes, 'Pending']
+            'INSERT INTO customers (customer_id, name, phone, district, source, notes, status, assigned_to) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            [customer_id, name, phone, district, source, notes, 'Pending', finalAssignee]
         );
         res.json({ success: true });
     } catch (error) {
