@@ -8,6 +8,7 @@ const StartDial = () => {
   const [selectedLead, setSelectedLead] = useState(null);
   const [feedback, setFeedback] = useState({ selection: '', notes: '' });
   const [successMsg, setSuccessMsg] = useState('');
+  const [callInitiated, setCallInitiated] = useState(false);
   const [callHistory, setCallHistory] = useState([]);
 
   useEffect(() => {
@@ -75,6 +76,7 @@ const StartDial = () => {
       if (res.ok) {
         setSuccessMsg('Feedback submitted successfully!');
         setFeedback({ selection: '', notes: '' });
+        setCallInitiated(false);
         fetchLeads(); // Refresh the list
         fetchCallHistory(selectedLead.id); // Refresh history for the current lead
         setTimeout(() => setSuccessMsg(''), 3000);
@@ -96,7 +98,7 @@ const StartDial = () => {
           {leads.map(lead => (
             <li 
               key={lead.id} 
-              onClick={() => setSelectedLead(lead)}
+              onClick={() => { setSelectedLead(lead); setCallInitiated(false); }}
               style={{ 
                 padding: '15px 20px', 
                 borderBottom: '1px solid #f3f4f6', 
@@ -144,6 +146,7 @@ const StartDial = () => {
                 {/* Big Call Button */}
                 <a 
                   href={`tel:${selectedLead.phone}`}
+                  onClick={() => setCallInitiated(true)}
                   style={{
                     display: 'flex', alignItems: 'center', gap: '10px',
                     background: '#10b981', color: 'white', textDecoration: 'none',
@@ -192,11 +195,12 @@ const StartDial = () => {
               </div>
             )}
 
-            {/* Feedback Form */}
-            <form onSubmit={handleFeedbackSubmit} style={{ background: '#f8fafc', padding: '24px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-              <h3 style={{ margin: '0 0 20px', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <CheckCircle size={20} color="#6366f1" /> Call Feedback
-              </h3>
+            {/* Feedback Form (Appears after call initiated) */}
+            {callInitiated ? (
+              <form onSubmit={handleFeedbackSubmit} style={{ background: '#f8fafc', padding: '24px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <h3 style={{ margin: '0 0 20px', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <CheckCircle size={20} color="#6366f1" /> Call Feedback
+                </h3>
               
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#475569' }}>Call Outcome</label>
@@ -258,6 +262,12 @@ const StartDial = () => {
                 </button>
               )}
             </form>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '30px', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #cbd5e1', color: '#64748b' }}>
+                <PhoneCall size={32} style={{ marginBottom: '10px', opacity: 0.5 }} />
+                <p style={{ margin: 0 }}>Click the <strong>CALL NOW</strong> button above to initiate the call.<br/> The feedback options will appear here once the call is made.</p>
+              </div>
+            )}
           </div>
         ) : (
           <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', flexDirection: 'column' }}>
