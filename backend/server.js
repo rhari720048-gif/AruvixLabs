@@ -1260,6 +1260,16 @@ app.get('/api/telecalling/nibox', authenticate, async (req, res) => {
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
+// Get Call History for a Lead
+app.get('/api/customers/:id/history', authenticate, async (req, res) => {
+  try {
+    const [logs] = await pool.query('SELECT * FROM call_logs WHERE customer_id = ? ORDER BY call_date DESC', [req.params.id]);
+    res.json(logs);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
