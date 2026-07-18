@@ -30,13 +30,17 @@ const CallLater = () => {
   const handleFeedbackSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`${API}/customers/${selectedLead.id}/feedback`, {
+      const res = await fetch(`${API}/telecalling/feedback`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           Authorization: `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify(feedback)
+        body: JSON.stringify({
+          ...feedback,
+          customer_id: selectedLead.id,
+          duration: 0
+        })
       });
       if (res.ok) {
         setSuccessMsg('Feedback submitted successfully!');
