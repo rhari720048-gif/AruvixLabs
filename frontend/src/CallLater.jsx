@@ -116,7 +116,6 @@ const CallLater = () => {
                   <span style={{ color: '#4b5563', whiteSpace: 'pre-wrap' }}>{selectedLead.last_note}</span>
                 </div>
               )}
-            </div>
 
             <form onSubmit={handleFeedbackSubmit} style={{ background: '#f8fafc', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
               <h3 style={{ margin: '0 0 15px', color: '#1e293b' }}>Update Status</h3>

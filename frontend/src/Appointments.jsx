@@ -119,7 +119,6 @@ const Appointments = () => {
                   <span style={{ color: '#4b5563', whiteSpace: 'pre-wrap' }}>{selectedLead.last_note}</span>
                 </div>
               )}
-            </div>
 
             <form onSubmit={handleFeedbackSubmit}>
               <h3 style={{ marginBottom: '15px' }}>Update Status</h3>
