@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, PhoneCall, Clock, MapPin, Car, CheckCircle } from 'lucide-react';
+import { Clock, PhoneCall, Calendar, MapPin, Car, CheckCircle } from 'lucide-react';
 
 const API = 'https://aruvixlabs.onrender.com/api';
 
-const Appointments = () => {
+const CallLater = () => {
   const [leads, setLeads] = useState([]);
   const [selectedLead, setSelectedLead] = useState(null);
   const [feedback, setFeedback] = useState({ status: 'Interested', notes: '', callback_time: '' });
@@ -15,7 +15,7 @@ const Appointments = () => {
 
   const fetchLeads = async () => {
     try {
-      const res = await fetch(`${API}/telecalling/appointments`, {
+      const res = await fetch(`${API}/telecalling/callbacks`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       if (res.ok) {
@@ -55,7 +55,7 @@ const Appointments = () => {
       {/* Sidebar List of Leads */}
       <div style={{ flex: '0 0 300px', background: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', overflowY: 'auto' }}>
         <h3 style={{ padding: '15px 20px', borderBottom: '1px solid #e5e7eb', margin: 0, position: 'sticky', top: 0, background: 'white' }}>
-          My Appointments ({leads.length})
+          Call Later ({leads.length})
         </h3>
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
           {leads.map(lead => (
@@ -71,13 +71,13 @@ const Appointments = () => {
               }}
             >
               <div style={{ fontWeight: '600', color: '#1f2937' }}>{lead.name}</div>
-              <div style={{ fontSize: '12px', color: '#10b981', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <Calendar size={12} /> {lead.callback_time ? new Date(lead.callback_time).toLocaleString() : 'No time set'}
+              <div style={{ fontSize: '12px', color: '#f59e0b', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Clock size={12} /> Needs Follow-up
               </div>
             </li>
           ))}
           {leads.length === 0 && (
-            <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>No appointments scheduled.</div>
+            <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>No follow-ups scheduled.</div>
           )}
         </ul>
       </div>
@@ -99,70 +99,48 @@ const Appointments = () => {
                   <PhoneCall size={18} color="#6366f1" /> <strong>Phone:</strong> {selectedLead.phone}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563' }}>
-                  <MapPin size={18} color="#10b981" /> <strong>Location:</strong> {selectedLead.district || '-'}
+                  <MapPin size={18} color="#10b981" /> <strong>District:</strong> {selectedLead.district || '-'}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563' }}>
                   <Car size={18} color="#f59e0b" /> <strong>Vehicle:</strong> {selectedLead.car_model || selectedLead.car_name || '-'} {selectedLead.registration_number ? `(${selectedLead.registration_number})` : ''}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563' }}>
-                  <Calendar size={18} color="#10b981" /> <strong>Appointment Time:</strong> {selectedLead.callback_time ? new Date(selectedLead.callback_time).toLocaleString() : 'No time set'}
-                </div>
               </div>
             </div>
 
-            <form onSubmit={handleFeedbackSubmit}>
-              <h3 style={{ marginBottom: '15px' }}>Update Status</h3>
-              
+            <form onSubmit={handleFeedbackSubmit} style={{ background: '#f8fafc', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <h3 style={{ margin: '0 0 15px', color: '#1e293b' }}>Update Status</h3>
               <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#374151' }}>Call Status</label>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Status</label>
                 <select 
                   value={feedback.status} 
                   onChange={e => setFeedback({...feedback, status: e.target.value})}
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }}
-                  required
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 >
-                  <option value="Interested">Interested / Follow-up</option>
-                  <option value="Converted">Converted (Deal Closed)</option>
-                  <option value="Call Later">Reschedule Appointment</option>
-                  <option value="Not Interested">Not Interested (NI)</option>
-                  <option value="No Answer">No Answer / Busy</option>
+                  <option value="Interested">Interested</option>
+                  <option value="Not Interested">Not Interested</option>
+                  <option value="Call Later">Call Later</option>
+                  <option value="Appointment">Appointment</option>
+                  <option value="Converted">Converted</option>
                 </select>
               </div>
-
-              {['Call Later', 'Appointment'].includes(feedback.status) && (
-                <div style={{ marginBottom: '15px' }}>
-                  <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#374151' }}>New Date & Time</label>
-                  <input 
-                    type="datetime-local" 
-                    value={feedback.callback_time} 
-                    onChange={e => setFeedback({...feedback, callback_time: e.target.value})}
-                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }}
-                    required
-                  />
-                </div>
-              )}
-
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#374151' }}>Meeting Notes</label>
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Notes</label>
                 <textarea 
                   value={feedback.notes} 
                   onChange={e => setFeedback({...feedback, notes: e.target.value})}
-                  rows="4"
-                  placeholder="Enter details of the meeting..."
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none', resize: 'vertical' }}
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', minHeight: '80px' }}
                   required
                 ></textarea>
               </div>
-
-              <button type="submit" style={{ padding: '12px 24px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', fontSize: '15px' }}>
-                Submit Feedback & Next
+              
+              <button type="submit" style={{ width: '100%', padding: '12px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}>
+                Save Update
               </button>
             </form>
           </div>
         ) : (
-          <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', flexDirection: 'column' }}>
-            <Calendar size={48} style={{ marginBottom: '15px', opacity: 0.5 }} />
-            <p>Select an appointment from the list to update its status.</p>
+          <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>
+            Select a lead to view details and update status
           </div>
         )}
       </div>
@@ -170,4 +148,4 @@ const Appointments = () => {
   );
 };
 
-export default Appointments;
+export default CallLater;

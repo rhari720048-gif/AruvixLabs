@@ -66,9 +66,8 @@ async function initDB() {
             source VARCHAR(100),
             notes TEXT,
             status VARCHAR(100) DEFAULT 'Pending',
-            assigned_to INT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (assigned_to) REFERENCES users(id)
+            assigned_to VARCHAR(255) DEFAULT '[]',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
     `;
     const callLogsTable = `

@@ -15,7 +15,9 @@ import './index.css';
 import StartDial from './StartDial';
 import Callback from './Callback';
 import Appointments from './Appointments';
+import CallLater from './CallLater';
 import NIBox from './NIBox';
+import CallHistory from './CallHistory';
 // Mock Data removed as data is now fetched from APIs
 
 const Sidebar = () => {
@@ -46,12 +48,13 @@ const Sidebar = () => {
         
         {role === 'employee' && <li><Link to="/dial" className={`nav-link ${isActive('/dial')}`}><PhoneCall size={20} /> Start Dial</Link></li>}
         {role === 'employee' && <li><Link to="/callback" className={`nav-link ${isActive('/callback')}`}><Clock size={20} /> Callbacks</Link></li>}
-        {role === 'employee' && <li><Link to="/appointments" className={`nav-link ${isActive('/appointments')}`}><Calendar size={20} /> Appointments</Link></li>}
 
         {hasPerm('leads') && <li><Link to="/leads" className={`nav-link ${isActive('/leads')}`}><UserPlus size={20} /> Leads</Link></li>}
+        {hasPerm('leads') && <li><Link to="/appointments" className={`nav-link ${isActive('/appointments')}`}><Calendar size={20} /> Appointments</Link></li>}
+        {hasPerm('leads') && <li><Link to="/call-later" className={`nav-link ${isActive('/call-later')}`}><Clock size={20} /> Call Later</Link></li>}
+        {hasPerm('leads') && <li><Link to="/ni-box" className={`nav-link ${isActive('/ni-box')}`}><Archive size={20} /> Not Interested (NI)</Link></li>}
+        {hasPerm('leads') && <li><Link to="/call-history" className={`nav-link ${isActive('/call-history')}`}><PhoneCall size={20} /> Call History</Link></li>}
         {hasPerm('clients') && <li><Link to="/clients" className={`nav-link ${isActive('/clients')}`}><Users size={20} /> Clients / Customers</Link></li>}
-        
-        {role === 'admin' && <li><Link to="/ni-box" className={`nav-link ${isActive('/ni-box')}`}><Archive size={20} /> NI Box</Link></li>}
         
         {hasPerm('user_management') && <li><Link to="/user-management" className={`nav-link ${isActive('/user-management')}`}><Users size={20} /> Staff Management</Link></li>}
         {hasPerm('settings') && <li style={{ marginTop: '20px' }}><Link to="/settings" className={`nav-link ${isActive('/settings')}`}><Settings size={20} /> Settings</Link></li>}
@@ -528,8 +531,10 @@ function App() {
               <Route path="/user-management" element={<ProtectedRoute module="user_management"><UserManagement /></ProtectedRoute>} />
               <Route path="/dial" element={<StartDial />} />
               <Route path="/callback" element={<Callback />} />
-              <Route path="/appointments" element={<Appointments />} />
-              <Route path="/ni-box" element={<NIBox />} />
+              <Route path="/appointments" element={<ProtectedRoute module="leads"><Appointments /></ProtectedRoute>} />
+              <Route path="/call-later" element={<ProtectedRoute module="leads"><CallLater /></ProtectedRoute>} />
+              <Route path="/ni-box" element={<ProtectedRoute module="leads"><NIBox /></ProtectedRoute>} />
+              <Route path="/call-history" element={<ProtectedRoute module="leads"><CallHistory /></ProtectedRoute>} />
             </Routes>
           </div>
         </main>

@@ -38,13 +38,12 @@ const Callback = () => {
 
   const fetchLeads = async () => {
     try {
-      const res = await fetch(`${API}/customers`, {
+      const res = await fetch(`${API}/telecalling/callbacks`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       if (res.ok) {
         const data = await res.json();
-        // Only show leads with status 'Call Later'
-        setLeads(data.filter(l => l.status === 'Call Later'));
+        setLeads(data);
       }
     } catch (e) {
       console.error(e);
@@ -125,8 +124,8 @@ const Callback = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563' }}>
                   <MapPin size={18} color="#10b981" /> <strong>Location:</strong> {selectedLead.district || '-'}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563' }}>
-                  <Car size={18} color="#f59e0b" /> <strong>Car Name:</strong> {selectedLead.car_name || selectedLead.car_model || '-'}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563', background: '#f9fafb', padding: '12px', borderRadius: '8px' }}>
+                  <Car size={18} color="#f59e0b" /> <strong>Vehicle:</strong> {selectedLead.car_model || selectedLead.car_name || '-'} {selectedLead.registration_number ? `(${selectedLead.registration_number})` : ''}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563' }}>
                   <Clock size={18} color="#ef4444" /> <strong>Callback Time:</strong> {selectedLead.callback_time || 'No time set'}

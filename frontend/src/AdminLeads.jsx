@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import AddLeads from './AddLeads';
 import AllLeads from './AllLeads';
+import MyLeadsGrid from './MyLeadsGrid';
 import { UserPlus, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getPerms } from './permissions';
-
 const API = 'https://aruvixlabs.onrender.com/api';
 
 const AdminLeads = () => {
+  const navigate = useNavigate();
   const perms = getPerms('leads');
   const hasAddTab = perms.add_leads ?? perms.canCreate;
   const hasAllTab = perms.all_leads ?? perms.canView;
@@ -88,6 +89,8 @@ const AdminLeads = () => {
           name: lead.name,
           phone: lead.phone,
           district: lead.location,
+          car_model: lead.car_name || '',
+          registration_number: lead.car_number || '',
           notes: (lead.requirements || 'N/A') + ' | ' + (lead.feedback || 'None'),
           source: lead.source || 'Manual',
           assigned_to: lead.assignedTo || null
@@ -305,14 +308,16 @@ const AdminLeads = () => {
             handleEdit={canEdit ? handleEdit : undefined}
           />
         ) : activePage === 'mine' && hasMineTab ? (
-          <AllLeads 
+          <MyLeadsGrid 
             leads={leads.filter(l => l.assignedTo === currentUser)} 
             employees={employees}
-            handleConvert={handleConvert} 
-            handleDelete={canDelete ? handleDelete : null}
-            handleBulkDelete={canDelete ? handleBulkDelete : null}
-            handleBulkAssign={handleBulkAssign}
             handleEdit={canEdit ? handleEdit : null}
+            handleDelete={canDelete ? handleDelete : null}
+            onStatusUpdate={(newTab) => {
+               if (newTab === 'appointment') navigate('/appointments');
+               else if (newTab === 'call-later') navigate('/call-later');
+               else if (newTab === 'ni') navigate('/ni-box');
+            }}
           />
         ) : null}
       </div>

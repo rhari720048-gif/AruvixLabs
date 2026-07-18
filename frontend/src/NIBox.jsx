@@ -49,9 +49,9 @@ const NIBox = () => {
                             <tr>
                                 <th>Name</th>
                                 <th>Phone</th>
-                                <th>Car Details</th>
-                                <th>Location</th>
-                                <th>Last Dialed</th>
+                                <th style={{ padding: '15px' }}>Car Details</th>
+                                <th style={{ padding: '15px' }}>Location</th>
+                                <th style={{ padding: '15px' }}>Date</th>
                                 <th style={{ textAlign: 'center' }}>Actions</th>
                             </tr>
                         </thead>
@@ -64,7 +64,10 @@ const NIBox = () => {
                                             {lead.phone}
                                         </a>
                                     </td>
-                                    <td>{lead.car_name || lead.car_model || '-'}</td>
+                                    <td>
+                                      {lead.car_model || lead.car_name || '-'}
+                                      {lead.registration_number && <div style={{ fontSize: '12px', color: '#6b7280' }}>{lead.registration_number}</div>}
+                                    </td>
                                     <td>{lead.district || lead.location || '-'}</td>
                                     <td>{lead.last_dial_date ? new Date(lead.last_dial_date).toLocaleString() : '-'}</td>
                                     <td style={{ textAlign: 'center' }}>

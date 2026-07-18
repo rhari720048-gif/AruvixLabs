@@ -5,7 +5,7 @@ import SearchableSelect from './SearchableSelect';
 const AllLeads = ({ leads, employees = [], handleConvert, handleDelete, handleBulkDelete, handleBulkAssign, handleEdit }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIds, setSelectedIds] = useState([]);
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState([]);
   
   // Modals state
   const [viewLead, setViewLead] = useState(null);
@@ -35,7 +35,7 @@ const AllLeads = ({ leads, employees = [], handleConvert, handleDelete, handleBu
   };
 
   const downloadCSV = () => {
-    const headers = ['Client Name', 'Requirements', 'Mobile No', 'Location', 'Assigned To', 'Feedback', 'Status'];
+    const headers = ['Client Name', 'Requirements', 'Mobile No', 'Location', 'Car Model', 'Car Number', 'Assigned To', 'Feedback', 'Status'];
     const csvContent = [
       headers.join(','),
       ...filteredLeads.map(lead => [
@@ -43,6 +43,8 @@ const AllLeads = ({ leads, employees = [], handleConvert, handleDelete, handleBu
         `"${lead.requirements || ''}"`,
         `"${lead.phone || ''}"`,
         `"${lead.location || ''}"`,
+        `"${lead.car_model || ''}"`,
+        `"${lead.registration_number || ''}"`,
         `"${lead.assignedTo || ''}"`,
         `"${lead.feedback || ''}"`,
         `"${lead.status || 'Pending'}"`
@@ -89,14 +91,15 @@ const AllLeads = ({ leads, employees = [], handleConvert, handleDelete, handleBu
                   value={selectedEmployeeId}
                   onChange={(val) => setSelectedEmployeeId(val)}
                   placeholder="Select Employee..."
+                  isMulti={true}
                 />
               </div>
               <button 
                 onClick={() => {
-                  if (!selectedEmployeeId) return alert('Please select an employee');
+                  if (!selectedEmployeeId || selectedEmployeeId.length === 0) return alert('Please select at least one employee');
                   handleBulkAssign(selectedIds, selectedEmployeeId);
                   setSelectedIds([]);
-                  setSelectedEmployeeId('');
+                  setSelectedEmployeeId([]);
                 }}
                 style={{ padding: '8px 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '500' }}
               >
@@ -130,6 +133,7 @@ const AllLeads = ({ leads, employees = [], handleConvert, handleDelete, handleBu
                 <input type="checkbox" checked={selectedIds.length === filteredLeads.length && filteredLeads.length > 0} onChange={toggleSelectAll} style={{ cursor: 'pointer' }} />
               </th>
               <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Client Name</th>
+              <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Vehicle</th>
               <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Requirements</th>
               <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Mobile No</th>
               <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Location</th>
@@ -148,6 +152,10 @@ const AllLeads = ({ leads, employees = [], handleConvert, handleDelete, handleBu
                   <input type="checkbox" checked={selectedIds.includes(lead.id)} onChange={() => toggleSelect(lead.id)} style={{ cursor: 'pointer' }} />
                 </td>
                 <td style={{ padding: '14px 16px', color: '#1f2937', fontWeight: '500' }}>{lead.name}</td>
+                <td style={{ padding: '14px 16px', color: '#4b5563' }}>
+                  {lead.car_model || '-'} 
+                  {lead.registration_number && <span style={{ display: 'block', fontSize: '12px', color: '#9ca3af' }}>{lead.registration_number}</span>}
+                </td>
                 <td style={{ padding: '14px 16px', color: '#4b5563' }}>{lead.requirements?.substring(0, 20)}{lead.requirements?.length > 20 ? '...' : ''}</td>
                 <td style={{ padding: '14px 16px', color: '#4b5563' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -201,6 +209,8 @@ const AllLeads = ({ leads, employees = [], handleConvert, handleDelete, handleBu
               <div><strong>Name:</strong> {viewLead.name}</div>
               <div><strong>Phone:</strong> {viewLead.phone}</div>
               <div><strong>Location:</strong> {viewLead.location}</div>
+              <div><strong>Car Model:</strong> {viewLead.car_model || '-'}</div>
+              <div><strong>Car Number:</strong> {viewLead.registration_number || '-'}</div>
               <div><strong>Requirements:</strong> {viewLead.requirements}</div>
               <div><strong>Feedback:</strong> {viewLead.feedback}</div>
               <div><strong>Assigned To:</strong> {viewLead.assignedTo}</div>
@@ -232,6 +242,16 @@ const AllLeads = ({ leads, employees = [], handleConvert, handleDelete, handleBu
                 <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Location</label>
                 <input type="text" value={editLead.location} onChange={e => setEditLead({...editLead, location: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db' }} />
               </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Car Model</label>
+                  <input type="text" value={editLead.car_model} onChange={e => setEditLead({...editLead, car_model: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Car Number</label>
+                  <input type="text" value={editLead.registration_number} onChange={e => setEditLead({...editLead, registration_number: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db' }} />
+                </div>
+              </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Requirements</label>
                 <input type="text" value={editLead.requirements} onChange={e => setEditLead({...editLead, requirements: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db' }} />
@@ -244,9 +264,10 @@ const AllLeads = ({ leads, employees = [], handleConvert, handleDelete, handleBu
                 <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Assigned To</label>
                 <SearchableSelect 
                   options={employees.map(emp => ({ value: emp.id, label: `${emp.name} (${emp.role})` }))}
-                  value={editLead.assignedToId}
+                  value={editLead.assignedToId || []}
                   onChange={(val) => setEditLead({...editLead, assignedToId: val})}
                   placeholder="Select Employee..."
+                  isMulti={true}
                 />
               </div>
               <button type="submit" style={{ background: 'var(--primary)', color: 'white', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: '600', cursor: 'pointer', marginTop: '10px' }}>

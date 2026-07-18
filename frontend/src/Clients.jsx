@@ -22,7 +22,7 @@ const Clients = () => {
     return '';
   });
   const [clients, setClients] = useState([]);
-  const [form, setForm] = useState({ name: '', phone: '', email: '', district: '', source: 'Manual Entry' });
+  const [form, setForm] = useState({ name: '', phone: '', email: '', district: '', car_model: '', registration_number: '', source: 'Manual Entry' });
   const [successMessage, setSuccessMessage] = useState('');
   const [viewClient, setViewClient] = useState(null);
   const [currentUser, setCurrentUser] = useState('');
@@ -63,6 +63,8 @@ const Clients = () => {
         name: form.name,
         phone: form.phone,
         district: form.district,
+        car_model: form.car_model,
+        registration_number: form.registration_number,
         source: form.source
       };
       
@@ -89,7 +91,7 @@ const Clients = () => {
         
         fetchClients();
         showSuccess('Client added successfully!');
-        setForm({ name: '', phone: '', email: '', district: '', source: 'Manual Entry' });
+        setForm({ name: '', phone: '', email: '', district: '', car_model: '', registration_number: '', source: 'Manual Entry' });
       }
     } catch (error) {
       console.error(error);
@@ -294,6 +296,16 @@ const Clients = () => {
                 <div>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>Location</label>
                   <input type="text" value={form.district} onChange={e => setForm({...form, district: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', outline: 'none' }} />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>Car Model</label>
+                    <input type="text" value={form.car_model} onChange={e => setForm({...form, car_model: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="E.g., Honda City" />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>Car Number</label>
+                    <input type="text" value={form.registration_number} onChange={e => setForm({...form, registration_number: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="E.g., TN-01-AB-1234" />
+                  </div>
                 </div>
                 <button type="submit" style={{ marginTop: '10px', background: 'var(--primary)', color: 'white', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: '600', cursor: 'pointer' }}>
                   Save Client

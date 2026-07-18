@@ -119,38 +119,61 @@ app.put('/api/auth/profile', authenticate, async (req, res) => {
 
 app.get('/api/customers', authenticate, async (req, res) => {
     try {
-        let query = `
-            SELECT c.*, u.name as assignee_name 
-            FROM customers c 
-            LEFT JOIN users u ON c.assigned_to = u.id 
-            ORDER BY c.created_at DESC
-        `;
+        let query = 'SELECT c.* FROM customers c ORDER BY c.created_at DESC';
         let params = [];
         if (req.user.role !== 'admin') {
             query = `
-                SELECT c.*, u.name as assignee_name 
+                SELECT c.* 
                 FROM customers c 
-                LEFT JOIN users u ON c.assigned_to = u.id 
-                WHERE c.assigned_to = ? 
+                WHERE JSON_CONTAINS(c.assigned_to, CAST(? AS JSON), '$')
                 ORDER BY c.created_at DESC
             `;
             params = [req.user.id];
         }
         const [rows] = await pool.query(query, params);
-        res.json(rows);
+
+        const [users] = await pool.query('SELECT id, name FROM users');
+        const userMap = {};
+        users.forEach(u => userMap[u.id] = u.name);
+
+        const formattedRows = rows.map(row => {
+            let assigneeNames = [];
+            let assigneeArray = [];
+            try {
+                if (row.assigned_to && row.assigned_to.startsWith('[')) {
+                    assigneeArray = JSON.parse(row.assigned_to);
+                    if (Array.isArray(assigneeArray)) {
+                        assigneeNames = assigneeArray.map(id => userMap[id]).filter(Boolean);
+                    }
+                }
+            } catch (e) {}
+            return {
+                ...row,
+                assignee_name: assigneeNames.join(', '),
+                assignedToId: assigneeArray // Added for frontend backward/forward compatibility
+            };
+        });
+
+        res.json(formattedRows);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
 app.put('/api/customers/:id', authenticate, async (req, res) => {
-    const { status, notes, name, phone, district, source } = req.body;
+    const { status, notes, name, phone, district, source, assigned_to, car_model, registration_number } = req.body;
     try {
         if (name) {
             // Full update
+            let assignedToStr = '[]';
+            if (Array.isArray(assigned_to)) {
+                assignedToStr = JSON.stringify(assigned_to.map(id => parseInt(id, 10)).filter(id => !isNaN(id)));
+            } else if (assigned_to) {
+                assignedToStr = JSON.stringify([parseInt(assigned_to, 10)]);
+            }
             await pool.query(
-                'UPDATE customers SET name=?, phone=?, district=?, source=?, notes=?, status=? WHERE id=?',
-                [name, phone, district, source, notes, status, req.params.id]
+                'UPDATE customers SET name=?, phone=?, district=?, source=?, notes=?, status=?, assigned_to=?, car_model=?, registration_number=? WHERE id=?',
+                [name, phone, district, source, notes, status, assignedToStr, car_model || '', registration_number || '', req.params.id]
             );
         } else {
             // Partial update (just status/notes)
@@ -185,14 +208,18 @@ app.post('/api/customers/bulk-delete', authenticate, async (req, res) => {
 });
 
 app.post('/api/customers', authenticate, async (req, res) => {
-    const { customer_id, name, phone, district, source, notes, assigned_to } = req.body;
-    let finalAssignee = parseInt(assigned_to, 10);
-    if (isNaN(finalAssignee)) finalAssignee = null;
+    const { customer_id, name, phone, district, source, notes, assigned_to, car_model, registration_number } = req.body;
+    let assignedToStr = '[]';
+    if (Array.isArray(assigned_to)) {
+        assignedToStr = JSON.stringify(assigned_to.map(id => parseInt(id, 10)).filter(id => !isNaN(id)));
+    } else if (assigned_to) {
+        assignedToStr = JSON.stringify([parseInt(assigned_to, 10)]);
+    }
     
     try {
         await pool.query(
-            'INSERT INTO customers (customer_id, name, phone, district, source, notes, status, assigned_to) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [customer_id, name, phone, district, source, notes, 'Pending', finalAssignee]
+            'INSERT INTO customers (customer_id, name, phone, district, source, notes, status, assigned_to, car_model, registration_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [customer_id, name, phone, district, source, notes, 'Pending', assignedToStr, car_model || '', registration_number || '']
         );
         res.json({ success: true });
     } catch (error) {
@@ -1178,7 +1205,7 @@ app.get('/api/telecalling/assigned', authenticate, async (req, res) => {
     try {
         const query = `
             SELECT * FROM customers 
-            WHERE assigned_to = ? AND status NOT IN ('Converted', 'Not Interested', 'NI', 'Appointment', 'Callback') 
+            WHERE JSON_CONTAINS(assigned_to, CAST(? AS JSON), '$') AND status NOT IN ('Converted', 'Not Interested', 'NI', 'Appointment', 'Callback') 
             ORDER BY last_dial_date ASC, created_at DESC
         `;
         const [rows] = await pool.query(query, [req.user.id]);
@@ -1192,9 +1219,15 @@ app.put('/api/telecalling/bulk-assign', authenticate, async (req, res) => {
         const { lead_ids, employee_id } = req.body;
         if (!lead_ids || !lead_ids.length || !employee_id) return res.status(400).json({ error: 'Missing parameters' });
         
+        let assignedToStr = '[]';
+        if (Array.isArray(employee_id)) {
+            assignedToStr = JSON.stringify(employee_id.map(id => parseInt(id, 10)).filter(id => !isNaN(id)));
+        } else {
+            assignedToStr = JSON.stringify([parseInt(employee_id, 10)]);
+        }
         await pool.query(
             'UPDATE customers SET assigned_to = ? WHERE id IN (?)',
-            [employee_id, lead_ids]
+            [assignedToStr, lead_ids]
         );
         res.json({ success: true, message: 'Leads assigned successfully' });
     } catch (error) { res.status(500).json({ error: error.message }); }
@@ -1202,11 +1235,11 @@ app.put('/api/telecalling/bulk-assign', authenticate, async (req, res) => {
 
 app.post('/api/telecalling/feedback', authenticate, async (req, res) => {
     try {
-        const { customer_id, status, notes, callback_time } = req.body;
+        const { customer_id, status, notes, callback_time, duration } = req.body;
         
         await pool.query(
-            'INSERT INTO call_logs (customer_id, employee_id, status, notes, callback_time) VALUES (?, ?, ?, ?, ?)',
-            [customer_id, req.user.id, status, notes, callback_time || null]
+            'INSERT INTO call_logs (customer_id, employee_id, status, notes, callback_time, duration) VALUES (?, ?, ?, ?, ?, ?)',
+            [customer_id, req.user.id, status, notes, callback_time || null, duration || 0]
         );
         
         await pool.query(
@@ -1236,40 +1269,71 @@ app.get('/api/telecalling/reports', authenticate, async (req, res) => {
 
 app.get('/api/telecalling/callbacks', authenticate, async (req, res) => {
     try {
-        const query = `
+        let query = `
             SELECT c.*, l.notes as last_note, l.callback_time 
             FROM customers c
             LEFT JOIN call_logs l ON c.id = l.customer_id AND l.id = (SELECT MAX(id) FROM call_logs WHERE customer_id = c.id)
-            WHERE c.assigned_to = ? AND c.status = 'Callback'
+            WHERE c.status = 'Call Later'
             ORDER BY l.callback_time ASC
         `;
-        const [rows] = await pool.query(query, [req.user.id]);
+        let params = [];
+        if (req.user.role !== 'admin') {
+            query = `
+                SELECT c.*, l.notes as last_note, l.callback_time 
+                FROM customers c
+                LEFT JOIN call_logs l ON c.id = l.customer_id AND l.id = (SELECT MAX(id) FROM call_logs WHERE customer_id = c.id)
+                WHERE JSON_CONTAINS(c.assigned_to, CAST(? AS JSON), '$') AND c.status = 'Call Later'
+                ORDER BY l.callback_time ASC
+            `;
+            params = [req.user.id];
+        }
+        const [rows] = await pool.query(query, params);
         res.json(rows);
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
 app.get('/api/telecalling/appointments', authenticate, async (req, res) => {
     try {
-        const query = `
-            SELECT c.*, l.notes as last_note, l.callback_time as appointment_time 
+        let query = `
+            SELECT c.*, l.notes as last_note, l.callback_time 
             FROM customers c
             LEFT JOIN call_logs l ON c.id = l.customer_id AND l.id = (SELECT MAX(id) FROM call_logs WHERE customer_id = c.id)
-            WHERE c.assigned_to = ? AND c.status = 'Appointment'
+            WHERE c.status = 'Appointment'
             ORDER BY l.callback_time ASC
         `;
-        const [rows] = await pool.query(query, [req.user.id]);
+        let params = [];
+        if (req.user.role !== 'admin') {
+            query = `
+                SELECT c.*, l.notes as last_note, l.callback_time 
+                FROM customers c
+                LEFT JOIN call_logs l ON c.id = l.customer_id AND l.id = (SELECT MAX(id) FROM call_logs WHERE customer_id = c.id)
+                WHERE JSON_CONTAINS(c.assigned_to, CAST(? AS JSON), '$') AND c.status = 'Appointment'
+                ORDER BY l.callback_time ASC
+            `;
+            params = [req.user.id];
+        }
+        const [rows] = await pool.query(query, params);
         res.json(rows);
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
 app.get('/api/telecalling/nibox', authenticate, async (req, res) => {
     try {
-        const query = `
+        let query = `
             SELECT * FROM customers 
-            WHERE assigned_to = ? AND status IN ('Not Interested', 'NI')
+            WHERE status IN ('Not Interested', 'NI')
             ORDER BY last_dial_date DESC
         `;
-        const [rows] = await pool.query(query, [req.user.id]);
+        let params = [];
+        if (req.user.role !== 'admin') {
+            query = `
+                SELECT * FROM customers 
+                WHERE JSON_CONTAINS(assigned_to, CAST(? AS JSON), '$') AND status IN ('Not Interested', 'NI')
+                ORDER BY last_dial_date DESC
+            `;
+            params = [req.user.id];
+        }
+        const [rows] = await pool.query(query, params);
         res.json(rows);
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
@@ -1277,11 +1341,26 @@ app.get('/api/telecalling/nibox', authenticate, async (req, res) => {
 // Get Call History for a Lead
 app.get('/api/customers/:id/history', authenticate, async (req, res) => {
   try {
-    const [logs] = await pool.query('SELECT * FROM call_logs WHERE customer_id = ? ORDER BY call_date DESC', [req.params.id]);
+    const [logs] = await pool.query('SELECT * FROM call_logs WHERE customer_id = ? ORDER BY created_at DESC', [req.params.id]);
     res.json(logs);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// Get Global Call History
+app.get('/api/telecalling/history/all', authenticate, async (req, res) => {
+    try {
+        const query = `
+            SELECT l.*, c.name as customer_name, c.phone, u.name as employee_name
+            FROM call_logs l
+            LEFT JOIN customers c ON l.customer_id = c.id
+            LEFT JOIN users u ON l.employee_id = u.id
+            ORDER BY l.created_at DESC
+        `;
+        const [rows] = await pool.query(query);
+        res.json(rows);
+    } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
 const PORT = process.env.PORT || 5000;

@@ -10,9 +10,9 @@ const AddLeads = ({ addLeads }) => {
   const [successMessage, setSuccessMessage] = useState('');
   
   // Manual Form State
-  const [manualForm, setManualForm] = useState({ name: '', phone: '', location: '', requirements: '', assignedTo: '', feedback: '' });
+  const [manualForm, setManualForm] = useState({ name: '', phone: '', location: '', car_name: '', car_number: '', requirements: '', assignedTo: [], feedback: '' });
   
-  const [bulkAssignTo, setBulkAssignTo] = useState('');
+  const [bulkAssignTo, setBulkAssignTo] = useState([]);
   const [users, setUsers] = useState([]);
   const API = 'https://aruvixlabs.onrender.com/api';
 
@@ -147,7 +147,11 @@ const AddLeads = ({ addLeads }) => {
     
     const newLead = {
       id: Date.now(),
-      ...manualForm,
+      name: manualForm.name,
+      phone: manualForm.phone,
+      location: manualForm.location || 'Unknown',
+      car_name: manualForm.car_name || '',
+      car_number: manualForm.car_number || '',
       requirements: manualForm.requirements || 'N/A',
       assignedTo: manualForm.assignedTo || 'Unassigned',
       feedback: manualForm.feedback || 'None',
@@ -156,7 +160,7 @@ const AddLeads = ({ addLeads }) => {
     };
     
     addLeads([newLead]);
-    setManualForm({ name: '', phone: '', location: '', requirements: '', assignedTo: '', feedback: '' });
+    setManualForm({ name: '', phone: '', location: '', car_name: '', car_number: '', requirements: '', assignedTo: '', feedback: '' });
     showSuccess('Lead added manually successfully!');
   };
 
@@ -205,6 +209,7 @@ const AddLeads = ({ addLeads }) => {
                 value={bulkAssignTo}
                 onChange={val => setBulkAssignTo(val)}
                 placeholder="-- Unassigned --"
+                isMulti={true}
               />
             </div>
 
@@ -229,6 +234,7 @@ const AddLeads = ({ addLeads }) => {
                 value={bulkAssignTo}
                 onChange={val => setBulkAssignTo(val)}
                 placeholder="-- Unassigned --"
+                isMulti={true}
               />
             </div>
 
@@ -256,6 +262,16 @@ const AddLeads = ({ addLeads }) => {
                 <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>Location</label>
                 <input type="text" value={manualForm.location} onChange={e => setManualForm({...manualForm, location: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="Enter location (optional)" />
               </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>Car Name / Model</label>
+                  <input type="text" value={manualForm.car_name} onChange={e => setManualForm({...manualForm, car_name: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="E.g., Honda City" />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>Car Number</label>
+                  <input type="text" value={manualForm.car_number} onChange={e => setManualForm({...manualForm, car_number: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="E.g., TN-01-AB-1234" />
+                </div>
+              </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>Requirements</label>
                 <input type="text" value={manualForm.requirements} onChange={e => setManualForm({...manualForm, requirements: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="Enter requirements" />
@@ -267,6 +283,7 @@ const AddLeads = ({ addLeads }) => {
                   value={manualForm.assignedTo}
                   onChange={val => setManualForm({...manualForm, assignedTo: val})}
                   placeholder="-- Select Assignee --"
+                  isMulti={true}
                 />
               </div>
               <div>

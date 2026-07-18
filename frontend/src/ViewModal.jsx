@@ -117,7 +117,7 @@ const ViewModal = ({ isOpen, onClose, title, data }) => {
                       {log.status}
                     </span>
                     <span style={{ color: '#6b7280', fontSize: '11px' }}>
-                      {new Date(log.call_date).toLocaleString()}
+                      {new Date(log.created_at || log.call_date).toLocaleString()}
                     </span>
                   </div>
                   <div style={{ color: '#4b5563' }}>{log.notes || 'No notes'}</div>

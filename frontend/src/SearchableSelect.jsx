@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, ChevronDown } from 'lucide-react';
+import { Search, ChevronDown, Check } from 'lucide-react';
 
-const SearchableSelect = ({ options, value, onChange, placeholder = "Select an option..." }) => {
+const SearchableSelect = ({ options, value, onChange, placeholder = "Select an option...", isMulti = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
   const wrapperRef = useRef(null);
@@ -20,7 +20,41 @@ const SearchableSelect = ({ options, value, onChange, placeholder = "Select an o
     opt.label.toLowerCase().includes(search.toLowerCase())
   );
 
-  const selectedOption = options.find(opt => opt.value === value) || null;
+  const getDisplayValue = () => {
+    if (isMulti) {
+      if (!Array.isArray(value) || value.length === 0) return placeholder;
+      const labels = value.map(v => options.find(opt => opt.value === v)?.label).filter(Boolean);
+      return labels.length > 0 ? labels.join(', ') : placeholder;
+    }
+    const selectedOption = options.find(opt => opt.value === value) || null;
+    return selectedOption ? selectedOption.label : placeholder;
+  };
+
+  const handleSelect = (optValue) => {
+    if (isMulti) {
+      const currentValues = Array.isArray(value) ? value : [];
+      let newValues;
+      if (currentValues.includes(optValue)) {
+        newValues = currentValues.filter(v => v !== optValue);
+      } else {
+        newValues = [...currentValues, optValue];
+      }
+      onChange(newValues);
+    } else {
+      onChange(optValue);
+      setIsOpen(false);
+      setSearch('');
+    }
+  };
+
+  const isSelected = (optValue) => {
+    if (isMulti) {
+      return Array.isArray(value) && value.includes(optValue);
+    }
+    return optValue === value;
+  };
+
+  const hasSelection = isMulti ? Array.isArray(value) && value.length > 0 : !!options.find(opt => opt.value === value);
 
   return (
     <div ref={wrapperRef} style={{ position: 'relative', width: '100%' }}>
@@ -33,10 +67,10 @@ const SearchableSelect = ({ options, value, onChange, placeholder = "Select an o
           cursor: 'pointer', minHeight: '42px'
         }}
       >
-        <span style={{ color: selectedOption ? '#1f2937' : '#9ca3af' }}>
-          {selectedOption ? selectedOption.label : placeholder}
+        <span style={{ color: hasSelection ? '#1f2937' : '#9ca3af', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: '8px' }}>
+          {getDisplayValue()}
         </span>
-        <ChevronDown size={16} color="#6b7280" />
+        <ChevronDown size={16} color="#6b7280" style={{ flexShrink: 0 }} />
       </div>
 
       {isOpen && (
@@ -58,31 +92,47 @@ const SearchableSelect = ({ options, value, onChange, placeholder = "Select an o
             />
           </div>
           <div style={{ overflowY: 'auto', padding: '4px' }}>
-            <div 
-              onClick={() => { onChange(''); setIsOpen(false); setSearch(''); }}
-              style={{ padding: '8px 12px', cursor: 'pointer', borderRadius: '4px', color: '#6b7280', fontSize: '14px' }}
-              onMouseOver={e => e.currentTarget.style.background = '#f3f4f6'}
-              onMouseOut={e => e.currentTarget.style.background = 'transparent'}
-            >
-              -- Unassigned --
-            </div>
+            {!isMulti && (
+              <div 
+                onClick={() => { onChange(''); setIsOpen(false); setSearch(''); }}
+                style={{ padding: '8px 12px', cursor: 'pointer', borderRadius: '4px', color: '#6b7280', fontSize: '14px' }}
+                onMouseOver={e => e.currentTarget.style.background = '#f3f4f6'}
+                onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+              >
+                -- Unassigned --
+              </div>
+            )}
+            {isMulti && (
+              <div 
+                onClick={() => { onChange([]); }}
+                style={{ padding: '8px 12px', cursor: 'pointer', borderRadius: '4px', color: '#6b7280', fontSize: '14px' }}
+                onMouseOver={e => e.currentTarget.style.background = '#f3f4f6'}
+                onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+              >
+                -- Clear Selection --
+              </div>
+            )}
             {filteredOptions.length === 0 ? (
               <div style={{ padding: '8px 12px', color: '#9ca3af', fontSize: '14px', textAlign: 'center' }}>No options found</div>
             ) : (
               filteredOptions.map(opt => (
                 <div 
                   key={opt.value}
-                  onClick={() => { onChange(opt.value); setIsOpen(false); setSearch(''); }}
+                  onClick={() => handleSelect(opt.value)}
                   style={{ 
                     padding: '8px 12px', cursor: 'pointer', borderRadius: '4px',
-                    background: opt.value === value ? '#eff6ff' : 'transparent',
-                    color: opt.value === value ? '#2563eb' : '#374151',
-                    fontSize: '14px'
+                    background: isSelected(opt.value) ? '#eff6ff' : 'transparent',
+                    color: isSelected(opt.value) ? '#2563eb' : '#374151',
+                    fontSize: '14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
                   }}
-                  onMouseOver={e => { if(opt.value !== value) e.currentTarget.style.background = '#f9fafb' }}
-                  onMouseOut={e => { if(opt.value !== value) e.currentTarget.style.background = 'transparent' }}
+                  onMouseOver={e => { if(!isSelected(opt.value)) e.currentTarget.style.background = '#f9fafb' }}
+                  onMouseOut={e => { if(!isSelected(opt.value)) e.currentTarget.style.background = 'transparent' }}
                 >
                   {opt.label}
+                  {isSelected(opt.value) && isMulti && <Check size={16} />}
                 </div>
               ))
             )}
