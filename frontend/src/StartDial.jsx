@@ -5,6 +5,7 @@ const API = 'https://aruvixlabs.onrender.com/api';
 
 const StartDial = () => {
   const [leads, setLeads] = useState([]);
+  const [selectedLead, setSelectedLead] = useState(null);
   const [feedback, setFeedback] = useState({ selection: '', notes: '' });
   const [successMsg, setSuccessMsg] = useState('');
   const [callHistory, setCallHistory] = useState([]);
