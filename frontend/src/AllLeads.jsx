@@ -74,7 +74,7 @@ const AllLeads = ({ leads, employees = [], handleConvert, handleDelete, handleBu
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
         <h2 style={{ color: 'var(--text-dark)', margin: 0 }}>All Leads ({filteredLeads.length})</h2>
         
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
           {selectedIds.length > 0 && handleBulkDelete && (
             <button onClick={() => {
               if (window.confirm(`Are you sure you want to delete ${selectedIds.length} leads?`)) {
@@ -87,7 +87,7 @@ const AllLeads = ({ leads, employees = [], handleConvert, handleDelete, handleBu
           )}
 
           {selectedIds.length > 0 && handleBulkAssign && (
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px' }}>
               <div style={{ width: '200px' }}>
                 <SearchableSelect 
                   options={employees.map(emp => ({ value: emp.id, label: emp.name }))}
@@ -111,14 +111,14 @@ const AllLeads = ({ leads, employees = [], handleConvert, handleDelete, handleBu
             </div>
           )}
 
-          <div style={{ position: 'relative' }}>
+          <div style={{ position: 'relative', flexGrow: 1, minWidth: '200px' }}>
             <Search size={18} color="#9ca3af" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
             <input 
               type="text" 
               placeholder="Search leads..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ padding: '10px 10px 10px 38px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none', width: '250px' }}
+              style={{ padding: '10px 10px 10px 38px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none', width: '100%', maxWidth: '300px' }}
             />
           </div>
 

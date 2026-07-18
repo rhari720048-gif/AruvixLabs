@@ -1370,22 +1370,73 @@ app.post('/api/telecalling/manual-appointment', authenticate, async (req, res) =
     }
 });
 
+app.post('/api/telecalling/manual-ni', authenticate, async (req, res) => {
+    const { name, phone, location, car_name, car_number, requirements, notes, assignedTo } = req.body;
+    let assignedToStr = '[]';
+    if (Array.isArray(assignedTo)) {
+        assignedToStr = JSON.stringify(assignedTo.map(id => parseInt(id, 10)).filter(id => !isNaN(id)));
+    } else if (assignedTo) {
+        assignedToStr = JSON.stringify([parseInt(assignedTo, 10)]);
+    } else {
+        assignedToStr = JSON.stringify([req.user.id]);
+    }
+    try {
+        const customer_id = 'M-' + Date.now() + Math.floor(Math.random() * 1000);
+        const [result] = await pool.query(
+            'INSERT INTO customers (customer_id, name, phone, district, source, notes, status, assigned_to, car_model, registration_number, last_dial_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())',
+            [customer_id, name, phone, location || '', 'Manual', requirements || '', 'NI', assignedToStr, car_name || '', car_number || '']
+        );
+        const insertId = result.insertId;
+        await pool.query(
+            'INSERT INTO call_logs (customer_id, employee_id, status, notes, duration) VALUES (?, ?, ?, ?, ?)',
+            [insertId, req.user.id, 'NI', notes || 'Manual NI entry', 0]
+        );
+        res.json({ success: true, id: insertId });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/telecalling/manual-entry', authenticate, async (req, res) => {
+    const { name, phone, location, car_name, car_number, requirements, notes, assignedTo, status, duration } = req.body;
+    let assignedToStr = '[]';
+    if (Array.isArray(assignedTo)) {
+        assignedToStr = JSON.stringify(assignedTo.map(id => parseInt(id, 10)).filter(id => !isNaN(id)));
+    } else if (assignedTo) {
+        assignedToStr = JSON.stringify([parseInt(assignedTo, 10)]);
+    } else {
+        assignedToStr = JSON.stringify([req.user.id]);
+    }
+    try {
+        const customer_id = 'M-' + Date.now() + Math.floor(Math.random() * 1000);
+        const [result] = await pool.query(
+            'INSERT INTO customers (customer_id, name, phone, district, source, notes, status, assigned_to, car_model, registration_number, last_dial_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())',
+            [customer_id, name, phone, location || '', 'Manual', requirements || '', status || 'Interested', assignedToStr, car_name || '', car_number || '']
+        );
+        const insertId = result.insertId;
+        await pool.query(
+            'INSERT INTO call_logs (customer_id, employee_id, status, notes, duration) VALUES (?, ?, ?, ?, ?)',
+            [insertId, req.user.id, status || 'Interested', notes || 'Manual entry', parseInt(duration) || 0]
+        );
+        res.json({ success: true, id: insertId });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.get('/api/telecalling/nibox', authenticate, async (req, res) => {
     try {
+        const { type } = req.query; // 'my' or 'all'
         let query = `
             SELECT * FROM customers 
             WHERE status IN ('Not Interested', 'NI')
-            ORDER BY last_dial_date DESC
         `;
         let params = [];
-        if (req.user.role !== 'admin') {
-            query = `
-                SELECT * FROM customers 
-                WHERE JSON_CONTAINS(assigned_to, CAST(? AS JSON), '$') AND status IN ('Not Interested', 'NI')
-                ORDER BY last_dial_date DESC
-            `;
+        if (type === 'my') {
+            query += ` AND JSON_CONTAINS(assigned_to, CAST(? AS JSON), '$')`;
             params = [req.user.id];
         }
+        query += ` ORDER BY last_dial_date DESC`;
         const [rows] = await pool.query(query, params);
         res.json(rows);
     } catch (error) { res.status(500).json({ error: error.message }); }
@@ -1404,14 +1455,21 @@ app.get('/api/customers/:id/history', authenticate, async (req, res) => {
 // Get Global Call History
 app.get('/api/telecalling/history/all', authenticate, async (req, res) => {
     try {
-        const query = `
+        const { type } = req.query; // 'my' or 'all'
+        let query = `
             SELECT l.*, c.name as customer_name, c.phone, u.name as employee_name
             FROM call_logs l
             LEFT JOIN customers c ON l.customer_id = c.id
             LEFT JOIN users u ON l.employee_id = u.id
-            ORDER BY l.created_at DESC
+            WHERE 1=1
         `;
-        const [rows] = await pool.query(query);
+        let params = [];
+        if (type === 'my') {
+            query += ` AND l.employee_id = ?`;
+            params = [req.user.id];
+        }
+        query += ` ORDER BY l.created_at DESC`;
+        const [rows] = await pool.query(query, params);
         res.json(rows);
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
