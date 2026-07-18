@@ -346,7 +346,7 @@ export default function UserManagement() {
             </div>
 
             <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                 <div style={{ gridColumn: '1/-1' }}>
                   <label style={lbl}>Full Name *</label>
                   <div style={{ position: 'relative' }}>

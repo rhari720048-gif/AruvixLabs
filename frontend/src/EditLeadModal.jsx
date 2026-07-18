@@ -132,7 +132,7 @@ const EditLeadModal = ({ isOpen, onClose, data, onSave }) => {
           <Edit3 size={24} color="var(--primary)" /> Edit Lead Details
         </h2>
         
-        <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+        <form onSubmit={handleSubmit} className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
           
           <div style={{ gridColumn: '1 / -1' }}>
             <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600', color: '#374151' }}>

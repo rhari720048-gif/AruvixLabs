@@ -199,7 +199,7 @@ const StartDial = () => {
                 
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '10px' }}>
+              <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '10px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563', background: '#f9fafb', padding: '12px', borderRadius: '8px' }}>
                   <PhoneCall size={18} color="#6366f1" /> <strong>Phone:</strong> {selectedLead.phone}
                 </div>

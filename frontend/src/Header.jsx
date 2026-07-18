@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Clock, Play, Pause, Square, Check, X, CheckCircle, Search, LogOut } from 'lucide-react';
+import { Bell, Clock, Play, Pause, Square, Check, X, CheckCircle, Search, LogOut, Menu } from 'lucide-react';
 
 const API = 'https://aruvixlabs.onrender.com/api';
 
@@ -8,7 +8,7 @@ const decodeToken = (token) => {
   catch (e) { return null; }
 };
 
-export default function Header() {
+export default function Header({ setSidebarOpen }) {
   const token = localStorage.getItem('token');
   const tokenUser = decodeToken(token) || { role: 'employee' };
   
@@ -129,9 +129,17 @@ export default function Header() {
         </div>
       )}
 
-      <h2 style={{ margin: 0 }}>Welcome back, {user.name}</h2>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <button 
+          className="mobile-menu-btn" 
+          onClick={() => setSidebarOpen(true)}
+        >
+          <Menu size={24} />
+        </button>
+        <h2 style={{ margin: 0, fontSize: 'clamp(16px, 4vw, 24px)' }}>Welcome back, {user.name}</h2>
+      </div>
       
-      <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         
         {/* Attendance Widget */}
         <div style={{ background: '#f3f4f6', padding: '6px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -178,10 +186,10 @@ export default function Header() {
 
 
         <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+          <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0 }}>
             {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
           </div>
-          <span style={{ fontWeight: 600, color: '#374151' }}>{user.name}</span>
+          <span style={{ fontWeight: 600, color: '#374151' }} className="hide-on-mobile">{user.name}</span>
           
           <button 
             onClick={() => {

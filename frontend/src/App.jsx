@@ -20,7 +20,7 @@ import NIBox from './NIBox';
 import CallHistory from './CallHistory';
 // Mock Data removed as data is now fetched from APIs
 
-const Sidebar = () => {
+const Sidebar = ({ isSidebarOpen, setSidebarOpen }) => {
   const location = useLocation();
   const isActive = (path) => location.pathname === path ? 'active' : '';
 
@@ -35,7 +35,9 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="sidebar">
+    <>
+      <div className={`sidebar-overlay ${isSidebarOpen ? 'active' : ''}`} onClick={() => setSidebarOpen(false)}></div>
+      <aside className={`sidebar ${isSidebarOpen ? 'sidebar-open' : ''}`}>
       <div className="sidebar-logo">
         <div style={{ width: 32, height: 32, background: 'var(--primary)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <span style={{ color: 'white', fontSize: 16 }}>A</span>
@@ -43,23 +45,24 @@ const Sidebar = () => {
         AruvixLabs
       </div>
       <ul className="nav-links" style={{ overflowY: 'auto', paddingBottom: '20px' }}>
-        {hasPerm('dashboard') && <li><Link to="/" className={`nav-link ${isActive('/')}`}><LayoutDashboard size={20} /> Dashboard</Link></li>}
-        {hasPerm('profile') && <li><Link to="/profile" className={`nav-link ${isActive('/profile')}`}><User size={20} /> My Profile</Link></li>}
+        {hasPerm('dashboard') && <li><Link onClick={() => setSidebarOpen(false)} to="/" className={`nav-link ${isActive('/')}`}><LayoutDashboard size={20} /> Dashboard</Link></li>}
+        {hasPerm('profile') && <li><Link onClick={() => setSidebarOpen(false)} to="/profile" className={`nav-link ${isActive('/profile')}`}><User size={20} /> My Profile</Link></li>}
         
-        {role === 'employee' && <li><Link to="/dial" className={`nav-link ${isActive('/dial')}`}><PhoneCall size={20} /> Start Dial</Link></li>}
-        {role === 'employee' && <li><Link to="/callback" className={`nav-link ${isActive('/callback')}`}><Clock size={20} /> Callbacks</Link></li>}
+        {role === 'employee' && <li><Link onClick={() => setSidebarOpen(false)} to="/dial" className={`nav-link ${isActive('/dial')}`}><PhoneCall size={20} /> Start Dial</Link></li>}
+        {role === 'employee' && <li><Link onClick={() => setSidebarOpen(false)} to="/callback" className={`nav-link ${isActive('/callback')}`}><Clock size={20} /> Callbacks</Link></li>}
 
-        {hasPerm('leads') && <li><Link to="/leads" className={`nav-link ${isActive('/leads')}`}><UserPlus size={20} /> Leads</Link></li>}
-        {hasPerm('leads') && <li><Link to="/appointments" className={`nav-link ${isActive('/appointments')}`}><Calendar size={20} /> Appointments</Link></li>}
-        {hasPerm('leads') && <li><Link to="/call-later" className={`nav-link ${isActive('/call-later')}`}><Clock size={20} /> Call Later</Link></li>}
-        {hasPerm('leads') && <li><Link to="/ni-box" className={`nav-link ${isActive('/ni-box')}`}><Archive size={20} /> Not Interested (NI)</Link></li>}
-        {hasPerm('leads') && <li><Link to="/call-history" className={`nav-link ${isActive('/call-history')}`}><PhoneCall size={20} /> Call History</Link></li>}
-        {hasPerm('clients') && <li><Link to="/clients" className={`nav-link ${isActive('/clients')}`}><Users size={20} /> Clients / Customers</Link></li>}
+        {hasPerm('leads') && <li><Link onClick={() => setSidebarOpen(false)} to="/leads" className={`nav-link ${isActive('/leads')}`}><UserPlus size={20} /> Leads</Link></li>}
+        {hasPerm('leads') && <li><Link onClick={() => setSidebarOpen(false)} to="/appointments" className={`nav-link ${isActive('/appointments')}`}><Calendar size={20} /> Appointments</Link></li>}
+        {hasPerm('leads') && <li><Link onClick={() => setSidebarOpen(false)} to="/call-later" className={`nav-link ${isActive('/call-later')}`}><Clock size={20} /> Call Later</Link></li>}
+        {hasPerm('leads') && <li><Link onClick={() => setSidebarOpen(false)} to="/ni-box" className={`nav-link ${isActive('/ni-box')}`}><Archive size={20} /> Not Interested (NI)</Link></li>}
+        {hasPerm('leads') && <li><Link onClick={() => setSidebarOpen(false)} to="/call-history" className={`nav-link ${isActive('/call-history')}`}><PhoneCall size={20} /> Call History</Link></li>}
+        {hasPerm('clients') && <li><Link onClick={() => setSidebarOpen(false)} to="/clients" className={`nav-link ${isActive('/clients')}`}><Users size={20} /> Clients / Customers</Link></li>}
         
-        {hasPerm('user_management') && <li><Link to="/user-management" className={`nav-link ${isActive('/user-management')}`}><Users size={20} /> Staff Management</Link></li>}
-        {hasPerm('settings') && <li style={{ marginTop: '20px' }}><Link to="/settings" className={`nav-link ${isActive('/settings')}`}><Settings size={20} /> Settings</Link></li>}
+        {hasPerm('user_management') && <li><Link onClick={() => setSidebarOpen(false)} to="/user-management" className={`nav-link ${isActive('/user-management')}`}><Users size={20} /> Staff Management</Link></li>}
+        {hasPerm('settings') && <li style={{ marginTop: '20px' }}><Link onClick={() => setSidebarOpen(false)} to="/settings" className={`nav-link ${isActive('/settings')}`}><Settings size={20} /> Settings</Link></li>}
       </ul>
     </aside>
+    </>
   );
 };
 
@@ -406,7 +409,7 @@ const ProfilePage = () => {
       <div style={{ background: 'white', borderRadius: 16, boxShadow: '0 4px 20px rgba(0,0,0,0.07)', border: '1px solid #e5e7eb', padding: '30px' }}>
         <h3 style={{ margin: '0 0 24px', color: '#111827', fontSize: 17, fontWeight: 700 }}>Personal Information</h3>
         <form id="profile-form" onSubmit={handleSave}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+          <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
             <div>
               <label style={{ display: 'block', marginBottom: 6, fontSize: 13, fontWeight: 600, color: '#374151' }}>Full Name</label>
               <input value={isEditing ? draft.name : form.name} onChange={e => setDraft({ ...draft, name: e.target.value })} readOnly={!isEditing} style={inputStyle(isEditing)} />
@@ -465,6 +468,7 @@ const ProtectedRoute = ({ module, children }) => {
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const handleStorageChange = (e) => {
@@ -518,9 +522,9 @@ function App() {
   return (
     <Router>
       <div className="app-container">
-        <Sidebar />
+        <Sidebar isSidebarOpen={isSidebarOpen} setSidebarOpen={setSidebarOpen} />
         <main className="main-content">
-          <Header />
+          <Header setSidebarOpen={setSidebarOpen} />
           <div className="content-area">
             <Routes>
               <Route path="/" element={<ProtectedRoute module="dashboard"><Dashboard /></ProtectedRoute>} />

@@ -104,7 +104,7 @@ const DragDropPermissions = ({ permissions, setPermissions, canEdit, moduleGroup
   });
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+    <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
       {/* Available Column */}
       <div 
         onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
@@ -536,7 +536,7 @@ const SettingsPage = () => {
                 <textarea value={companyForm.address} onChange={e => setCompanyForm({...companyForm, address: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', outline: 'none', minHeight: '60px' }} required></textarea>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+              <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                 <div>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>Phone Number</label>
                   <input type="tel" value={companyForm.phone} onChange={e => setCompanyForm({...companyForm, phone: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', outline: 'none' }} required />
@@ -710,7 +710,7 @@ const SettingsPage = () => {
                     <button onClick={() => setShowViewModal(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#9ca3af' }}><X size={20} /></button>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '24px', background: '#f9fafb', padding: '16px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                  <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '24px', background: '#f9fafb', padding: '16px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
                     <div><strong>Email:</strong> <span style={{ color: '#4b5563' }}>{viewingUser.email}</span></div>
                     <div><strong>Phone:</strong> <span style={{ color: '#4b5563' }}>{viewingUser.phone || '—'}</span></div>
                     <div><strong>Department:</strong> <span style={{ color: '#4b5563' }}>{viewingUser.department || '—'}</span></div>
@@ -755,7 +755,7 @@ const SettingsPage = () => {
                   </div>
 
                   <form onSubmit={handleUserUpdate}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '20px' }}>
+                    <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '20px' }}>
                       <div>
                         <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Full Name *</label>
                         <input type="text" required value={editUserForm.name} onChange={e => setEditUserForm({ ...editUserForm, name: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #d1d5db', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }} />
@@ -901,7 +901,7 @@ const SettingsPage = () => {
                                           All
                                         </label>
                                       </div>
-                                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                                      <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                                         {fields.map(p => (
                                           <label key={p.key} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: perms[p.key] ? '#111827' : '#6b7280', cursor: 'pointer' }}>
                                             <input

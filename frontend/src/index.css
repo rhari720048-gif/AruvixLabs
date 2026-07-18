@@ -204,3 +204,88 @@ tr:hover {
 .btn-primary:hover {
   background-color: var(--primary-hover);
 }
+
+/* --- Mobile Responsiveness --- */
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 40;
+}
+
+.mobile-menu-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -280px; /* Hide off-screen */
+    width: 260px;
+    height: 100vh;
+    z-index: 50;
+    transition: left 0.3s ease;
+    box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+  }
+  
+  .sidebar.sidebar-open {
+    left: 0;
+  }
+  
+  .sidebar-overlay.active {
+    display: block;
+  }
+  
+  .mobile-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .header {
+    padding: 0 16px;
+    height: 64px;
+    gap: 12px;
+  }
+  
+  .content-area {
+    padding: 16px;
+  }
+  
+  .data-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  table th, table td {
+    white-space: nowrap;
+    padding: 12px 16px;
+  }
+
+  /* Make sure modal overlays fit nicely */
+  .modal-content-wrapper {
+    width: 95% !important;
+    margin: auto;
+  }
+  
+  .hide-on-mobile {
+    display: none !important;
+  }
+  
+  .responsive-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

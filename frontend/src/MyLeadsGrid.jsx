@@ -300,7 +300,7 @@ const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdat
               )}
 
               {/* Lead Details Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '30px' }}>
+              <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '30px' }}>
                 <div>
                   <div style={{ color: '#6b7280', fontSize: '13px', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}><User size={14}/> Name</div>
                   {isEditing ? (
@@ -336,7 +336,7 @@ const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdat
                     <div style={{ fontWeight: '500', color: '#374151', fontSize: '15px' }}>{selectedLead.status || 'Pending'}</div>
                   )}
                 </div>
-                <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                <div className="responsive-grid" style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                   <div>
                     <div style={{ color: '#6b7280', fontSize: '13px', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}><Car size={14}/> Car Model</div>
                     {isEditing ? (
