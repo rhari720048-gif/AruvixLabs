@@ -1465,6 +1465,20 @@ app.get('/api/telecalling/history/all', authenticate, async (req, res) => {
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
+// Delete a Call History Log
+app.delete('/api/telecalling/history/:id', authenticate, async (req, res) => {
+    const canDelete = req.user.role === 'admin' || req.user.permissions?.call_history?.delete;
+    if (!canDelete) return res.status(403).json({ error: 'Access denied: You do not have permission to delete call logs.' });
+
+    try {
+        const { id } = req.params;
+        await pool.query('DELETE FROM call_logs WHERE id = ?', [id]);
+        res.json({ success: true, message: 'Call log deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 

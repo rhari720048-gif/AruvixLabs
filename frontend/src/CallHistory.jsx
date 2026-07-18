@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Clock, Phone, FileText, Search, User, Users, PlusCircle, CheckCircle, Edit3 } from 'lucide-react';
+import { Clock, Phone, FileText, Search, User, Users, PlusCircle, CheckCircle, Edit3, Trash2 } from 'lucide-react';
+import { getPerms } from './permissions';
 
 const API = 'https://aruvixlabs.onrender.com/api';
 
 const CallHistory = () => {
+  const { canDelete } = getPerms('call_history');
   const [activeTab, setActiveTab] = useState('my'); // 'my', 'all'
   const [logs, setLogs] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -23,6 +24,24 @@ const CallHistory = () => {
       }
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this call log?")) return;
+    try {
+      const res = await fetch(`${API}/telecalling/history/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (res.ok) {
+        setLogs(logs.filter(l => l.id !== id));
+      } else {
+        alert("Failed to delete call log.");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Error deleting call log.");
     }
   };
 
@@ -131,6 +150,7 @@ const CallHistory = () => {
                             <th style={{ padding: '12px 20px', color: '#475569', fontWeight: '600', fontSize: '13px' }}>Status</th>
                             <th style={{ padding: '12px 20px', color: '#475569', fontWeight: '600', fontSize: '13px' }}>Duration</th>
                             <th style={{ padding: '12px 20px', color: '#475569', fontWeight: '600', fontSize: '13px' }}>Notes</th>
+                            {canDelete && <th style={{ padding: '12px 20px', color: '#475569', fontWeight: '600', fontSize: '13px', textAlign: 'center' }}>Actions</th>}
                           </tr>
                         </thead>
                         <tbody>
@@ -162,6 +182,13 @@ const CallHistory = () => {
                               <td data-label="Notes" style={{ padding: '12px 20px', color: '#64748b', fontSize: '13px' }}>
                                 {log.notes || '-'}
                               </td>
+                              {canDelete && (
+                                <td data-label="Actions" style={{ padding: '12px 20px', textAlign: 'center' }}>
+                                  <button onClick={() => handleDelete(log.id)} style={{ background: '#fee2e2', border: 'none', borderRadius: '6px', cursor: 'pointer', padding: '6px', color: '#ef4444', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <Trash2 size={16} />
+                                  </button>
+                                </td>
+                              )}
                             </tr>
                           ))}
                         </tbody>

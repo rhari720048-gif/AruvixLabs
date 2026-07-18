@@ -141,6 +141,11 @@ async function initDB() {
                 quotes: { view: true, create: true, edit: true, delete: true },
                 leads: { view: true, create: true, edit: true, delete: true },
                 clients: { view: true, create: true, edit: true, delete: true },
+                telecalling: { view: true, create: true, edit: true, delete: true },
+                appointments: { view: true, create: true, edit: true, delete: true },
+                call_later: { view: true, create: true, edit: true, delete: true },
+                ni_box: { view: true, create: true, edit: true, delete: true },
+                call_history: { view: true, create: true, edit: true, delete: true },
                 staff_attendance: { view: true, create: true, edit: true, delete: true },
                 my_attendance: { view: true, create: true, edit: true, delete: true },
                 user_notes: { view: true, create: true, edit: true, delete: true },
@@ -157,7 +162,14 @@ async function initDB() {
                 profile: { view: true },
                 my_attendance: { view: true, create: true },
                 tasks: { view: true, edit: true },
-                team_chat: { view: true, create: true }
+                team_chat: { view: true, create: true },
+                leads: { view: true, create: true, edit: true, delete: false },
+                clients: { view: true, create: true, edit: true, delete: false },
+                telecalling: { view: true, create: true, edit: true, delete: false },
+                appointments: { view: true, create: true, edit: true, delete: false },
+                call_later: { view: true, create: true, edit: true, delete: false },
+                ni_box: { view: true, create: true, edit: true, delete: false },
+                call_history: { view: true, delete: false }
             };
 
             await pool.query('INSERT INTO roles (name, permissions) VALUES (?, ?)', ['Admin', JSON.stringify(allPermissions)]);
@@ -178,8 +190,53 @@ async function initDB() {
             await pool.query(`UPDATE users SET permissions = (SELECT permissions FROM roles WHERE name = 'Admin') WHERE role = 'admin' AND permissions IS NULL`);
             // Give all users employee permissions if they are 'employee' role but permissions is NULL
             await pool.query(`UPDATE users SET permissions = (SELECT permissions FROM roles WHERE name = 'Employee') WHERE role = 'employee' AND permissions IS NULL`);
+
+            // Ensure existing Admin role has all new modules
+            const [existingAdmin] = await pool.query("SELECT id, permissions FROM roles WHERE name = 'Admin'");
+            if (existingAdmin.length > 0) {
+                let currentPerms = typeof existingAdmin[0].permissions === 'string' ? JSON.parse(existingAdmin[0].permissions) : existingAdmin[0].permissions;
+                const keysToAdd = ['telecalling', 'appointments', 'call_later', 'ni_box', 'call_history'];
+                let modified = false;
+                keysToAdd.forEach(k => {
+                    if (!currentPerms[k]) {
+                        currentPerms[k] = { view: true, create: true, edit: true, delete: true };
+                        modified = true;
+                    }
+                });
+                if (modified) {
+                    await pool.query("UPDATE roles SET permissions = ? WHERE id = ?", [JSON.stringify(currentPerms), existingAdmin[0].id]);
+                }
+            }
+
+            // Ensure existing Employee role has all CRM modules
+            const [existingEmp] = await pool.query("SELECT id, permissions FROM roles WHERE name = 'Employee'");
+            if (existingEmp.length > 0) {
+                let currentPerms = typeof existingEmp[0].permissions === 'string' ? JSON.parse(existingEmp[0].permissions) : existingEmp[0].permissions;
+                const empDefaultKeys = {
+                    leads: { view: true, create: true, edit: true, delete: false },
+                    clients: { view: true, create: true, edit: true, delete: false },
+                    telecalling: { view: true, create: true, edit: true, delete: false },
+                    appointments: { view: true, create: true, edit: true, delete: false },
+                    call_later: { view: true, create: true, edit: true, delete: false },
+                    ni_box: { view: true, create: true, edit: true, delete: false },
+                    call_history: { view: true, delete: false }
+                };
+                let modified = false;
+                Object.keys(empDefaultKeys).forEach(k => {
+                    if (!currentPerms[k]) {
+                        currentPerms[k] = empDefaultKeys[k];
+                        modified = true;
+                    }
+                });
+                if (modified) {
+                    await pool.query("UPDATE roles SET permissions = ? WHERE id = ?", [JSON.stringify(currentPerms), existingEmp[0].id]);
+                }
+            }
+            
+            // Sync user permissions based on their role
+            await pool.query(`UPDATE users u JOIN roles r ON u.role_id = r.id SET u.permissions = r.permissions`);
         } catch (e) {
-            console.log("Migration skipped or failed:", e.message);
+            console.log("Migration users role_id and permissions set failed/skipped:", e.message);
         }
 
         await pool.query(customersTable);
