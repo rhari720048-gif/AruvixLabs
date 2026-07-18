@@ -74,9 +74,9 @@ const StartDial = () => {
       });
       if (res.ok) {
         setSuccessMsg('Feedback submitted successfully!');
-        setSelectedLead(null);
         setFeedback({ selection: '', notes: '' });
         fetchLeads(); // Refresh the list
+        fetchCallHistory(selectedLead.id); // Refresh history for the current lead
         setTimeout(() => setSuccessMsg(''), 3000);
       }
     } catch (e) {
@@ -182,7 +182,7 @@ const StartDial = () => {
                           {log.status}
                         </span>
                         <span style={{ color: '#6b7280', fontSize: '12px' }}>
-                          {new Date(log.call_date).toLocaleString()}
+                          {new Date(log.created_at || log.call_date).toLocaleString()}
                         </span>
                       </div>
                       <div style={{ color: '#4b5563' }}>{log.notes || 'No notes'}</div>

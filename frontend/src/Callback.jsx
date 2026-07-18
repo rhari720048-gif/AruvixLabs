@@ -8,10 +8,33 @@ const Callback = () => {
   const [selectedLead, setSelectedLead] = useState(null);
   const [feedback, setFeedback] = useState({ status: 'Interested', notes: '', callback_time: '' });
   const [successMsg, setSuccessMsg] = useState('');
+  const [callHistory, setCallHistory] = useState([]);
 
   useEffect(() => {
     fetchLeads();
   }, []);
+
+  useEffect(() => {
+    if (selectedLead) {
+      fetchCallHistory(selectedLead.id);
+    } else {
+      setCallHistory([]);
+    }
+  }, [selectedLead]);
+
+  const fetchCallHistory = async (id) => {
+    try {
+      const res = await fetch(`${API}/customers/${id}/history`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCallHistory(data);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const fetchLeads = async () => {
     try {
@@ -41,9 +64,9 @@ const Callback = () => {
       });
       if (res.ok) {
         setSuccessMsg('Feedback submitted successfully!');
-        setSelectedLead(null);
         setFeedback({ status: 'Interested', notes: '', callback_time: '' });
         fetchLeads();
+        fetchCallHistory(selectedLead.id);
         setTimeout(() => setSuccessMsg(''), 3000);
       }
     } catch (e) {
@@ -110,6 +133,30 @@ const Callback = () => {
                 </div>
               </div>
             </div>
+
+            {/* Call History */}
+            {callHistory.length > 0 && (
+              <div style={{ marginBottom: '25px', background: '#f8fafc', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <h3 style={{ margin: '0 0 15px', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px' }}>
+                  <Clock size={18} color="#6366f1" /> Call History ({callHistory.length})
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '150px', overflowY: 'auto' }}>
+                  {callHistory.map(log => (
+                    <div key={log.id} style={{ background: 'white', padding: '12px', borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: '14px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                        <span style={{ fontWeight: 'bold', color: log.status === 'Interested' || log.status === 'Appointment' ? '#10b981' : log.status === 'Not Interested' ? '#ef4444' : '#f59e0b' }}>
+                          {log.status}
+                        </span>
+                        <span style={{ color: '#6b7280', fontSize: '12px' }}>
+                          {new Date(log.created_at || log.call_date).toLocaleString()}
+                        </span>
+                      </div>
+                      <div style={{ color: '#4b5563' }}>{log.notes || 'No notes'}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <form onSubmit={handleFeedbackSubmit}>
               <h3 style={{ marginBottom: '15px' }}>Update Call Feedback</h3>
