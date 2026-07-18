@@ -25,6 +25,14 @@ const getModulePermsFields = (moduleKey) => {
       { key: 'delete',      lbl: 'Delete' }
     ];
   }
+  if (['telecalling', 'appointments', 'call_later', 'ni_box', 'call_history'].includes(moduleKey)) {
+    return [
+      { key: 'view',   lbl: 'View Page' },
+      { key: 'create', lbl: 'Create / Manual Entry' },
+      { key: 'edit',   lbl: 'Edit' },
+      { key: 'delete', lbl: 'Delete' }
+    ];
+  }
   return [
     { key: 'view',   lbl: 'View' },
     { key: 'create', lbl: 'Create' },
@@ -236,6 +244,11 @@ const SettingsPage = () => {
       modules: [
         { key: 'leads',           label: 'Leads'            },
         { key: 'clients',         label: 'Clients'          },
+        { key: 'telecalling',     label: 'Start Dial / Callbacks' },
+        { key: 'appointments',    label: 'Appointments'     },
+        { key: 'call_later',      label: 'Call Later'       },
+        { key: 'ni_box',          label: 'NI Box'           },
+        { key: 'call_history',    label: 'Call History'     },
       ]
     },
     {

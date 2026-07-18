@@ -120,7 +120,7 @@ export default function Header({ setSidebarOpen }) {
   };
 
   return (
-    <header className="header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: 'white', borderBottom: '1px solid #e5e7eb' }}>
+    <header className="header">
       
       {/* Toast */}
       {toast && (
@@ -136,7 +136,7 @@ export default function Header({ setSidebarOpen }) {
         >
           <Menu size={24} />
         </button>
-        <h2 style={{ margin: 0, fontSize: 'clamp(16px, 4vw, 24px)' }}>Welcome back, {user.name}</h2>
+        <h2 className="header-title" style={{ margin: 0, fontSize: 'clamp(16px, 4vw, 24px)' }}>Welcome back, {user.name}</h2>
       </div>
       
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -144,40 +144,40 @@ export default function Header({ setSidebarOpen }) {
         {/* Attendance Widget */}
         <div style={{ background: '#f3f4f6', padding: '6px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           {attStatus === 'not_checked_in' && (
-            <button onClick={handleCheckIn} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#10b981', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>
-              <Play size={16} /> Check In
+            <button onClick={handleCheckIn} className="attendance-btn check-in">
+              <Play size={16} /> <span>Check In</span>
             </button>
           )}
           
           {(attStatus === 'checked_in' || attStatus === 'pass_rejected') && (
             <>
-              <span style={{ fontSize: 13, fontWeight: 600, color: '#059669', padding: '0 8px', display: 'flex', alignItems: 'center', gap: 4 }}><div style={{width:8,height:8,background:'#10b981',borderRadius:'50%'}}></div> Working</span>
-              <button onClick={() => setShowPassModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#f59e0b', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>
-                <Pause size={16} /> Pass
+              <span className="attendance-status-text" style={{ fontSize: 13, fontWeight: 600, color: '#059669', padding: '0 8px', display: 'flex', alignItems: 'center', gap: 4 }}><div style={{width:8,height:8,background:'#10b981',borderRadius:'50%'}}></div> Working</span>
+              <button onClick={() => setShowPassModal(true)} className="attendance-btn pass">
+                <Pause size={16} /> <span>Pass</span>
               </button>
-              <button onClick={handleCheckOut} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#ef4444', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>
-                <Square size={16} /> Check Out
+              <button onClick={handleCheckOut} className="attendance-btn check-out">
+                <Square size={16} /> <span>Check Out</span>
               </button>
             </>
           )}
 
           {attStatus === 'pass_pending' && (
-            <div style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, color: '#d97706', background: '#fef3c7', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Clock size={16} /> Pass Pending...
+            <div style={{ padding: '8px 12px', fontSize: 13, fontWeight: 600, color: '#d97706', background: '#fef3c7', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Clock size={16} /> <span className="attendance-status-text">Pass Pending...</span>
             </div>
           )}
 
           {attStatus === 'on_pass' && (
             <>
-              <span style={{ fontSize: 13, fontWeight: 600, color: '#d97706', padding: '0 8px', display: 'flex', alignItems: 'center', gap: 4 }}><div style={{width:8,height:8,background:'#f59e0b',borderRadius:'50%'}}></div> On Pass</span>
-              <button onClick={handleResume} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#10b981', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>
-                <Play size={16} /> Resume Work
+              <span className="attendance-status-text" style={{ fontSize: 13, fontWeight: 600, color: '#d97706', padding: '0 8px', display: 'flex', alignItems: 'center', gap: 4 }}><div style={{width:8,height:8,background:'#f59e0b',borderRadius:'50%'}}></div> On Pass</span>
+              <button onClick={handleResume} className="attendance-btn resume">
+                <Play size={16} /> <span>Resume Work</span>
               </button>
             </>
           )}
 
           {attStatus === 'checked_out' && (
-            <div style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, color: '#6b7280' }}>
+            <div style={{ padding: '8px 12px', fontSize: 13, fontWeight: 600, color: '#6b7280' }}>
               Day Completed
             </div>
           )}

@@ -20,6 +20,26 @@ import NIBox from './NIBox';
 import CallHistory from './CallHistory';
 // Mock Data removed as data is now fetched from APIs
 
+const ProtectedRoute = ({ children, module, requireEmployee }) => {
+  const token = localStorage.getItem('token');
+  const role = (localStorage.getItem('role') || 'employee').toLowerCase();
+  let permissions = {};
+  try { permissions = JSON.parse(localStorage.getItem('permissions') || '{}'); } catch(e){}
+
+  if (!token) return <Navigate to="/login" />;
+
+  const hasPerm = (mod) => {
+    if (role === 'admin') return true;
+    if (mod === 'dashboard' || mod === 'profile') return true;
+    return permissions[mod] && permissions[mod].view;
+  };
+
+  if (requireEmployee && role !== 'employee') return <Navigate to="/" />;
+  if (module && !hasPerm(module)) return <Navigate to="/" />;
+
+  return children;
+};
+
 const Sidebar = ({ isSidebarOpen, setSidebarOpen }) => {
   const location = useLocation();
   const isActive = (path) => location.pathname === path ? 'active' : '';
@@ -48,14 +68,14 @@ const Sidebar = ({ isSidebarOpen, setSidebarOpen }) => {
         {hasPerm('dashboard') && <li><Link onClick={() => setSidebarOpen(false)} to="/" className={`nav-link ${isActive('/')}`}><LayoutDashboard size={20} /> Dashboard</Link></li>}
         {hasPerm('profile') && <li><Link onClick={() => setSidebarOpen(false)} to="/profile" className={`nav-link ${isActive('/profile')}`}><User size={20} /> My Profile</Link></li>}
         
-        {role === 'employee' && <li><Link onClick={() => setSidebarOpen(false)} to="/dial" className={`nav-link ${isActive('/dial')}`}><PhoneCall size={20} /> Start Dial</Link></li>}
-        {role === 'employee' && <li><Link onClick={() => setSidebarOpen(false)} to="/callback" className={`nav-link ${isActive('/callback')}`}><Clock size={20} /> Callbacks</Link></li>}
+        {hasPerm('telecalling') && <li><Link onClick={() => setSidebarOpen(false)} to="/dial" className={`nav-link ${isActive('/dial')}`}><PhoneCall size={20} /> Start Dial</Link></li>}
+        {hasPerm('telecalling') && <li><Link onClick={() => setSidebarOpen(false)} to="/callback" className={`nav-link ${isActive('/callback')}`}><Clock size={20} /> Callbacks</Link></li>}
 
         {hasPerm('leads') && <li><Link onClick={() => setSidebarOpen(false)} to="/leads" className={`nav-link ${isActive('/leads')}`}><UserPlus size={20} /> Leads</Link></li>}
-        {hasPerm('leads') && <li><Link onClick={() => setSidebarOpen(false)} to="/appointments" className={`nav-link ${isActive('/appointments')}`}><Calendar size={20} /> Appointments</Link></li>}
-        {hasPerm('leads') && <li><Link onClick={() => setSidebarOpen(false)} to="/call-later" className={`nav-link ${isActive('/call-later')}`}><Clock size={20} /> Call Later</Link></li>}
-        {hasPerm('leads') && <li><Link onClick={() => setSidebarOpen(false)} to="/ni-box" className={`nav-link ${isActive('/ni-box')}`}><Archive size={20} /> Not Interested (NI)</Link></li>}
-        {hasPerm('leads') && <li><Link onClick={() => setSidebarOpen(false)} to="/call-history" className={`nav-link ${isActive('/call-history')}`}><PhoneCall size={20} /> Call History</Link></li>}
+        {hasPerm('appointments') && <li><Link onClick={() => setSidebarOpen(false)} to="/appointments" className={`nav-link ${isActive('/appointments')}`}><Calendar size={20} /> Appointments</Link></li>}
+        {hasPerm('call_later') && <li><Link onClick={() => setSidebarOpen(false)} to="/call-later" className={`nav-link ${isActive('/call-later')}`}><Clock size={20} /> Call Later</Link></li>}
+        {hasPerm('ni_box') && <li><Link onClick={() => setSidebarOpen(false)} to="/ni-box" className={`nav-link ${isActive('/ni-box')}`}><Archive size={20} /> Not Interested (NI)</Link></li>}
+        {hasPerm('call_history') && <li><Link onClick={() => setSidebarOpen(false)} to="/call-history" className={`nav-link ${isActive('/call-history')}`}><PhoneCall size={20} /> Call History</Link></li>}
         {hasPerm('clients') && <li><Link onClick={() => setSidebarOpen(false)} to="/clients" className={`nav-link ${isActive('/clients')}`}><Users size={20} /> Clients / Customers</Link></li>}
         
         {hasPerm('user_management') && <li><Link onClick={() => setSidebarOpen(false)} to="/user-management" className={`nav-link ${isActive('/user-management')}`}><Users size={20} /> Staff Management</Link></li>}
@@ -445,27 +465,6 @@ const ProfilePage = () => {
   );
 };
 
-const ProtectedRoute = ({ module, children }) => {
-  let permissions = {};
-  try { permissions = JSON.parse(localStorage.getItem('permissions') || '{}'); } catch (e) { }
-  const role = (localStorage.getItem('role') || 'employee').toLowerCase();
-
-  if (role === 'admin') return children;
-  if (!module) return children;
-  if (module === 'dashboard' || module === 'profile') return children;
-
-  const canView = permissions[module] && permissions[module].view;
-  if (!canView) {
-    return (
-      <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
-        <h2>Access Denied</h2>
-        <p>You do not have permission to view this page.</p>
-      </div>
-    );
-  }
-  return children;
-};
-
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -528,17 +527,17 @@ function App() {
           <div className="content-area">
             <Routes>
               <Route path="/" element={<ProtectedRoute module="dashboard"><Dashboard /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute module="profile"><ProfilePage /></ProtectedRoute>} />
               <Route path="/leads" element={<ProtectedRoute module="leads"><AdminLeads /></ProtectedRoute>} />
               <Route path="/clients" element={<ProtectedRoute module="clients"><Clients /></ProtectedRoute>} />
-              <Route path="/settings" element={<ProtectedRoute module="settings"><SettingsPage /></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute module="profile"><ProfilePage /></ProtectedRoute>} />
               <Route path="/user-management" element={<ProtectedRoute module="user_management"><UserManagement /></ProtectedRoute>} />
-              <Route path="/dial" element={<StartDial />} />
-              <Route path="/callback" element={<Callback />} />
-              <Route path="/appointments" element={<ProtectedRoute module="leads"><Appointments /></ProtectedRoute>} />
-              <Route path="/call-later" element={<ProtectedRoute module="leads"><CallLater /></ProtectedRoute>} />
-              <Route path="/ni-box" element={<ProtectedRoute module="leads"><NIBox /></ProtectedRoute>} />
-              <Route path="/call-history" element={<ProtectedRoute module="leads"><CallHistory /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute module="settings"><SettingsPage /></ProtectedRoute>} />
+              <Route path="/dial" element={<ProtectedRoute module="telecalling"><StartDial /></ProtectedRoute>} />
+              <Route path="/callback" element={<ProtectedRoute module="telecalling"><Callback /></ProtectedRoute>} />
+              <Route path="/appointments" element={<ProtectedRoute module="appointments"><Appointments /></ProtectedRoute>} />
+              <Route path="/call-later" element={<ProtectedRoute module="call_later"><CallLater /></ProtectedRoute>} />
+              <Route path="/ni-box" element={<ProtectedRoute module="ni_box"><NIBox /></ProtectedRoute>} />
+              <Route path="/call-history" element={<ProtectedRoute module="call_history"><CallHistory /></ProtectedRoute>} />
             </Routes>
           </div>
         </main>

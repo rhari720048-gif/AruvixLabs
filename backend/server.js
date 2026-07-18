@@ -1269,6 +1269,7 @@ app.get('/api/telecalling/reports', authenticate, async (req, res) => {
 
 app.get('/api/telecalling/callbacks', authenticate, async (req, res) => {
     try {
+        const { type } = req.query; // 'my' or 'all'
         let query = `
             SELECT c.*, l.notes as last_note, l.callback_time 
             FROM customers c
@@ -1279,24 +1280,14 @@ app.get('/api/telecalling/callbacks', authenticate, async (req, res) => {
             ) l_max ON c.id = l_max.customer_id
             LEFT JOIN call_logs l ON l_max.max_id = l.id
             WHERE c.status = 'Call Later'
-            ORDER BY l.callback_time ASC
         `;
         let params = [];
-        if (req.user.role !== 'admin') {
-            query = `
-                SELECT c.*, l.notes as last_note, l.callback_time 
-                FROM customers c
-                LEFT JOIN (
-                    SELECT customer_id, MAX(id) as max_id
-                    FROM call_logs
-                    GROUP BY customer_id
-                ) l_max ON c.id = l_max.customer_id
-                LEFT JOIN call_logs l ON l_max.max_id = l.id
-                WHERE JSON_CONTAINS(c.assigned_to, CAST(? AS JSON), '$') AND c.status = 'Call Later'
-                ORDER BY l.callback_time ASC
-            `;
+        if (req.user.role !== 'admin' || type === 'my') {
+            query += ` AND JSON_CONTAINS(c.assigned_to, CAST(? AS JSON), '$') `;
             params = [req.user.id];
         }
+        query += ` ORDER BY l.callback_time ASC`;
+
         const [rows] = await pool.query(query, params);
         res.json(rows);
     } catch (error) { res.status(500).json({ error: error.message }); }

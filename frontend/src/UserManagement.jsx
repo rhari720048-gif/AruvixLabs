@@ -74,20 +74,28 @@ export default function UserManagement() {
   const filtered = users.filter(u => {
     const q = search.toLowerCase();
     const matchSearch = u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
-    const matchRole   = roleFilter === 'all' || u.role === roleFilter;
+    const matchRole   = roleFilter === 'all' || (u.role && u.role.toLowerCase() === roleFilter.toLowerCase());
     return matchSearch && matchRole;
   });
 
   // ── open modal ────────────────────────────────────────────────────
   const openAdd = () => {
     setEditUser(null);
-    setForm(defaultForm);
+    setForm({ ...defaultForm, role: dbRoles.length > 0 ? dbRoles[0].name : 'Employee' });
     setShowPass(false);
     setShowModal(true);
   };
   const openEdit = (u) => {
     setEditUser(u);
-    setForm({ name: u.name, email: u.email, phone: u.phone || '', role: u.role || 'employee', password: '', status: u.status || 'Active' });
+    const matchedRole = dbRoles.find(r => r.name.toLowerCase() === (u.role || '').toLowerCase());
+    setForm({
+      name: u.name,
+      email: u.email,
+      phone: u.phone || '',
+      role: matchedRole ? matchedRole.name : (u.role || 'Employee'),
+      password: '',
+      status: u.status || 'Active'
+    });
     setShowPass(false);
     setShowModal(true);
   };
@@ -199,7 +207,7 @@ export default function UserManagement() {
       </div>
 
       {/* Stats Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
+      <div className="stats-grid" style={{ gap: 16, marginBottom: 24 }}>
         {stats.map((s, i) => (
           <div key={i} style={{ background: 'white', borderRadius: 12, padding: '18px 20px', border: '1px solid #e5e7eb', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', gap: 14 }}>
             <div style={{ width: 44, height: 44, borderRadius: 10, background: s.color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -214,7 +222,7 @@ export default function UserManagement() {
       </div>
 
       {/* Search & Filter */}
-      <div style={{ background: 'white', borderRadius: 12, padding: '16px 20px', border: '1px solid #e5e7eb', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', marginBottom: 16, display: 'flex', gap: 14, alignItems: 'center' }}>
+      <div className="search-filter-container" style={{ background: 'white', borderRadius: 12, padding: '16px 20px', border: '1px solid #e5e7eb', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', marginBottom: 16 }}>
         <div style={{ position: 'relative', flex: 1 }}>
           <Search size={16} color="#9ca3af" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
           <input
@@ -330,7 +338,7 @@ export default function UserManagement() {
       {/* ─── Add / Edit Modal ─────────────────────────────────────────── */}
       {showModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)' }}>
-          <div style={{ background: 'white', borderRadius: 16, padding: '32px', width: '100%', maxWidth: 500, boxShadow: '0 20px 60px rgba(0,0,0,0.2)', position: 'relative' }}>
+          <div className="modal-content-wrapper" style={{ background: 'white', borderRadius: 16, padding: '32px', width: '100%', maxWidth: 500, boxShadow: '0 20px 60px rgba(0,0,0,0.2)', position: 'relative' }}>
             <button onClick={closeModal} style={{ position: 'absolute', top: 16, right: 16, background: '#f3f4f6', border: 'none', borderRadius: 8, padding: 8, cursor: 'pointer', color: '#6b7280' }}>
               <X size={18} />
             </button>
@@ -373,14 +381,18 @@ export default function UserManagement() {
 
                 <div>
                   <label style={lbl}>Role *</label>
-                  <input 
-                    required 
-                    type="text" 
-                    value={form.role} 
-                    onChange={e => setForm({ ...form, role: e.target.value })} 
-                    style={inp} 
-                    placeholder="e.g. Employee, Admin" 
-                  />
+                  <select
+                    required
+                    value={form.role}
+                    onChange={e => setForm({ ...form, role: e.target.value })}
+                    style={inp}
+                  >
+                    {dbRoles.map(r => (
+                      <option key={r.id || r.name} value={r.name}>
+                        {r.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
@@ -428,7 +440,7 @@ export default function UserManagement() {
       {/* ─── Delete Confirm Modal ─────────────────────────────────── */}
       {deleteId && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)' }}>
-          <div style={{ background: 'white', borderRadius: 16, padding: '32px', width: '100%', maxWidth: 400, boxShadow: '0 20px 60px rgba(0,0,0,0.2)', textAlign: 'center' }}>
+          <div className="modal-content-wrapper" style={{ background: 'white', borderRadius: 16, padding: '32px', width: '100%', maxWidth: 400, boxShadow: '0 20px 60px rgba(0,0,0,0.2)', textAlign: 'center' }}>
             <div style={{ width: 60, height: 60, borderRadius: '50%', background: '#fee2e2', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
               <Trash2 size={26} color="#dc2626" />
             </div>

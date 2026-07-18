@@ -205,6 +205,48 @@ tr:hover {
   background-color: var(--primary-hover);
 }
 
+/* Attendance Widget Button and Status Styles */
+.attendance-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  color: white;
+  transition: opacity 0.2s;
+}
+
+.attendance-btn:hover {
+  opacity: 0.9;
+}
+
+.attendance-btn.check-in {
+  background-color: #10b981;
+}
+
+.attendance-btn.pass {
+  background-color: #f59e0b;
+}
+
+.attendance-btn.check-out {
+  background-color: #ef4444;
+}
+
+.attendance-btn.resume {
+  background-color: #10b981;
+}
+
+/* Search & Filter Responsive Layout */
+.search-filter-container {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
 /* --- Mobile Responsiveness --- */
 
 .sidebar-overlay {
@@ -332,5 +374,27 @@ tr:hover {
   
   .responsive-grid {
     grid-template-columns: 1fr !important;
+  }
+
+  .header-title {
+    display: none !important;
+  }
+  
+  .attendance-btn {
+    padding: 8px !important;
+    gap: 0 !important;
+  }
+  
+  .attendance-btn span {
+    display: none !important;
+  }
+  
+  .attendance-status-text {
+    display: none !important;
+  }
+
+  .search-filter-container {
+    flex-direction: column;
+    align-items: stretch !important;
   }
 }
