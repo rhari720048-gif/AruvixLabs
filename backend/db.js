@@ -106,6 +106,10 @@ async function initDB() {
             // Column might already exist, ignore error
         }
 
+        try {
+            await pool.query("ALTER TABLE customers ADD COLUMN last_dial_date TIMESTAMP NULL");
+        } catch (e) { }
+
         // Seed default roles if roles table is empty
         const [rolesCount] = await pool.query('SELECT COUNT(*) as count FROM roles');
         if (rolesCount[0].count === 0) {
