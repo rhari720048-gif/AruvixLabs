@@ -85,7 +85,6 @@ const Login = ({ setAuth }) => {
 
         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '14px', color: '#475569', marginBottom: '8px', fontWeight: '500' }}>Email Address</label>
             <div style={{ position: 'relative' }}>
               <Mail size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
               <input 
@@ -94,12 +93,11 @@ const Login = ({ setAuth }) => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 style={{ width: '100%', padding: '14px 14px 14px 44px', border: '1px solid #e2e8f0', borderRadius: '10px', fontSize: '15px', outline: 'none', transition: 'border-color 0.2s', boxSizing: 'border-box' }}
-                placeholder="admin@aruvixcrm.com"
+                placeholder="Email Address"
               />
             </div>
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: '14px', color: '#475569', marginBottom: '8px', fontWeight: '500' }}>Password</label>
             <div style={{ position: 'relative' }}>
               <Lock size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
               <input 
@@ -108,7 +106,7 @@ const Login = ({ setAuth }) => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 style={{ width: '100%', padding: '14px 14px 14px 44px', border: '1px solid #e2e8f0', borderRadius: '10px', fontSize: '15px', outline: 'none', transition: 'border-color 0.2s', boxSizing: 'border-box' }}
-                placeholder="••••••••"
+                placeholder="Password"
               />
             </div>
           </div>

@@ -237,7 +237,7 @@ export default function UserManagement() {
             style={{ padding: '8px 16px', background: roleFilter === 'all' ? '#6366f1' : '#f3f4f6', color: roleFilter === 'all' ? 'white' : '#6b7280', border: 'none', borderRadius: 8, fontWeight: 600, fontSize: 13, cursor: 'pointer', textTransform: 'capitalize', transition: '0.2s' }}>
             All Roles
           </button>
-          {dbRoles.map(r => (
+          {dbRoles.filter(r => users.some(u => u.role?.toLowerCase() === r.name.toLowerCase())).map(r => (
             <button key={r.id || r.name} onClick={() => setRoleFilter(r.name)}
               style={{ padding: '8px 16px', background: roleFilter === r.name ? '#6366f1' : '#f3f4f6', color: roleFilter === r.name ? 'white' : '#6b7280', border: 'none', borderRadius: 8, fontWeight: 600, fontSize: 13, cursor: 'pointer', textTransform: 'capitalize', transition: '0.2s' }}>
               {r.name}
