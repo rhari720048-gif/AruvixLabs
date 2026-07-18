@@ -2,11 +2,27 @@ import React, { useState, useEffect } from 'react';
 import { Archive, RefreshCw } from 'lucide-react';
 import './index.css';
 import ViewModal from './ViewModal';
+import EditLeadModal from './EditLeadModal';
+import ActionButtons from './ActionButtons';
+
+const API = 'https://aruvixlabs.onrender.com/api';
 
 const NIBox = () => {
     const [leads, setLeads] = useState([]);
     const [loading, setLoading] = useState(true);
     const [viewRecord, setViewRecord] = useState(null);
+    const [editRecord, setEditRecord] = useState(null);
+
+    const handleDelete = async (id) => {
+        if (!window.confirm("Are you sure you want to delete this lead?")) return;
+        try {
+            const res = await fetch(`${API}/customers/${id}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            if (res.ok) fetchLeads();
+        } catch (e) { console.error(e); }
+    };
 
     const fetchLeads = async () => {
         setLoading(true);
@@ -71,9 +87,13 @@ const NIBox = () => {
                                     <td>{lead.district || lead.location || '-'}</td>
                                     <td>{lead.last_dial_date ? new Date(lead.last_dial_date).toLocaleString() : '-'}</td>
                                     <td style={{ textAlign: 'center' }}>
-                                        <button onClick={() => setViewRecord(lead)} style={{ background: '#e0e7ff', color: '#4338ca', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: 13, fontWeight: 500 }}>
-                                            View Details
-                                        </button>
+                                        <div style={{ display: 'inline-block' }}>
+                                            <ActionButtons 
+                                                onView={() => setViewRecord(lead)}
+                                                onEdit={() => setEditRecord(lead)}
+                                                onDelete={() => handleDelete(lead.id)}
+                                            />
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -91,10 +111,17 @@ const NIBox = () => {
                 <ViewModal 
                     isOpen={!!viewRecord}
                     onClose={() => setViewRecord(null)}
+                    title="Lead Details"
                     data={viewRecord}
-                    type="lead"
                 />
             )}
+
+            <EditLeadModal 
+                isOpen={!!editRecord} 
+                onClose={() => setEditRecord(null)} 
+                data={editRecord} 
+                onSave={(updated) => { fetchLeads(); setEditRecord(null); }} 
+            />
         </div>
     );
 };

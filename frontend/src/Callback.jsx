@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { PhoneForwarded, PhoneCall, Calendar, Clock, MapPin, Car, CheckCircle } from 'lucide-react';
+import ActionButtons from './ActionButtons';
+import ViewModal from './ViewModal';
+import EditLeadModal from './EditLeadModal';
 
 const API = 'https://aruvixlabs.onrender.com/api';
 
@@ -9,6 +12,26 @@ const Callback = () => {
   const [feedback, setFeedback] = useState({ status: 'Interested', notes: '', callback_time: '' });
   const [successMsg, setSuccessMsg] = useState('');
   const [callHistory, setCallHistory] = useState([]);
+  
+  // Modals state
+  const [viewLead, setViewLead] = useState(null);
+  const [editLead, setEditLead] = useState(null);
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this lead?")) return;
+    try {
+      const res = await fetch(`${API}/customers/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (res.ok) {
+        if (selectedLead?.id === id) setSelectedLead(null);
+        fetchLeads();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   useEffect(() => {
     fetchLeads();
@@ -97,9 +120,16 @@ const Callback = () => {
                 transition: '0.2s'
               }}
             >
-              <div style={{ fontWeight: '600', color: '#1f2937' }}>{lead.name}</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div style={{ fontWeight: '600', color: '#1f2937' }}>{lead.name}</div>
+                <ActionButtons 
+                  onView={() => setViewLead(lead)}
+                  onEdit={() => setEditLead(lead)}
+                  onDelete={() => handleDelete(lead.id)}
+                />
+              </div>
               <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <Clock size={12} /> {lead.callback_time || 'No time set'}
+                <Clock size={12} /> {lead.callback_time ? new Date(lead.callback_time).toLocaleString() : 'No time set'}
               </div>
             </li>
           ))}
@@ -213,10 +243,28 @@ const Callback = () => {
         ) : (
           <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', flexDirection: 'column' }}>
             <PhoneForwarded size={48} style={{ marginBottom: '15px', opacity: 0.5 }} />
-            <p>Select a lead from the list to make a callback.</p>
+            <p>Select a callback from the list to view details.</p>
           </div>
         )}
       </div>
+
+      <ViewModal 
+        isOpen={!!viewLead} 
+        onClose={() => setViewLead(null)} 
+        title="Lead Details" 
+        data={viewLead} 
+      />
+
+      <EditLeadModal 
+        isOpen={!!editLead} 
+        onClose={() => setEditLead(null)} 
+        data={editLead} 
+        onSave={(updated) => { 
+          fetchLeads(); 
+          if (selectedLead?.id === updated.id) setSelectedLead(updated);
+          setEditLead(null); 
+        }} 
+      />
     </div>
   );
 };

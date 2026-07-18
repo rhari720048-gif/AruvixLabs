@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PhoneCall, CheckCircle, ThumbsUp, ThumbsDown, X, Edit2, Trash2, MapPin, User, FileText, Activity, Clock, Save, PhoneOff, Car } from 'lucide-react';
+import ActionButtons from './ActionButtons';
+import EditLeadModal from './EditLeadModal';
 
 const API = 'https://aruvixlabs.onrender.com/api';
 
@@ -20,6 +22,7 @@ const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdat
   // Edit Mode State
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({});
+  const [modalEditLead, setModalEditLead] = useState(null);
 
   useEffect(() => {
     if (selectedLead) {
@@ -175,10 +178,10 @@ const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdat
     }
   };
 
-  const triggerDelete = () => {
+  const triggerDelete = (id) => {
     if (handleDelete && window.confirm("Are you sure you want to delete this lead?")) {
-      handleDelete(selectedLead.id);
-      closeLead();
+      handleDelete(id);
+      if (selectedLead?.id === id) closeLead();
     }
   };
 
@@ -214,18 +217,26 @@ const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdat
               e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.05)';
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <h3 style={{ margin: 0, color: '#1f2937', fontSize: '18px', fontWeight: '600' }}>{lead.name}</h3>
-              <span style={{ 
-                padding: '4px 8px', 
-                borderRadius: '20px', 
-                fontSize: '12px', 
-                fontWeight: '500',
-                background: lead.status === 'Converted' ? '#d1fae5' : lead.status === 'NI' ? '#fee2e2' : '#f3f4f6',
-                color: lead.status === 'Converted' ? '#065f46' : lead.status === 'NI' ? '#991b1b' : '#374151'
-              }}>
-                {lead.status || 'Pending'}
-              </span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <h3 style={{ margin: 0, color: '#1f2937', fontSize: '18px', fontWeight: '600' }}>{lead.name}</h3>
+                <span style={{ 
+                  padding: '2px 8px', 
+                  borderRadius: '20px', 
+                  fontSize: '11px', 
+                  fontWeight: '600',
+                  alignSelf: 'flex-start',
+                  background: lead.status === 'Converted' ? '#d1fae5' : lead.status === 'NI' ? '#fee2e2' : '#f3f4f6',
+                  color: lead.status === 'Converted' ? '#065f46' : lead.status === 'NI' ? '#991b1b' : '#374151'
+                }}>
+                  {lead.status || 'Pending'}
+                </span>
+              </div>
+              <ActionButtons 
+                onView={() => setSelectedLead(lead)}
+                onEdit={() => setModalEditLead(lead)}
+                onDelete={() => triggerDelete(lead.id)}
+              />
             </div>
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6b7280', fontSize: '14px' }}>
@@ -260,7 +271,7 @@ const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdat
               <h2 style={{ margin: 0, fontSize: '20px', color: '#111827' }}>Lead Details</h2>
               <div style={{ display: 'flex', gap: '10px' }}>
                 {handleEdit && !isEditing && (
-                  <button onClick={() => setIsEditing(true)} style={{ background: '#f3f4f6', border: 'none', cursor: 'pointer', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', color: '#4b5563' }} title="Edit Lead">
+                  <button onClick={() => setModalEditLead(selectedLead)} style={{ background: '#f3f4f6', border: 'none', cursor: 'pointer', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', color: '#4b5563' }} title="Edit Lead">
                     <Edit2 size={18} />
                   </button>
                 )}
@@ -270,7 +281,7 @@ const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdat
                   </button>
                 )}
                 {handleDelete && (
-                  <button onClick={triggerDelete} style={{ background: '#fee2e2', border: 'none', cursor: 'pointer', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', color: '#ef4444' }} title="Delete Lead">
+                  <button onClick={() => triggerDelete(selectedLead.id)} style={{ background: '#fee2e2', border: 'none', cursor: 'pointer', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', color: '#ef4444' }} title="Delete Lead">
                     <Trash2 size={18} />
                   </button>
                 )}
@@ -538,6 +549,18 @@ const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdat
           100% { opacity: 1; transform: scale(1); }
         }
       `}</style>
+      <EditLeadModal 
+        isOpen={!!modalEditLead} 
+        onClose={() => setModalEditLead(null)} 
+        data={modalEditLead} 
+        onSave={(updated) => { 
+          if (handleEdit) handleEdit(updated.id, updated);
+          if (selectedLead?.id === updated.id) {
+            setSelectedLead({...selectedLead, ...updated});
+          }
+          setModalEditLead(null); 
+        }} 
+      />
     </div>
   );
 };

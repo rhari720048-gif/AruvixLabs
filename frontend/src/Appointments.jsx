@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, PhoneCall, Clock, MapPin, Car, CheckCircle, PlusCircle, Users, User, Edit3 } from 'lucide-react';
 import SearchableSelect from './SearchableSelect';
+import ActionButtons from './ActionButtons';
+import ViewModal from './ViewModal';
+import EditLeadModal from './EditLeadModal';
 
 const API = 'https://aruvixlabs.onrender.com/api';
 
@@ -8,6 +11,25 @@ const Appointments = () => {
   const [activeTab, setActiveTab] = useState('my'); // 'my', 'all', 'manual'
   const [leads, setLeads] = useState([]);
   const [selectedLead, setSelectedLead] = useState(null);
+  
+  const [viewLead, setViewLead] = useState(null);
+  const [editLead, setEditLead] = useState(null);
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this lead?")) return;
+    try {
+      const res = await fetch(`${API}/customers/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (res.ok) {
+        if (selectedLead?.id === id) setSelectedLead(null);
+        fetchLeads(activeTab);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
   
   // Feedback state for existing appointments
   const [feedback, setFeedback] = useState({ status: 'Interested', notes: '', callback_time: '' });
@@ -231,7 +253,14 @@ const Appointments = () => {
                     transition: '0.2s'
                   }}
                 >
-                  <div style={{ fontWeight: '600', color: '#1f2937' }}>{lead.name}</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div style={{ fontWeight: '600', color: '#1f2937' }}>{lead.name}</div>
+                    <ActionButtons 
+                      onView={() => setViewLead(lead)}
+                      onEdit={() => setEditLead(lead)}
+                      onDelete={() => handleDelete(lead.id)}
+                    />
+                  </div>
                   <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <Car size={12} /> {lead.car_model || lead.car_name || 'No Car'} {lead.registration_number ? `(${lead.registration_number})` : ''}
                   </div>
@@ -333,6 +362,24 @@ const Appointments = () => {
           </div>
         </div>
       )}
+
+      <ViewModal 
+        isOpen={!!viewLead} 
+        onClose={() => setViewLead(null)} 
+        title="Appointment Details" 
+        data={viewLead} 
+      />
+
+      <EditLeadModal 
+        isOpen={!!editLead} 
+        onClose={() => setEditLead(null)} 
+        data={editLead} 
+        onSave={(updated) => { 
+          fetchLeads(activeTab); 
+          if (selectedLead?.id === updated.id) setSelectedLead(updated);
+          setEditLead(null); 
+        }} 
+      />
     </div>
   );
 };

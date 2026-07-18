@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
-import { PhoneCall, Check, Download, Search, Edit2, Trash2, Eye, X } from 'lucide-react';
+import { PhoneCall, Download, Search, Trash2 } from 'lucide-react';
 import SearchableSelect from './SearchableSelect';
+import ActionButtons from './ActionButtons';
+import ViewModal from './ViewModal';
+import EditLeadModal from './EditLeadModal';
 
 const AllLeads = ({ leads, employees = [], handleConvert, handleDelete, handleBulkDelete, handleBulkAssign, handleEdit }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -169,19 +172,11 @@ const AllLeads = ({ leads, employees = [], handleConvert, handleDelete, handleBu
                 <td style={{ padding: '14px 16px', color: '#4b5563' }}>{lead.assignedTo}</td>
                 <td style={{ padding: '14px 16px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <button onClick={() => setViewLead(lead)} style={{ background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer' }} title="View">
-                      <Eye size={18} />
-                    </button>
-                    {handleEdit && (
-                      <button onClick={() => setEditLead(lead)} style={{ background: 'none', border: 'none', color: '#f59e0b', cursor: 'pointer' }} title="Edit">
-                        <Edit2 size={18} />
-                      </button>
-                    )}
-                    {handleDelete && (
-                      <button onClick={() => { if(window.confirm('Delete this lead?')) handleDelete(lead.id) }} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }} title="Delete">
-                        <Trash2 size={18} />
-                      </button>
-                    )}
+                    <ActionButtons 
+                      onView={() => setViewLead(lead)}
+                      onEdit={() => setEditLead(lead)}
+                      onDelete={() => { if(window.confirm('Delete this lead?')) handleDelete(lead.id) }}
+                    />
                     {lead.status === 'Converted' ? (
                       <span style={{ fontSize: '11px', padding: '2px 8px', background: '#d1fae5', color: '#065f46', borderRadius: '12px', fontWeight: '600' }}>Converted</span>
                     ) : (
@@ -197,86 +192,19 @@ const AllLeads = ({ leads, employees = [], handleConvert, handleDelete, handleBu
         </table>
       </div>
 
-      {/* View Modal */}
-      {viewLead && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: 'white', padding: '30px', borderRadius: '12px', width: '400px', maxWidth: '90%' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h3 style={{ margin: 0, color: '#1f2937' }}>Lead Details</h3>
-              <button onClick={() => setViewLead(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div><strong>Name:</strong> {viewLead.name}</div>
-              <div><strong>Phone:</strong> {viewLead.phone}</div>
-              <div><strong>Location:</strong> {viewLead.location}</div>
-              <div><strong>Car Model:</strong> {viewLead.car_model || '-'}</div>
-              <div><strong>Car Number:</strong> {viewLead.registration_number || '-'}</div>
-              <div><strong>Requirements:</strong> {viewLead.requirements}</div>
-              <div><strong>Feedback:</strong> {viewLead.feedback}</div>
-              <div><strong>Assigned To:</strong> {viewLead.assignedTo}</div>
-              <div><strong>Status:</strong> {viewLead.status}</div>
-              <div><strong>Source:</strong> {viewLead.source || 'Unknown'}</div>
-            </div>
-          </div>
-        </div>
-      )}
+      <ViewModal 
+        isOpen={!!viewLead} 
+        onClose={() => setViewLead(null)} 
+        title="Lead Details" 
+        data={viewLead} 
+      />
 
-      {/* Edit Modal */}
-      {editLead && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: 'white', padding: '30px', borderRadius: '12px', width: '500px', maxWidth: '90%' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h3 style={{ margin: 0, color: '#1f2937' }}>Edit Lead</h3>
-              <button onClick={() => setEditLead(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
-            </div>
-            <form onSubmit={handleEditSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Name</label>
-                <input type="text" value={editLead.name} onChange={e => setEditLead({...editLead, name: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db' }} required />
-              </div>
-              <div>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Phone</label>
-                <input type="text" value={editLead.phone} onChange={e => setEditLead({...editLead, phone: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db' }} required />
-              </div>
-              <div>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Location</label>
-                <input type="text" value={editLead.location} onChange={e => setEditLead({...editLead, location: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db' }} />
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Car Model</label>
-                  <input type="text" value={editLead.car_model} onChange={e => setEditLead({...editLead, car_model: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db' }} />
-                </div>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Car Number</label>
-                  <input type="text" value={editLead.registration_number} onChange={e => setEditLead({...editLead, registration_number: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db' }} />
-                </div>
-              </div>
-              <div>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Requirements</label>
-                <input type="text" value={editLead.requirements} onChange={e => setEditLead({...editLead, requirements: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db' }} />
-              </div>
-              <div>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Feedback</label>
-                <input type="text" value={editLead.feedback} onChange={e => setEditLead({...editLead, feedback: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db' }} />
-              </div>
-              <div>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Assigned To</label>
-                <SearchableSelect 
-                  options={employees.map(emp => ({ value: emp.id, label: `${emp.name} (${emp.role})` }))}
-                  value={editLead.assignedToId || []}
-                  onChange={(val) => setEditLead({...editLead, assignedToId: val})}
-                  placeholder="Select Employee..."
-                  isMulti={true}
-                />
-              </div>
-              <button type="submit" style={{ background: 'var(--primary)', color: 'white', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: '600', cursor: 'pointer', marginTop: '10px' }}>
-                Save Changes
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
+      <EditLeadModal 
+        isOpen={!!editLead} 
+        onClose={() => setEditLead(null)} 
+        data={editLead} 
+        onSave={(updated) => { handleEdit && handleEdit(updated.id, updated); setEditLead(null); }} 
+      />
     </div>
   );
 };

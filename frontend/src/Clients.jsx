@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { PlusCircle, List, CheckCircle, Download, Upload, Users, Eye, Edit2, Trash2 } from 'lucide-react';
 import Papa from 'papaparse';
 import ViewModal from './ViewModal';
+import EditLeadModal from './EditLeadModal';
+import ActionButtons from './ActionButtons';
 import { getPerms } from './permissions';
 
 const API = 'https://aruvixlabs.onrender.com/api';
@@ -25,6 +27,7 @@ const Clients = () => {
   const [form, setForm] = useState({ name: '', phone: '', email: '', district: '', car_model: '', registration_number: '', source: 'Manual Entry' });
   const [successMessage, setSuccessMessage] = useState('');
   const [viewClient, setViewClient] = useState(null);
+  const [editClient, setEditClient] = useState(null);
   const [currentUser, setCurrentUser] = useState('');
 
   useEffect(() => {
@@ -172,11 +175,22 @@ const Clients = () => {
   };
 
   const handleEdit = (client) => {
-    alert(`Editing Client: ${client.name}\n(Full edit form will open here)`);
+    setEditClient(client);
   };
 
   const handleView = (client) => {
     setViewClient(client);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this client?")) return;
+    try {
+      const res = await fetch(`${API}/customers/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (res.ok) fetchClients();
+    } catch (e) { console.error(e); }
   };
 
   const renderTable = (data) => (
@@ -207,9 +221,11 @@ const Clients = () => {
                 <span style={{ fontSize: '12px', padding: '4px 10px', background: '#d1fae5', color: '#065f46', borderRadius: '12px', fontWeight: '600' }}>{c.source}</span>
               </td>
               <td style={{ padding: '14px 16px', display: 'flex', justifyContent: 'center', gap: '8px' }}>
-                <button onClick={() => handleView(c)} style={{ background: '#e0e7ff', color: '#4338ca', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="View"><Eye size={16} /></button>
-                {canEdit && <button onClick={() => handleEdit(c)} style={{ background: '#fef3c7', color: '#d97706', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="Edit"><Edit2 size={16} /></button>}
-                {canDelete && <button onClick={() => handleDelete(c.id)} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="Delete"><Trash2 size={16} /></button>}
+                <ActionButtons 
+                  onView={() => handleView(c)}
+                  onEdit={() => handleEdit(c)}
+                  onDelete={() => handleDelete(c.id)}
+                />
               </td>
             </tr>
           ))}
@@ -350,6 +366,13 @@ const Clients = () => {
         onClose={() => setViewClient(null)} 
         title="Client Details" 
         data={viewClient || {}} 
+      />
+
+      <EditLeadModal 
+        isOpen={!!editClient} 
+        onClose={() => setEditClient(null)} 
+        data={editClient} 
+        onSave={(updated) => { fetchClients(); setEditClient(null); }} 
       />
     </div>
   );
