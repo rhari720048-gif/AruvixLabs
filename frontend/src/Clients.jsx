@@ -182,16 +182,7 @@ const Clients = () => {
     setViewClient(client);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this client?")) return;
-    try {
-      const res = await fetch(`${API}/customers/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      if (res.ok) fetchClients();
-    } catch (e) { console.error(e); }
-  };
+
 
   const renderTable = (data) => (
     <div className="data-table-container" style={{ background: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', overflow: 'hidden', border: '1px solid #e5e7eb' }}>
