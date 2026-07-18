@@ -203,15 +203,15 @@ const Clients = () => {
             </tr>
           ) : data.map(c => (
             <tr key={c.id} style={{ borderBottom: '1px solid #e5e7eb', transition: '0.2s', ':hover': {background: '#f9fafb'} }}>
-              <td style={{ padding: '14px 16px', color: '#1f2937', fontWeight: '600' }}>{c.name}</td>
-              <td style={{ padding: '14px 16px', color: '#4b5563' }}>
+              <td data-label="Client Name" style={{ padding: '14px 16px', color: '#1f2937', fontWeight: '600' }}>{c.name}</td>
+              <td data-label="Contact Info" style={{ padding: '14px 16px', color: '#4b5563' }}>
                 <div>{c.phone}</div>
               </td>
-              <td style={{ padding: '14px 16px', color: '#4b5563' }}>{c.district}</td>
-              <td style={{ padding: '14px 16px' }}>
+              <td data-label="Location" style={{ padding: '14px 16px', color: '#4b5563' }}>{c.district}</td>
+              <td data-label="Source" style={{ padding: '14px 16px' }}>
                 <span style={{ fontSize: '12px', padding: '4px 10px', background: '#d1fae5', color: '#065f46', borderRadius: '12px', fontWeight: '600' }}>{c.source}</span>
               </td>
-              <td style={{ padding: '14px 16px', display: 'flex', justifyContent: 'center', gap: '8px' }}>
+              <td data-label="Actions" style={{ padding: '14px 16px', display: 'flex', justifyContent: 'center', gap: '8px' }}>
                 <ActionButtons 
                   onView={() => handleView(c)}
                   onEdit={() => handleEdit(c)}

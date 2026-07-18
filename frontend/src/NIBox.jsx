@@ -74,19 +74,19 @@ const NIBox = () => {
                         <tbody>
                             {leads.map(lead => (
                                 <tr key={lead.id}>
-                                    <td>{lead.name}</td>
-                                    <td>
+                                    <td data-label="Name">{lead.name}</td>
+                                    <td data-label="Phone">
                                         <a href={`tel:${lead.phone}`} style={{ color: '#6366f1', textDecoration: 'none' }}>
                                             {lead.phone}
                                         </a>
                                     </td>
-                                    <td>
+                                    <td data-label="Car Details">
                                       {lead.car_model || lead.car_name || '-'}
                                       {lead.registration_number && <div style={{ fontSize: '12px', color: '#6b7280' }}>{lead.registration_number}</div>}
                                     </td>
-                                    <td>{lead.district || lead.location || '-'}</td>
-                                    <td>{lead.last_dial_date ? new Date(lead.last_dial_date).toLocaleString() : '-'}</td>
-                                    <td style={{ textAlign: 'center' }}>
+                                    <td data-label="Location">{lead.district || lead.location || '-'}</td>
+                                    <td data-label="Date">{lead.last_dial_date ? new Date(lead.last_dial_date).toLocaleString() : '-'}</td>
+                                    <td data-label="Actions" style={{ textAlign: 'center' }}>
                                         <div style={{ display: 'inline-block' }}>
                                             <ActionButtons 
                                                 onView={() => setViewRecord(lead)}

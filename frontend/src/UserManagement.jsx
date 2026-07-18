@@ -266,7 +266,7 @@ export default function UserManagement() {
                   onMouseLeave={e => e.currentTarget.style.background = i % 2 === 0 ? 'white' : '#fafafa'}>
 
                   {/* Avatar + Name */}
-                  <td style={{ padding: '14px 18px' }}>
+                  <td data-label="User" style={{ padding: '14px 18px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <div style={{ width: 38, height: 38, borderRadius: '50%', background: `hsl(${(u.id * 60) % 360},60%,60%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: 15, flexShrink: 0 }}>
                         {u.name.charAt(0).toUpperCase()}
@@ -275,18 +275,18 @@ export default function UserManagement() {
                     </div>
                   </td>
 
-                  <td style={{ padding: '14px 18px', color: '#6b7280', fontSize: 14 }}>{u.email}</td>
-                  <td style={{ padding: '14px 18px', color: '#6b7280', fontSize: 14 }}>{u.phone || '—'}</td>
+                  <td data-label="Email" style={{ padding: '14px 18px', color: '#6b7280', fontSize: 14 }}>{u.email}</td>
+                  <td data-label="Phone" style={{ padding: '14px 18px', color: '#6b7280', fontSize: 14 }}>{u.phone || '—'}</td>
 
                   {/* Role Badge */}
-                  <td style={{ padding: '14px 18px' }}>
+                  <td data-label="Role" style={{ padding: '14px 18px' }}>
                     <span style={{ fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 20, background: getRoleColor(u.role).bg, color: getRoleColor(u.role).color, textTransform: 'capitalize', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                       <ShieldCheck size={11} /> {u.role}
                     </span>
                   </td>
 
                   {/* Status Toggle */}
-                  <td style={{ padding: '14px 18px' }}>
+                  <td data-label="Status" style={{ padding: '14px 18px' }}>
                     <button onClick={() => canEdit && toggleStatus(u.id)}
                       disabled={!canEdit}
                       style={{ fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 20, background: u.status === 'Active' ? '#d1fae5' : '#fee2e2', color: u.status === 'Active' ? '#065f46' : '#dc2626', border: 'none', cursor: canEdit ? 'pointer' : 'default', opacity: canEdit ? 1 : 0.7 }}>
@@ -294,12 +294,12 @@ export default function UserManagement() {
                     </button>
                   </td>
 
-                  <td style={{ padding: '14px 18px', color: '#9ca3af', fontSize: 13 }}>
+                  <td data-label="Joined" style={{ padding: '14px 18px', color: '#9ca3af', fontSize: 13 }}>
                     {u.created_at ? new Date(u.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                   </td>
 
                   {/* Actions */}
-                  <td style={{ padding: '14px 18px' }}>
+                  <td data-label="Actions" style={{ padding: '14px 18px' }}>
                     <div style={{ display: 'flex', gap: 8 }}>
                       {canEdit && (
                         <button onClick={() => openEdit(u)} title="Edit User"

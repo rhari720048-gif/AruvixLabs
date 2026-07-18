@@ -603,7 +603,7 @@ const SettingsPage = () => {
                         const allowedKeys = Object.keys(u.permissions || {}).filter(k => u.permissions[k]?.view);
                         return (
                           <tr key={u.id} style={{ borderBottom: '1px solid #f3f4f6', background: index % 2 === 0 ? 'white' : '#f9fafb' }}>
-                            <td style={{ padding: '12px 18px' }}>
+                            <td data-label="User" style={{ padding: '12px 18px' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                 <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: `hsl(${(u.id * 80) % 360},60%,60%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: '700', fontSize: '13px' }}>
                                   {u.name.charAt(0).toUpperCase()}
@@ -611,13 +611,13 @@ const SettingsPage = () => {
                                 <span style={{ fontWeight: '600', color: '#111827' }}>{u.name}</span>
                               </div>
                             </td>
-                            <td style={{ padding: '12px 18px', color: '#4b5563' }}>{u.email}</td>
-                            <td style={{ padding: '12px 18px' }}>
+                            <td data-label="Email" style={{ padding: '12px 18px', color: '#4b5563' }}>{u.email}</td>
+                            <td data-label="Role" style={{ padding: '12px 18px' }}>
                               <span style={{ fontSize: '11px', fontWeight: '700', padding: '3px 8px', borderRadius: '12px', background: isUserAdmin ? '#ede9fe' : '#e0f2fe', color: isUserAdmin ? '#6d28d9' : '#0369a1', textTransform: 'uppercase' }}>
                                 {u.role}
                               </span>
                             </td>
-                            <td style={{ padding: '12px 18px' }}>
+                            <td data-label="Allowed Modules" style={{ padding: '12px 18px' }}>
                               {isUserAdmin ? (
                                 <span style={{ color: '#10b981', fontWeight: '600', fontSize: '12px' }}>Full Administrator Access</span>
                               ) : allowedKeys.length === 0 ? (
@@ -637,7 +637,7 @@ const SettingsPage = () => {
                                 </div>
                               )}
                             </td>
-                            <td style={{ padding: '12px 18px' }}>
+                            <td data-label="Actions" style={{ padding: '12px 18px' }}>
                               <div style={{ display: 'flex', gap: '6px' }}>
                                 <button
                                   onClick={() => {

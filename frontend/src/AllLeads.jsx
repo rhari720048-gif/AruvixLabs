@@ -151,16 +151,16 @@ const AllLeads = ({ leads, employees = [], handleConvert, handleDelete, handleBu
               </tr>
             ) : filteredLeads.map(lead => (
               <tr key={lead.id} style={{ borderBottom: '1px solid #e5e7eb', transition: '0.2s', background: selectedIds.includes(lead.id) ? '#eff6ff' : 'transparent' }}>
-                <td style={{ padding: '14px 16px' }}>
+                <td data-label="Select" style={{ padding: '14px 16px' }}>
                   <input type="checkbox" checked={selectedIds.includes(lead.id)} onChange={() => toggleSelect(lead.id)} style={{ cursor: 'pointer' }} />
                 </td>
-                <td style={{ padding: '14px 16px', color: '#1f2937', fontWeight: '500' }}>{lead.name}</td>
-                <td style={{ padding: '14px 16px', color: '#4b5563' }}>
+                <td data-label="Client Name" style={{ padding: '14px 16px', color: '#1f2937', fontWeight: '500' }}>{lead.name}</td>
+                <td data-label="Vehicle" style={{ padding: '14px 16px', color: '#4b5563' }}>
                   {lead.car_model || '-'} 
                   {lead.registration_number && <span style={{ display: 'block', fontSize: '12px', color: '#9ca3af' }}>{lead.registration_number}</span>}
                 </td>
-                <td style={{ padding: '14px 16px', color: '#4b5563' }}>{lead.requirements?.substring(0, 20)}{lead.requirements?.length > 20 ? '...' : ''}</td>
-                <td style={{ padding: '14px 16px', color: '#4b5563' }}>
+                <td data-label="Requirements" style={{ padding: '14px 16px', color: '#4b5563' }}>{lead.requirements?.substring(0, 20)}{lead.requirements?.length > 20 ? '...' : ''}</td>
+                <td data-label="Mobile No" style={{ padding: '14px 16px', color: '#4b5563' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     {lead.phone}
                     <a href={`tel:${lead.phone}`} style={{ padding: '4px', background: '#10b981', color: 'white', borderRadius: '50%', display: 'inline-flex', textDecoration: 'none' }} title="Call">
@@ -168,9 +168,9 @@ const AllLeads = ({ leads, employees = [], handleConvert, handleDelete, handleBu
                     </a>
                   </div>
                 </td>
-                <td style={{ padding: '14px 16px', color: '#4b5563' }}>{lead.location}</td>
-                <td style={{ padding: '14px 16px', color: '#4b5563' }}>{lead.assignedTo}</td>
-                <td style={{ padding: '14px 16px' }}>
+                <td data-label="Location" style={{ padding: '14px 16px', color: '#4b5563' }}>{lead.location}</td>
+                <td data-label="Assigned To" style={{ padding: '14px 16px', color: '#4b5563' }}>{lead.assignedTo}</td>
+                <td data-label="Actions" style={{ padding: '14px 16px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <ActionButtons 
                       onView={() => setViewLead(lead)}

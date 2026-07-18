@@ -117,18 +117,18 @@ const CallHistory = () => {
                   <tbody>
                     {groupData.logs.map(log => (
                       <tr key={log.id} style={{ borderBottom: '1px solid #f1f5f9', transition: '0.2s', background: 'white' }}>
-                        <td style={{ padding: '12px 20px', color: '#475569', fontSize: '14px' }}>
+                        <td data-label="Date & Time" style={{ padding: '12px 20px', color: '#475569', fontSize: '14px' }}>
                           {new Date(log.created_at).toLocaleString()}
                         </td>
-                        <td style={{ padding: '12px 20px', fontWeight: '500', color: '#1e293b' }}>
+                        <td data-label="Customer" style={{ padding: '12px 20px', fontWeight: '500', color: '#1e293b' }}>
                           {log.customer_name || 'Unknown'}
                         </td>
-                        <td style={{ padding: '12px 20px', color: '#475569' }}>
+                        <td data-label="Phone" style={{ padding: '12px 20px', color: '#475569' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <Phone size={14} /> {log.phone || '-'}
                           </div>
                         </td>
-                        <td style={{ padding: '12px 20px' }}>
+                        <td data-label="Status" style={{ padding: '12px 20px' }}>
                           <span style={{ 
                             padding: '4px 10px', borderRadius: '50px', fontSize: '12px', fontWeight: '600',
                             background: log.status === 'Appointment' ? '#d1fae5' : log.status === 'NI' || log.status === 'Not Interested' ? '#fee2e2' : '#fef3c7',
@@ -137,10 +137,10 @@ const CallHistory = () => {
                             {log.status}
                           </span>
                         </td>
-                        <td style={{ padding: '12px 20px', fontFamily: 'monospace', fontWeight: '600', color: '#334155' }}>
+                        <td data-label="Duration" style={{ padding: '12px 20px', fontFamily: 'monospace', fontWeight: '600', color: '#334155' }}>
                           {formatTime(log.duration)}
                         </td>
-                        <td style={{ padding: '12px 20px', color: '#64748b', fontSize: '14px' }}>
+                        <td data-label="Notes" style={{ padding: '12px 20px', color: '#64748b', fontSize: '14px' }}>
                           {log.notes || '-'}
                         </td>
                       </tr>

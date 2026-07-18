@@ -176,14 +176,14 @@ const Dashboard = () => {
           <tbody>
             {data.slice(0, 10).map(c => (
               <tr key={c.id}>
-                <td>{c.customer_id}</td>
-                <td>{c.name}</td>
-                <td>{c.phone}</td>
-                <td>{c.district || c.location || '-'}</td>
-                <td>
+                <td data-label="ID">{c.customer_id}</td>
+                <td data-label="Name">{c.name}</td>
+                <td data-label="Phone">{c.phone}</td>
+                <td data-label="Location">{c.district || c.location || '-'}</td>
+                <td data-label="Status">
                   <span className={`badge ${c.status ? c.status.toLowerCase().replace(' ', '-') : ''}`}>{c.status}</span>
                 </td>
-                <td style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
+                <td data-label="Actions" style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
                   <button onClick={() => handleView(c)} style={{ background: '#e0e7ff', color: '#4338ca', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="View"><Eye size={16} /></button>
                   {canEdit && <button onClick={() => handleEdit(c)} style={{ background: '#fef3c7', color: '#d97706', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="Edit"><Edit2 size={16} /></button>}
                   {canDelete && <button onClick={() => handleDelete(c.id)} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="Delete"><Trash2 size={16} /></button>}
