@@ -57,7 +57,7 @@ const StartDial = () => {
     if (!feedback.selection) return alert('Please select Interested or Not Interested');
 
     // Map selection to backend status as requested
-    const finalStatus = feedback.selection === 'Interested' ? 'Appointment' : 'Callback';
+    const finalStatus = feedback.selection === 'Interested' ? 'Appointment' : 'Call Later';
 
     try {
       const res = await fetch(`${API}/telecalling/feedback`, {

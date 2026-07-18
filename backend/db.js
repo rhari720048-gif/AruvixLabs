@@ -65,7 +65,7 @@ async function initDB() {
             registration_number VARCHAR(50),
             source VARCHAR(100),
             notes TEXT,
-            status ENUM('Pending', 'Interested', 'Not Interested', 'Busy', 'Call Later', 'Switched Off', 'Wrong Number', 'No Answer', 'Follow-up Required', 'Converted') DEFAULT 'Pending',
+            status VARCHAR(100) DEFAULT 'Pending',
             assigned_to INT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (assigned_to) REFERENCES users(id)
