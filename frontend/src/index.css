@@ -280,6 +280,8 @@ tr:hover {
   /* Table Card Layout for Mobile */
   table, thead, tbody, th, td, tr {
     display: block;
+    width: 100% !important;
+    min-width: 0 !important;
   }
   thead tr {
     display: none;
