@@ -25,7 +25,6 @@ const AdminLeads = () => {
   });
   const [leads, setLeads] = useState([]);
   const [employees, setEmployees] = useState([]);
-  const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState('');
 
   useEffect(() => {
