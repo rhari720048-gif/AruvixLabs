@@ -150,8 +150,22 @@ const Clients = () => {
 
   const handleDelete = async (id) => {
     if (window.confirm('Delete this client?')) {
-       // Currently no delete customer API, we'll mark as 'Not Interested' or something, or we can just leave it for now.
-       alert("Delete via API not fully implemented for customers. Contact admin.");
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API}/customers/${id}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          fetchClients();
+          showSuccess('Client deleted successfully!');
+        } else {
+          alert('Failed to delete client.');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('An error occurred while deleting.');
+      }
     }
   };
 

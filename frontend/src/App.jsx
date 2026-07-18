@@ -68,9 +68,22 @@ const Dashboard = () => {
 
   const handleView = (c) => setViewRecord(c);
   const handleEdit = (c) => alert(`Editing ${c.name}`);
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if(window.confirm('Delete this record?')) {
-      alert("Delete via API not fully implemented. Contact admin.");
+      try {
+        const res = await fetch(`https://aruvixlabs.onrender.com/api/customers/${id}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (res.ok) {
+          setData(data.filter(c => c.id !== id));
+        } else {
+          alert('Failed to delete record.');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('An error occurred while deleting.');
+      }
     }
   };
 
