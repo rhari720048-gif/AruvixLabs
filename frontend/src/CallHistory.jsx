@@ -1,3 +1,4 @@
+import React, { useState, useEffect, useMemo } from 'react';
 import { Clock, Phone, FileText, Search, User, Users, PlusCircle, CheckCircle, Edit3, Trash2 } from 'lucide-react';
 import { getPerms } from './permissions';
 
