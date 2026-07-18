@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Tesseract from 'tesseract.js';
 import Papa from 'papaparse';
 import { Upload, FileText, Edit3, Image as ImageIcon, CheckCircle, Loader2 } from 'lucide-react';
+import SearchableSelect from './SearchableSelect';
 
 const AddLeads = ({ addLeads }) => {
   const [activeTab, setActiveTab] = useState('image'); // 'image', 'csv', 'manual'
@@ -199,16 +200,12 @@ const AddLeads = ({ addLeads }) => {
             
             <div style={{ marginBottom: '20px', maxWidth: '300px', margin: '0 auto 20px auto' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151', textAlign: 'left' }}>Assign these leads to (Optional)</label>
-              <select 
-                value={bulkAssignTo} 
-                onChange={e => setBulkAssignTo(e.target.value)} 
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', outline: 'none', background: 'white' }}
-              >
-                <option value="">-- Unassigned --</option>
-                {users.map(u => (
-                  <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
-                ))}
-              </select>
+              <SearchableSelect 
+                options={users.map(u => ({ value: u.id, label: `${u.name} (${u.role})` }))}
+                value={bulkAssignTo}
+                onChange={val => setBulkAssignTo(val)}
+                placeholder="-- Unassigned --"
+              />
             </div>
 
             <label style={{ background: 'var(--primary)', color: 'white', padding: '12px 24px', borderRadius: '8px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: '500', boxShadow: '0 4px 6px rgba(59, 130, 246, 0.2)' }}>
@@ -227,16 +224,12 @@ const AddLeads = ({ addLeads }) => {
             
             <div style={{ marginBottom: '20px', maxWidth: '300px', margin: '0 auto 20px auto' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151', textAlign: 'left' }}>Assign these leads to (Optional)</label>
-              <select 
-                value={bulkAssignTo} 
-                onChange={e => setBulkAssignTo(e.target.value)} 
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', outline: 'none', background: 'white' }}
-              >
-                <option value="">-- Unassigned --</option>
-                {users.map(u => (
-                  <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
-                ))}
-              </select>
+              <SearchableSelect 
+                options={users.map(u => ({ value: u.id, label: `${u.name} (${u.role})` }))}
+                value={bulkAssignTo}
+                onChange={val => setBulkAssignTo(val)}
+                placeholder="-- Unassigned --"
+              />
             </div>
 
             <label style={{ background: 'var(--primary)', color: 'white', padding: '12px 24px', borderRadius: '8px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: '500', boxShadow: '0 4px 6px rgba(59, 130, 246, 0.2)' }}>
@@ -269,16 +262,12 @@ const AddLeads = ({ addLeads }) => {
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>Assigned To</label>
-                <select 
-                  value={manualForm.assignedTo} 
-                  onChange={e => setManualForm({...manualForm, assignedTo: e.target.value})} 
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', outline: 'none', background: 'white' }}
-                >
-                  <option value="">-- Select Assignee --</option>
-                  {users.map(u => (
-                    <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
-                  ))}
-                </select>
+                <SearchableSelect 
+                  options={users.map(u => ({ value: u.id, label: `${u.name} (${u.role})` }))}
+                  value={manualForm.assignedTo}
+                  onChange={val => setManualForm({...manualForm, assignedTo: val})}
+                  placeholder="-- Select Assignee --"
+                />
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>Feedback</label>

@@ -119,10 +119,21 @@ app.put('/api/auth/profile', authenticate, async (req, res) => {
 
 app.get('/api/customers', authenticate, async (req, res) => {
     try {
-        let query = 'SELECT * FROM customers ORDER BY created_at DESC';
+        let query = `
+            SELECT c.*, u.name as assignee_name 
+            FROM customers c 
+            LEFT JOIN users u ON c.assigned_to = u.id 
+            ORDER BY c.created_at DESC
+        `;
         let params = [];
         if (req.user.role !== 'admin') {
-            query = 'SELECT * FROM customers WHERE assigned_to = ? ORDER BY created_at DESC';
+            query = `
+                SELECT c.*, u.name as assignee_name 
+                FROM customers c 
+                LEFT JOIN users u ON c.assigned_to = u.id 
+                WHERE c.assigned_to = ? 
+                ORDER BY c.created_at DESC
+            `;
             params = [req.user.id];
         }
         const [rows] = await pool.query(query, params);

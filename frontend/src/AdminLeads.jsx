@@ -65,7 +65,8 @@ const AdminLeads = () => {
             location: c.district || 'Unknown',
             requirements: parts[0] || 'N/A',
             feedback: parts[1] || 'None',
-            assignedTo: parts[2] || 'Unassigned'
+            assignedTo: c.assignee_name || 'Unassigned',
+            assignedToId: c.assigned_to || ''
           };
         });
         // Filter out converted clients
@@ -191,9 +192,10 @@ const AdminLeads = () => {
         name: updatedLead.name,
         phone: updatedLead.phone,
         district: updatedLead.location,
-        notes: (updatedLead.requirements || 'N/A') + ' | ' + (updatedLead.feedback || 'None') + ' | ' + (updatedLead.assignedTo || 'Unassigned'),
+        notes: (updatedLead.requirements || 'N/A') + ' | ' + (updatedLead.feedback || 'None'),
         source: updatedLead.source || 'Manual',
-        status: updatedLead.status
+        status: updatedLead.status,
+        assigned_to: updatedLead.assignedToId || null
       };
       
       const res = await fetch(`${API}/customers/${id}`, {

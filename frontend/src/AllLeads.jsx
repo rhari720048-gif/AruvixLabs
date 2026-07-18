@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { PhoneCall, Check, Download, Search, Edit2, Trash2, Eye, X } from 'lucide-react';
+import SearchableSelect from './SearchableSelect';
 
 const AllLeads = ({ leads, employees = [], handleConvert, handleDelete, handleBulkDelete, handleBulkAssign, handleEdit }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -82,16 +83,14 @@ const AllLeads = ({ leads, employees = [], handleConvert, handleDelete, handleBu
 
           {selectedIds.length > 0 && handleBulkAssign && (
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <select 
-                value={selectedEmployeeId} 
-                onChange={(e) => setSelectedEmployeeId(e.target.value)}
-                style={{ padding: '8px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }}
-              >
-                <option value="">Select Employee...</option>
-                {employees.map(emp => (
-                  <option key={emp.id} value={emp.id}>{emp.name}</option>
-                ))}
-              </select>
+              <div style={{ width: '200px' }}>
+                <SearchableSelect 
+                  options={employees.map(emp => ({ value: emp.id, label: emp.name }))}
+                  value={selectedEmployeeId}
+                  onChange={(val) => setSelectedEmployeeId(val)}
+                  placeholder="Select Employee..."
+                />
+              </div>
               <button 
                 onClick={() => {
                   if (!selectedEmployeeId) return alert('Please select an employee');
@@ -243,7 +242,12 @@ const AllLeads = ({ leads, employees = [], handleConvert, handleDelete, handleBu
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Assigned To</label>
-                <input type="text" value={editLead.assignedTo} onChange={e => setEditLead({...editLead, assignedTo: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db' }} />
+                <SearchableSelect 
+                  options={employees.map(emp => ({ value: emp.id, label: `${emp.name} (${emp.role})` }))}
+                  value={editLead.assignedToId}
+                  onChange={(val) => setEditLead({...editLead, assignedToId: val})}
+                  placeholder="Select Employee..."
+                />
               </div>
               <button type="submit" style={{ background: 'var(--primary)', color: 'white', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: '600', cursor: 'pointer', marginTop: '10px' }}>
                 Save Changes
