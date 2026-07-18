@@ -10,8 +10,8 @@ dotenv.config();
 
 const app = express();
 app.use(cors({
-  origin: ['https://aruvix-labs.vercel.app', 'http://localhost:5173', 'http://localhost:3000'],
-  credentials: true,
+    origin: ['https://aruvix-labs.vercel.app', 'http://localhost:5173', 'http://localhost:3000'],
+    credentials: true,
 }));
 app.use(express.json());
 
@@ -25,7 +25,7 @@ const authenticate = async (req, res, next) => {
     if (!token) return res.status(401).json({ error: 'Access denied' });
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        
+
         // Fetch fresh role and permissions from DB
         const [rows] = await pool.query('SELECT role, permissions FROM users WHERE id = ?', [decoded.id]);
         if (rows.length > 0) {
@@ -33,7 +33,7 @@ const authenticate = async (req, res, next) => {
             if (rows[0].permissions) {
                 try {
                     permissions = typeof rows[0].permissions === 'string' ? JSON.parse(rows[0].permissions) : rows[0].permissions;
-                } catch(e){}
+                } catch (e) { }
             }
             req.user = {
                 ...decoded,
@@ -63,10 +63,10 @@ app.post('/api/auth/login', async (req, res) => {
         if (!user || !(await bcrypt.compare(password, user.password))) {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
-        
+
         let permissions = {};
         if (user.permissions) {
-            try { permissions = typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions; } catch(e){}
+            try { permissions = typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions; } catch (e) { }
         }
 
         const token = jwt.sign({ id: user.id, name: user.name, role: user.role, permissions }, process.env.JWT_SECRET, { expiresIn: '8h' });
@@ -84,18 +84,18 @@ app.get('/api/auth/me', authenticate, async (req, res) => {
         const user = rows[0];
         let permissions = {};
         if (user.permissions) {
-            try { permissions = typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions; } catch(e){}
+            try { permissions = typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions; } catch (e) { }
         }
-        res.json({ 
-            id: user.id, 
-            name: user.name, 
-            email: user.email, 
-            role: user.role, 
-            phone: user.phone || '', 
-            bio: user.bio || '', 
-            location: user.location || '', 
-            department: user.department || '', 
-            permissions 
+        res.json({
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            phone: user.phone || '',
+            bio: user.bio || '',
+            location: user.location || '',
+            department: user.department || '',
+            permissions
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -119,7 +119,13 @@ app.put('/api/auth/profile', authenticate, async (req, res) => {
 
 app.get('/api/customers', authenticate, async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM customers ORDER BY created_at DESC');
+        let query = 'SELECT * FROM customers ORDER BY created_at DESC';
+        let params = [];
+        if (req.user.role !== 'admin') {
+            query = 'SELECT * FROM customers WHERE assigned_to = ? ORDER BY created_at DESC';
+            params = [req.user.id];
+        }
+        const [rows] = await pool.query(query, params);
         res.json(rows);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -132,7 +138,7 @@ app.put('/api/customers/:id', authenticate, async (req, res) => {
         if (name) {
             // Full update
             await pool.query(
-                'UPDATE customers SET name=?, phone=?, district=?, source=?, notes=?, status=? WHERE id=?', 
+                'UPDATE customers SET name=?, phone=?, district=?, source=?, notes=?, status=? WHERE id=?',
                 [name, phone, district, source, notes, status, req.params.id]
             );
         } else {
@@ -171,7 +177,7 @@ app.post('/api/customers', authenticate, async (req, res) => {
     const { customer_id, name, phone, district, source, notes } = req.body;
     try {
         await pool.query(
-            'INSERT INTO customers (customer_id, name, phone, district, source, notes, status) VALUES (?, ?, ?, ?, ?, ?, ?)', 
+            'INSERT INTO customers (customer_id, name, phone, district, source, notes, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
             [customer_id, name, phone, district, source, notes, 'Pending']
         );
         res.json({ success: true });
@@ -190,8 +196,8 @@ app.get('/api/users', authenticate, async (req, res) => {
             FROM users u
             ORDER BY u.id ASC
         `);
-        const users = rows.map(u => ({ 
-            ...u, 
+        const users = rows.map(u => ({
+            ...u,
             permissions: typeof u.permissions === 'string' ? JSON.parse(u.permissions) : (u.permissions || {})
         }));
         res.json(users);
@@ -217,7 +223,7 @@ app.post('/api/users', authenticate, async (req, res) => {
 
         const defaultPerms = typeof dbRoles[0].permissions === 'string' ? JSON.parse(dbRoles[0].permissions) : dbRoles[0].permissions;
         const hashedPassword = await bcrypt.hash(password, 10);
-        
+
         await pool.query(
             'INSERT INTO users (name, email, phone, role, password, status, permissions) VALUES (?, ?, ?, ?, ?, ?, ?)',
             [name, email, phone, role, hashedPassword, status, JSON.stringify(defaultPerms)]
@@ -236,15 +242,15 @@ app.put('/api/users/:id', authenticate, async (req, res) => {
     try {
         const [existing] = await pool.query('SELECT role, permissions FROM users WHERE id = ?', [req.params.id]);
         if (existing.length === 0) return res.status(404).json({ error: 'User not found' });
-        
+
         let finalPerms = existing[0].permissions;
-        
+
         if (role) {
             const [dbRoles] = await pool.query('SELECT permissions FROM roles WHERE LOWER(name) = LOWER(?)', [role]);
             if (dbRoles.length === 0) {
                 return res.status(400).json({ error: `Role '${role}' does not exist. Please add it first in Settings -> User Permissions.` });
             }
-            
+
             if (permissions) {
                 finalPerms = JSON.stringify(permissions);
             } else if ((existing[0].role || '').toLowerCase() !== role.toLowerCase()) {
@@ -256,16 +262,16 @@ app.put('/api/users/:id', authenticate, async (req, res) => {
 
         const queryParams = [name, email, phone, role || existing[0].role, status, finalPerms];
         let queryStr = 'UPDATE users SET name=?, email=?, phone=?, role=?, status=?, permissions=?';
-        
+
         if (password && password.trim() !== '') {
             const hashedPassword = await bcrypt.hash(password, 10);
             queryStr += ', password=?';
             queryParams.push(hashedPassword);
         }
-        
+
         queryStr += ' WHERE id=?';
         queryParams.push(req.params.id);
-        
+
         await pool.query(queryStr, queryParams);
         res.json({ success: true });
     } catch (error) {
@@ -309,9 +315,9 @@ app.post('/api/users/:id/send-welcome', authenticate, async (req, res) => {
         if (!rows.length) return res.status(404).json({ error: 'User not found' });
         const user = rows[0];
         await sendWelcomeEmail({
-            name:     user.name,
-            email:    user.email,
-            role:     user.role,
+            name: user.name,
+            email: user.email,
+            role: user.role,
             password: password || '(contact your admin for password)',
         });
         res.json({ success: true, message: `Welcome email sent to ${user.email}` });
@@ -338,13 +344,13 @@ app.get('/api/config/email', authenticate, async (req, res) => {
         if (!rows.length) return res.json({});
         const r = rows[0];
         res.json({
-            host:       r.mail_host,
-            port:       r.mail_port,
-            secure:     r.mail_secure === 1,
-            username:   r.mail_user,
-            password:   r.mail_pass ? '••••••••' : '',   // mask real password
+            host: r.mail_host,
+            port: r.mail_port,
+            secure: r.mail_secure === 1,
+            username: r.mail_user,
+            password: r.mail_pass ? '••••••••' : '',   // mask real password
             senderName: r.mail_from_name,
-            senderEmail:r.mail_from_email,
+            senderEmail: r.mail_from_email,
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -390,15 +396,15 @@ app.get('/api/auth/verify', authenticate, async (req, res) => {
             LEFT JOIN roles r ON u.role_id = r.id 
             WHERE u.id = ?
         `, [req.user.id]);
-        
+
         if (rows.length === 0) return res.status(404).json({ error: 'User not found' });
-        
+
         const user = rows[0];
         let permissions = {};
         if (user.permissions) {
-            try { permissions = typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions; } catch(e){}
+            try { permissions = typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions; } catch (e) { }
         }
-        
+
         res.json({ valid: true, user: { id: user.id, name: user.name, role: user.role_name, permissions } });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -409,7 +415,7 @@ app.get('/api/auth/verify', authenticate, async (req, res) => {
 app.get('/api/roles', authenticate, async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM roles');
-        res.json(rows.map(r => ({...r, permissions: typeof r.permissions === 'string' ? JSON.parse(r.permissions) : r.permissions})));
+        res.json(rows.map(r => ({ ...r, permissions: typeof r.permissions === 'string' ? JSON.parse(r.permissions) : r.permissions })));
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -455,7 +461,7 @@ app.post('/api/attendance/check-in', authenticate, async (req, res) => {
     try {
         const userId = req.user.id;
         const today = new Date().toISOString().split('T')[0];
-        
+
         // Check if already checked in today
         const [existing] = await pool.query('SELECT * FROM attendance WHERE user_id = ? AND date = ?', [userId, today]);
         if (existing.length > 0) return res.status(400).json({ error: 'Already checked in today' });
@@ -489,10 +495,10 @@ app.post('/api/attendance/pass/request', authenticate, async (req, res) => {
         const userId = req.user.id;
         const today = new Date().toISOString().split('T')[0];
         const { reason } = req.body;
-        
+
         const [att] = await pool.query('SELECT id FROM attendance WHERE user_id = ? AND date = ?', [userId, today]);
         if (att.length === 0) return res.status(400).json({ error: 'Must check in first' });
-        
+
         const [result] = await pool.query(
             'INSERT INTO attendance_passes (attendance_id, reason, status, request_time, pass_start) VALUES (?, ?, ?, NOW(), NOW())',
             [att[0].id, reason, 'approved']
@@ -507,7 +513,7 @@ app.post('/api/attendance/pass/resume', authenticate, async (req, res) => {
     try {
         const userId = req.user.id;
         const today = new Date().toISOString().split('T')[0];
-        
+
         const [att] = await pool.query('SELECT id FROM attendance WHERE user_id = ? AND date = ?', [userId, today]);
         if (att.length === 0) return res.status(400).json({ error: 'No attendance found' });
 
@@ -529,7 +535,7 @@ app.post('/api/attendance/admin/passes/:id/action', authenticate, async (req, re
         }
         const { action } = req.body; // 'approve' or 'reject'
         const passId = req.params.id;
-        
+
         if (action === 'approve') {
             await pool.query('UPDATE attendance_passes SET status = "approved", pass_start = NOW() WHERE id = ?', [passId]);
         } else {
@@ -581,28 +587,28 @@ app.get('/api/attendance/today', authenticate, async (req, res) => {
         const userId = req.user.id;
         const today = new Date().toISOString().split('T')[0];
         const [att] = await pool.query('SELECT * FROM attendance WHERE user_id = ? AND date = ?', [userId, today]);
-        
+
         if (att.length === 0) return res.json({ status: 'not_checked_in' });
-        
+
         const attendance = att[0];
         if (attendance.check_out) return res.json({ status: 'checked_out', attendance });
-        
+
         // check for pending or active passes
         const [passes] = await pool.query(
             'SELECT * FROM attendance_passes WHERE attendance_id = ? ORDER BY id DESC LIMIT 1',
             [attendance.id]
         );
-        
+
         let currentState = 'checked_in';
         let currentPass = null;
-        
+
         if (passes.length > 0) {
             currentPass = passes[0];
             if (currentPass.status === 'pending') currentState = 'pass_pending';
             else if (currentPass.status === 'approved' && !currentPass.pass_end) currentState = 'on_pass';
             else if (currentPass.status === 'rejected') currentState = 'pass_rejected';
         }
-        
+
         res.json({ status: currentState, attendance, currentPass });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -623,7 +629,7 @@ app.get('/api/attendance/admin/pending', authenticate, async (req, res) => {
     try {
         const canViewAttendance = req.user.permissions?.staff_attendance?.view;
         if (req.user.role !== 'admin' && req.user.role !== 'manager' && !canViewAttendance) return res.status(403).json({ error: 'Unauthorized' });
-        
+
         const query = `
             SELECT p.*, u.name as user_name, u.role as user_role 
             FROM attendance_passes p
@@ -643,9 +649,9 @@ app.get('/api/attendance/admin/report', authenticate, async (req, res) => {
     try {
         const canViewAttendance = req.user.permissions?.staff_attendance?.view;
         if (req.user.role !== 'admin' && req.user.role !== 'manager' && !canViewAttendance) return res.status(403).json({ error: 'Unauthorized' });
-        
+
         const date = req.query.date || new Date().toISOString().split('T')[0];
-        
+
         const query = `
             SELECT u.id as user_id, u.name, u.role, a.id as attendance_id, a.check_in, a.check_out, a.status 
             FROM users u
@@ -653,7 +659,7 @@ app.get('/api/attendance/admin/report', authenticate, async (req, res) => {
             ORDER BY u.name ASC
         `;
         const [usersWithAtt] = await pool.query(query, [date]);
-        
+
         for (let user of usersWithAtt) {
             if (user.attendance_id) {
                 const [passes] = await pool.query(
@@ -665,7 +671,7 @@ app.get('/api/attendance/admin/report', authenticate, async (req, res) => {
                 user.passes = [];
             }
         }
-        
+
         res.json(usersWithAtt);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -1078,7 +1084,7 @@ app.get('/api/support-tickets', authenticate, async (req, res) => {
             ORDER BY t.created_at DESC
         `;
         const [rows] = await pool.query(query);
-        
+
         // Fetch messages for each ticket
         for (let t of rows) {
             const [msgs] = await pool.query('SELECT * FROM support_ticket_messages WHERE ticket_id = ? ORDER BY created_at ASC', [t.id]);
@@ -1149,6 +1155,108 @@ app.delete('/api/client-reports/:id', authenticate, async (req, res) => {
     try {
         await pool.query('DELETE FROM client_reports WHERE id = ?', [req.params.id]);
         res.json({ success: true });
+    } catch (error) { res.status(500).json({ error: error.message }); }
+});
+
+// ── Telecalling API Endpoints ────────────────────────────────────────
+
+app.get('/api/telecalling/assigned', authenticate, async (req, res) => {
+    try {
+        const query = `
+            SELECT * FROM customers 
+            WHERE assigned_to = ? AND status NOT IN ('Converted', 'Not Interested', 'NI', 'Appointment', 'Callback') 
+            ORDER BY last_dial_date ASC, created_at DESC
+        `;
+        const [rows] = await pool.query(query, [req.user.id]);
+        res.json(rows);
+    } catch (error) { res.status(500).json({ error: error.message }); }
+});
+
+app.put('/api/telecalling/bulk-assign', authenticate, async (req, res) => {
+    if (req.user.role !== 'admin') return res.status(403).json({ error: 'Access denied' });
+    try {
+        const { lead_ids, employee_id } = req.body;
+        if (!lead_ids || !lead_ids.length || !employee_id) return res.status(400).json({ error: 'Missing parameters' });
+        
+        await pool.query(
+            'UPDATE customers SET assigned_to = ? WHERE id IN (?)',
+            [employee_id, lead_ids]
+        );
+        res.json({ success: true, message: 'Leads assigned successfully' });
+    } catch (error) { res.status(500).json({ error: error.message }); }
+});
+
+app.post('/api/telecalling/feedback', authenticate, async (req, res) => {
+    try {
+        const { customer_id, status, notes, callback_time } = req.body;
+        
+        await pool.query(
+            'INSERT INTO call_logs (customer_id, employee_id, status, notes, callback_time) VALUES (?, ?, ?, ?, ?)',
+            [customer_id, req.user.id, status, notes, callback_time || null]
+        );
+        
+        await pool.query(
+            'UPDATE customers SET status = ?, last_dial_date = NOW() WHERE id = ?',
+            [status, customer_id]
+        );
+        
+        res.json({ success: true });
+    } catch (error) { res.status(500).json({ error: error.message }); }
+});
+
+app.get('/api/telecalling/reports', authenticate, async (req, res) => {
+    try {
+        const [totalLeads] = await pool.query("SELECT COUNT(*) as count FROM customers WHERE status != 'Converted'");
+        const [totalCalls] = await pool.query("SELECT COUNT(*) as count FROM call_logs");
+        const [appointments] = await pool.query("SELECT COUNT(*) as count FROM customers WHERE status = 'Appointment'");
+        const [notInterested] = await pool.query("SELECT COUNT(*) as count FROM customers WHERE status IN ('Not Interested', 'NI')");
+        
+        res.json({
+            totalLeads: totalLeads[0].count,
+            totalCalls: totalCalls[0].count,
+            appointments: appointments[0].count,
+            notInterested: notInterested[0].count
+        });
+    } catch (error) { res.status(500).json({ error: error.message }); }
+});
+
+app.get('/api/telecalling/callbacks', authenticate, async (req, res) => {
+    try {
+        const query = `
+            SELECT c.*, l.notes as last_note, l.callback_time 
+            FROM customers c
+            LEFT JOIN call_logs l ON c.id = l.customer_id AND l.id = (SELECT MAX(id) FROM call_logs WHERE customer_id = c.id)
+            WHERE c.assigned_to = ? AND c.status = 'Callback'
+            ORDER BY l.callback_time ASC
+        `;
+        const [rows] = await pool.query(query, [req.user.id]);
+        res.json(rows);
+    } catch (error) { res.status(500).json({ error: error.message }); }
+});
+
+app.get('/api/telecalling/appointments', authenticate, async (req, res) => {
+    try {
+        const query = `
+            SELECT c.*, l.notes as last_note, l.callback_time as appointment_time 
+            FROM customers c
+            LEFT JOIN call_logs l ON c.id = l.customer_id AND l.id = (SELECT MAX(id) FROM call_logs WHERE customer_id = c.id)
+            WHERE c.assigned_to = ? AND c.status = 'Appointment'
+            ORDER BY l.callback_time ASC
+        `;
+        const [rows] = await pool.query(query, [req.user.id]);
+        res.json(rows);
+    } catch (error) { res.status(500).json({ error: error.message }); }
+});
+
+app.get('/api/telecalling/nibox', authenticate, async (req, res) => {
+    try {
+        const query = `
+            SELECT * FROM customers 
+            WHERE assigned_to = ? AND status IN ('Not Interested', 'NI')
+            ORDER BY last_dial_date DESC
+        `;
+        const [rows] = await pool.query(query, [req.user.id]);
+        res.json(rows);
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 

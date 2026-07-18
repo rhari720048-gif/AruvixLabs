@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import Landing from './Landing';
 import Login from './Login';
-import { LayoutDashboard, User, UserPlus, Users, Settings, ChevronRight, Pencil, X, CheckCircle, Camera, Eye, Edit2, Trash2 } from 'lucide-react';
+import { LayoutDashboard, User, UserPlus, Users, Settings, ChevronRight, Pencil, X, CheckCircle, Camera, Eye, Edit2, Trash2, PhoneCall, Clock, Calendar, Archive } from 'lucide-react';
 import AdminLeads from './AdminLeads';
 import SettingsPage from './SettingsPage';
 import Clients from './Clients';
@@ -12,14 +12,18 @@ import ViewModal from './ViewModal';
 import { getPerms } from './permissions';
 import './index.css';
 
+import StartDial from './StartDial';
+import Callback from './Callback';
+import Appointments from './Appointments';
+import NIBox from './NIBox';
 // Mock Data removed as data is now fetched from APIs
 
 const Sidebar = () => {
   const location = useLocation();
   const isActive = (path) => location.pathname === path ? 'active' : '';
-  
+
   let permissions = {};
-  try { permissions = JSON.parse(localStorage.getItem('permissions') || '{}'); } catch(e){}
+  try { permissions = JSON.parse(localStorage.getItem('permissions') || '{}'); } catch (e) { }
   const role = (localStorage.getItem('role') || 'employee').toLowerCase();
 
   const hasPerm = (module) => {
@@ -31,18 +35,26 @@ const Sidebar = () => {
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
-        <div style={{width: 32, height: 32, background: 'var(--primary)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-          <span style={{color: 'white', fontSize: 16}}>A</span>
+        <div style={{ width: 32, height: 32, background: 'var(--primary)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ color: 'white', fontSize: 16 }}>A</span>
         </div>
         AruvixLabs
       </div>
       <ul className="nav-links" style={{ overflowY: 'auto', paddingBottom: '20px' }}>
         {hasPerm('dashboard') && <li><Link to="/" className={`nav-link ${isActive('/')}`}><LayoutDashboard size={20} /> Dashboard</Link></li>}
         {hasPerm('profile') && <li><Link to="/profile" className={`nav-link ${isActive('/profile')}`}><User size={20} /> My Profile</Link></li>}
+        
+        {role === 'employee' && <li><Link to="/dial" className={`nav-link ${isActive('/dial')}`}><PhoneCall size={20} /> Start Dial</Link></li>}
+        {role === 'employee' && <li><Link to="/callback" className={`nav-link ${isActive('/callback')}`}><Clock size={20} /> Callbacks</Link></li>}
+        {role === 'employee' && <li><Link to="/appointments" className={`nav-link ${isActive('/appointments')}`}><Calendar size={20} /> Appointments</Link></li>}
+
         {hasPerm('leads') && <li><Link to="/leads" className={`nav-link ${isActive('/leads')}`}><UserPlus size={20} /> Leads</Link></li>}
         {hasPerm('clients') && <li><Link to="/clients" className={`nav-link ${isActive('/clients')}`}><Users size={20} /> Clients / Customers</Link></li>}
+        
+        {role === 'admin' && <li><Link to="/ni-box" className={`nav-link ${isActive('/ni-box')}`}><Archive size={20} /> NI Box</Link></li>}
+        
         {hasPerm('user_management') && <li><Link to="/user-management" className={`nav-link ${isActive('/user-management')}`}><Users size={20} /> Staff Management</Link></li>}
-        {hasPerm('settings') && <li style={{marginTop: '20px'}}><Link to="/settings" className={`nav-link ${isActive('/settings')}`}><Settings size={20} /> Settings</Link></li>}
+        {hasPerm('settings') && <li style={{ marginTop: '20px' }}><Link to="/settings" className={`nav-link ${isActive('/settings')}`}><Settings size={20} /> Settings</Link></li>}
       </ul>
     </aside>
   );
@@ -52,24 +64,32 @@ const Sidebar = () => {
 
 const Dashboard = () => {
   const [data, setData] = useState([]);
+  const [reports, setReports] = useState(null);
   const [viewRecord, setViewRecord] = useState(null);
 
   const perms = getPerms('dashboard');
   const canEdit = perms.edit ?? perms.canEdit ?? true;
   const canDelete = perms.delete ?? perms.canDelete ?? true;
-  
+
   useEffect(() => {
+    const token = localStorage.getItem('token');
     fetch('https://aruvixlabs.onrender.com/api/customers', {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      headers: { Authorization: `Bearer ${token}` }
     }).then(res => res.json()).then(resData => {
-      if(Array.isArray(resData)) setData(resData);
+      if (Array.isArray(resData)) setData(resData);
+    }).catch(e => console.error(e));
+
+    fetch('https://aruvixlabs.onrender.com/api/telecalling/reports', {
+      headers: { Authorization: `Bearer ${token}` }
+    }).then(res => res.json()).then(resData => {
+      setReports(resData);
     }).catch(e => console.error(e));
   }, []);
 
   const handleView = (c) => setViewRecord(c);
   const handleEdit = (c) => alert(`Editing ${c.name}`);
   const handleDelete = async (id) => {
-    if(window.confirm('Delete this record?')) {
+    if (window.confirm('Delete this record?')) {
       try {
         const res = await fetch(`https://aruvixlabs.onrender.com/api/customers/${id}`, {
           method: 'DELETE',
@@ -87,34 +107,54 @@ const Dashboard = () => {
     }
   };
 
-  const total = data.length;
+  const role = (localStorage.getItem('role') || 'employee').toLowerCase();
+  
+  // Use telecalling reports if admin, otherwise local data fallback
+  const total = reports?.totalLeads ?? data.length;
+  const dialing = reports?.totalCalls ?? 0;
   const pending = data.filter(c => c.status === 'Pending').length;
   const interested = data.filter(c => c.status === 'Interested').length;
   const converted = data.filter(c => c.status === 'Converted').length;
+  const apts = reports?.appointments ?? data.filter(c => c.status === 'Appointment').length;
 
   return (
     <div>
       <div className="stats-grid">
         <div className="stat-card">
-          <span className="stat-label">Total Leads & Clients</span>
+          <span className="stat-label">Total Leads</span>
           <span className="stat-value">{total}</span>
         </div>
-        <div className="stat-card">
-          <span className="stat-label">Pending Leads</span>
-          <span className="stat-value">{pending}</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-label">Interested</span>
-          <span className="stat-value">{interested}</span>
-        </div>
+        {role === 'admin' ? (
+          <>
+            <div className="stat-card">
+              <span className="stat-label">Total Dialing</span>
+              <span className="stat-value">{dialing}</span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-label">Appointments</span>
+              <span className="stat-value">{apts}</span>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="stat-card">
+              <span className="stat-label">Pending Leads</span>
+              <span className="stat-value">{pending}</span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-label">Interested</span>
+              <span className="stat-value">{interested}</span>
+            </div>
+          </>
+        )}
         <div className="stat-card">
           <span className="stat-label">Converted</span>
           <span className="stat-value">{converted}</span>
         </div>
       </div>
-      
+
       <h3>Recent Records</h3>
-      <br/>
+      <br />
       <div className="data-table-container">
         <table>
           <thead>
@@ -145,14 +185,14 @@ const Dashboard = () => {
               </tr>
             ))}
             {data.length === 0 && (
-              <tr><td colSpan="6" style={{textAlign: 'center', padding: '20px', color: '#6b7280'}}>No records found</td></tr>
+              <tr><td colSpan="6" style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>No records found</td></tr>
             )}
           </tbody>
         </table>
       </div>
 
       {viewRecord && (
-        <ViewModal 
+        <ViewModal
           isOpen={!!viewRecord}
           onClose={() => setViewRecord(null)}
           data={viewRecord}
@@ -213,7 +253,7 @@ const DummyPage = ({ title, columns, data, stats }) => (
 const ProfilePage = () => {
   const getProfilePerms = () => {
     let permissions = {};
-    try { permissions = JSON.parse(localStorage.getItem('permissions') || '{}'); } catch(e){}
+    try { permissions = JSON.parse(localStorage.getItem('permissions') || '{}'); } catch (e) { }
     const role = (localStorage.getItem('role') || 'employee').toLowerCase();
     const isAdmin = role === 'admin';
     const mod = permissions['profile'] || {};
@@ -243,24 +283,24 @@ const ProfilePage = () => {
     fetch('https://aruvixlabs.onrender.com/api/auth/me', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
-    .then(res => res.ok ? res.json() : null)
-    .then(data => {
-      if (data) {
-        const u = {
-          name: data.name || '',
-          email: data.email || '',
-          phone: data.phone || '',
-          location: data.location || '',
-          department: data.department || '',
-          role: data.role || '',
-          bio: data.bio || '',
-        };
-        setForm(u);
-        setDraft(u);
-      }
-      setLoading(false);
-    })
-    .catch(() => setLoading(false));
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data) {
+          const u = {
+            name: data.name || '',
+            email: data.email || '',
+            phone: data.phone || '',
+            location: data.location || '',
+            department: data.department || '',
+            role: data.role || '',
+            bio: data.bio || '',
+          };
+          setForm(u);
+          setDraft(u);
+        }
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
   }, []);
 
   const handleEdit = () => { setDraft({ ...form }); setIsEditing(true); setSaved(false); };
@@ -401,13 +441,13 @@ const ProfilePage = () => {
 
 const ProtectedRoute = ({ module, children }) => {
   let permissions = {};
-  try { permissions = JSON.parse(localStorage.getItem('permissions') || '{}'); } catch(e){}
+  try { permissions = JSON.parse(localStorage.getItem('permissions') || '{}'); } catch (e) { }
   const role = (localStorage.getItem('role') || 'employee').toLowerCase();
-  
+
   if (role === 'admin') return children;
   if (!module) return children;
   if (module === 'dashboard' || module === 'profile') return children;
-  
+
   const canView = permissions[module] && permissions[module].view;
   if (!canView) {
     return (
@@ -430,7 +470,7 @@ function App() {
       }
     };
     window.addEventListener('storage', handleStorageChange);
-    
+
     const token = localStorage.getItem('token');
     if (token) {
       setIsAuthenticated(true);
@@ -439,23 +479,23 @@ function App() {
       fetch('https://aruvixlabs.onrender.com/api/auth/me', {
         headers: { Authorization: `Bearer ${token}` }
       })
-      .then(res => res.ok ? res.json() : null)
-      .then(data => {
-        if (data) {
-          const userRole = (data.role || 'employee').toLowerCase();
-          const userPerms = data.permissions || {};
-          localStorage.setItem('role', userRole);
-          localStorage.setItem('permissions', JSON.stringify(userPerms));
-          localStorage.setItem('user_name', data.name || '');
-          localStorage.setItem('user', JSON.stringify({
-            id: data.id,
-            name: data.name,
-            role: userRole,
-            permissions: userPerms,
-          }));
-        }
-      })
-      .catch(() => {}); // silently fail if offline
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data) {
+            const userRole = (data.role || 'employee').toLowerCase();
+            const userPerms = data.permissions || {};
+            localStorage.setItem('role', userRole);
+            localStorage.setItem('permissions', JSON.stringify(userPerms));
+            localStorage.setItem('user_name', data.name || '');
+            localStorage.setItem('user', JSON.stringify({
+              id: data.id,
+              name: data.name,
+              role: userRole,
+              permissions: userPerms,
+            }));
+          }
+        })
+        .catch(() => { }); // silently fail if offline
     }
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
@@ -486,6 +526,10 @@ function App() {
               <Route path="/settings" element={<ProtectedRoute module="settings"><SettingsPage /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute module="profile"><ProfilePage /></ProtectedRoute>} />
               <Route path="/user-management" element={<ProtectedRoute module="user_management"><UserManagement /></ProtectedRoute>} />
+              <Route path="/dial" element={<StartDial />} />
+              <Route path="/callback" element={<Callback />} />
+              <Route path="/appointments" element={<Appointments />} />
+              <Route path="/ni-box" element={<NIBox />} />
             </Routes>
           </div>
         </main>

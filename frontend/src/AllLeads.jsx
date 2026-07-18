@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { PhoneCall, Check, Download, Search, Edit2, Trash2, Eye, X } from 'lucide-react';
 
-const AllLeads = ({ leads, handleConvert, handleDelete, handleBulkDelete, handleEdit }) => {
+const AllLeads = ({ leads, employees = [], handleConvert, handleDelete, handleBulkDelete, handleBulkAssign, handleEdit }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIds, setSelectedIds] = useState([]);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
   
   // Modals state
   const [viewLead, setViewLead] = useState(null);
@@ -77,6 +78,32 @@ const AllLeads = ({ leads, handleConvert, handleDelete, handleBulkDelete, handle
             }} style={{ padding: '8px 16px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '500' }}>
               <Trash2 size={16} /> Delete Selected ({selectedIds.length})
             </button>
+          )}
+
+          {selectedIds.length > 0 && handleBulkAssign && (
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <select 
+                value={selectedEmployeeId} 
+                onChange={(e) => setSelectedEmployeeId(e.target.value)}
+                style={{ padding: '8px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }}
+              >
+                <option value="">Select Employee...</option>
+                {employees.map(emp => (
+                  <option key={emp.id} value={emp.id}>{emp.name}</option>
+                ))}
+              </select>
+              <button 
+                onClick={() => {
+                  if (!selectedEmployeeId) return alert('Please select an employee');
+                  handleBulkAssign(selectedIds, selectedEmployeeId);
+                  setSelectedIds([]);
+                  setSelectedEmployeeId('');
+                }}
+                style={{ padding: '8px 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '500' }}
+              >
+                Assign Selected
+              </button>
+            </div>
           )}
 
           <div style={{ position: 'relative' }}>

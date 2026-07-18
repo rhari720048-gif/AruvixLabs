@@ -23,6 +23,7 @@ const AdminLeads = () => {
     return '';
   });
   const [leads, setLeads] = useState([]);
+  const [employees, setEmployees] = useState([]);
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState('');
 
@@ -30,7 +31,23 @@ const AdminLeads = () => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (user) setCurrentUser(user.name);
     fetchLeads();
+    fetchEmployees();
   }, []);
+
+  const fetchEmployees = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API}/users`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setEmployees(data);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const fetchLeads = async () => {
     try {
@@ -138,6 +155,25 @@ const AdminLeads = () => {
           Authorization: `Bearer ${token}` 
         },
         body: JSON.stringify({ ids })
+      });
+      if (res.ok) {
+        fetchLeads();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleBulkAssign = async (ids, employee_id) => {
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`${API}/telecalling/bulk-assign`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}` 
+        },
+        body: JSON.stringify({ lead_ids: ids, employee_id })
       });
       if (res.ok) {
         fetchLeads();
@@ -258,17 +294,21 @@ const AdminLeads = () => {
         ) : activePage === 'all' && hasAllTab ? (
           <AllLeads 
             leads={leads} 
+            employees={employees}
             handleConvert={handleConvert} 
-            handleDelete={canDelete ? handleDelete : null}
-            handleBulkDelete={canDelete ? handleBulkDelete : null}
-            handleEdit={canEdit ? handleEdit : null}
+            handleDelete={canDelete ? handleDelete : undefined}
+            handleBulkDelete={canDelete ? handleBulkDelete : undefined}
+            handleBulkAssign={handleBulkAssign}
+            handleEdit={canEdit ? handleEdit : undefined}
           />
         ) : activePage === 'mine' && hasMineTab ? (
           <AllLeads 
             leads={leads.filter(l => l.assignedTo === currentUser)} 
+            employees={employees}
             handleConvert={handleConvert} 
             handleDelete={canDelete ? handleDelete : null}
             handleBulkDelete={canDelete ? handleBulkDelete : null}
+            handleBulkAssign={handleBulkAssign}
             handleEdit={canEdit ? handleEdit : null}
           />
         ) : null}

@@ -71,11 +71,11 @@ async function initDB() {
             FOREIGN KEY (assigned_to) REFERENCES users(id)
         );
     `;
-    
+
     try {
         await pool.query(rolesTable);
         await pool.query(usersTable);
-        
+
         // Custom roles & user profile migrations
         try {
             await pool.query("ALTER TABLE users MODIFY COLUMN role VARCHAR(255) DEFAULT 'employee'");
@@ -84,19 +84,19 @@ async function initDB() {
         }
         try {
             await pool.query("ALTER TABLE users ADD COLUMN bio TEXT");
-        } catch (e) {}
+        } catch (e) { }
         try {
             await pool.query("ALTER TABLE users ADD COLUMN location VARCHAR(255)");
-        } catch (e) {}
+        } catch (e) { }
         try {
             await pool.query("ALTER TABLE users ADD COLUMN department VARCHAR(255)");
-        } catch (e) {}
+        } catch (e) { }
         try {
             await pool.query("ALTER TABLE users ADD COLUMN permissions JSON");
-        } catch (e) {}
+        } catch (e) { }
         try {
             await pool.query("UPDATE users SET permissions = '{}' WHERE permissions IS NULL");
-        } catch (e) {}
+        } catch (e) { }
 
         // Try to add role_id column if it doesn't exist (for existing DBs)
         try {
@@ -133,7 +133,7 @@ async function initDB() {
                 support: { view: true, create: true, edit: true, delete: true },
                 settings: { view: true, create: true, edit: true, delete: true }
             };
-            
+
             const employeePermissions = {
                 dashboard: { view: true },
                 profile: { view: true },
@@ -152,7 +152,7 @@ async function initDB() {
         } catch (e) {
             // Column might already exist, ignore error
         }
-        
+
         try {
             await pool.query(`UPDATE users SET role_id = (SELECT id FROM roles WHERE name = 'Admin'), permissions = (SELECT permissions FROM roles WHERE name = 'Admin') WHERE role IN ('admin', 'manager') AND role_id IS NULL`);
             await pool.query(`UPDATE users SET role_id = (SELECT id FROM roles WHERE name = 'Employee'), permissions = (SELECT permissions FROM roles WHERE name = 'Employee') WHERE role = 'employee' AND role_id IS NULL`);
@@ -166,8 +166,8 @@ async function initDB() {
 
         await pool.query(customersTable);
 
-    // ── Attendance tables ──────────────────────────────────────────────────
-    const attendanceTable = `
+        // ── Attendance tables ──────────────────────────────────────────────────
+        const attendanceTable = `
         CREATE TABLE IF NOT EXISTS attendance (
             id INT AUTO_INCREMENT PRIMARY KEY,
             user_id INT NOT NULL,
@@ -178,7 +178,7 @@ async function initDB() {
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         );
     `;
-    const passesTable = `
+        const passesTable = `
         CREATE TABLE IF NOT EXISTS attendance_passes (
             id INT AUTO_INCREMENT PRIMARY KEY,
             attendance_id INT NOT NULL,
@@ -190,11 +190,11 @@ async function initDB() {
             FOREIGN KEY (attendance_id) REFERENCES attendance(id) ON DELETE CASCADE
         );
     `;
-    await pool.query(attendanceTable);
-    await pool.query(passesTable);
+        await pool.query(attendanceTable);
+        await pool.query(passesTable);
 
-    // ── Projects & Tasks tables ────────────────────────────────────────────
-    const projectsTable = `
+        // ── Projects & Tasks tables ────────────────────────────────────────────
+        const projectsTable = `
         CREATE TABLE IF NOT EXISTS projects (
             id INT AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
@@ -211,7 +211,7 @@ async function initDB() {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
     `;
-    const tasksTable = `
+        const tasksTable = `
         CREATE TABLE IF NOT EXISTS tasks (
             id INT AUTO_INCREMENT PRIMARY KEY,
             title VARCHAR(255) NOT NULL,
@@ -226,7 +226,7 @@ async function initDB() {
             FOREIGN KEY (assigned_to) REFERENCES users(id) ON DELETE SET NULL
         );
     `;
-    const notesTable = `
+        const notesTable = `
         CREATE TABLE IF NOT EXISTS user_notes (
             id INT AUTO_INCREMENT PRIMARY KEY,
             user_id INT NOT NULL,
@@ -238,13 +238,13 @@ async function initDB() {
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         );
     `;
-    
-    await pool.query(projectsTable);
-    await pool.query(tasksTable);
-    await pool.query(notesTable);
 
-    // ── Phase 2: Finance & Operations tables ──────────────────────────────
-    const accountingTable = `
+        await pool.query(projectsTable);
+        await pool.query(tasksTable);
+        await pool.query(notesTable);
+
+        // ── Phase 2: Finance & Operations tables ──────────────────────────────
+        const accountingTable = `
         CREATE TABLE IF NOT EXISTS accounting (
             id INT AUTO_INCREMENT PRIMARY KEY,
             type ENUM('Income', 'Expense') NOT NULL,
@@ -255,7 +255,7 @@ async function initDB() {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
     `;
-    const invoicesTable = `
+        const invoicesTable = `
         CREATE TABLE IF NOT EXISTS invoices (
             id INT AUTO_INCREMENT PRIMARY KEY,
             invoice_no VARCHAR(100) UNIQUE NOT NULL,
@@ -271,7 +271,7 @@ async function initDB() {
             FOREIGN KEY (client_id) REFERENCES customers(id) ON DELETE RESTRICT
         );
     `;
-    const quotationsTable = `
+        const quotationsTable = `
         CREATE TABLE IF NOT EXISTS quotations (
             id INT AUTO_INCREMENT PRIMARY KEY,
             quote_no VARCHAR(100) UNIQUE NOT NULL,
@@ -287,12 +287,12 @@ async function initDB() {
         );
     `;
 
-    await pool.query(accountingTable);
-    await pool.query(invoicesTable);
-    await pool.query(quotationsTable);
+        await pool.query(accountingTable);
+        await pool.query(invoicesTable);
+        await pool.query(quotationsTable);
 
-    // ── Phase 3: Operations & Communication ────────────────────────────────
-    const internalMailTable = `
+        // ── Phase 3: Operations & Communication ────────────────────────────────
+        const internalMailTable = `
         CREATE TABLE IF NOT EXISTS internal_mail (
             id INT AUTO_INCREMENT PRIMARY KEY,
             sender_id INT NOT NULL,
@@ -305,7 +305,7 @@ async function initDB() {
             FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE
         );
     `;
-    const leavesTable = `
+        const leavesTable = `
         CREATE TABLE IF NOT EXISTS leaves (
             id INT AUTO_INCREMENT PRIMARY KEY,
             user_id INT NOT NULL,
@@ -318,7 +318,7 @@ async function initDB() {
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         );
     `;
-    const meetingsTable = `
+        const meetingsTable = `
         CREATE TABLE IF NOT EXISTS meetings (
             id INT AUTO_INCREMENT PRIMARY KEY,
             title VARCHAR(255) NOT NULL,
@@ -331,7 +331,7 @@ async function initDB() {
             FOREIGN KEY (assigned_to) REFERENCES users(id) ON DELETE SET NULL
         );
     `;
-    const filesTable = `
+        const filesTable = `
         CREATE TABLE IF NOT EXISTS files (
             id INT AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
@@ -344,7 +344,7 @@ async function initDB() {
             FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE SET NULL
         );
     `;
-    const chatTable = `
+        const chatTable = `
         CREATE TABLE IF NOT EXISTS chat_messages (
             id INT AUTO_INCREMENT PRIMARY KEY,
             channel VARCHAR(100) NOT NULL,
@@ -355,14 +355,14 @@ async function initDB() {
         );
     `;
 
-    await pool.query(internalMailTable);
-    await pool.query(leavesTable);
-    await pool.query(meetingsTable);
-    await pool.query(filesTable);
-    await pool.query(chatTable);
+        await pool.query(internalMailTable);
+        await pool.query(leavesTable);
+        await pool.query(meetingsTable);
+        await pool.query(filesTable);
+        await pool.query(chatTable);
 
-    // ── Phase 4: Support & Reports ────────────────────────────────────────
-    const supportTicketsTable = `
+        // ── Phase 4: Support & Reports ────────────────────────────────────────
+        const supportTicketsTable = `
         CREATE TABLE IF NOT EXISTS support_tickets (
             id INT AUTO_INCREMENT PRIMARY KEY,
             ticket_id VARCHAR(50) UNIQUE NOT NULL,
@@ -375,7 +375,7 @@ async function initDB() {
             FOREIGN KEY (client_id) REFERENCES customers(id) ON DELETE SET NULL
         );
     `;
-    const supportTicketMessagesTable = `
+        const supportTicketMessagesTable = `
         CREATE TABLE IF NOT EXISTS support_ticket_messages (
             id INT AUTO_INCREMENT PRIMARY KEY,
             ticket_id INT NOT NULL,
@@ -385,7 +385,7 @@ async function initDB() {
             FOREIGN KEY (ticket_id) REFERENCES support_tickets(id) ON DELETE CASCADE
         );
     `;
-    const clientReportsTable = `
+        const clientReportsTable = `
         CREATE TABLE IF NOT EXISTS client_reports (
             id INT AUTO_INCREMENT PRIMARY KEY,
             client_id INT NOT NULL,
@@ -400,13 +400,13 @@ async function initDB() {
         );
     `;
 
-    await pool.query(supportTicketsTable);
-    await pool.query(supportTicketMessagesTable);
-    await pool.query(clientReportsTable);
+        await pool.query(supportTicketsTable);
+        await pool.query(supportTicketMessagesTable);
+        await pool.query(clientReportsTable);
 
 
-    // ── SMTP settings table ────────────────────────────────────────────────
-    await pool.query(`
+        // ── SMTP settings table ────────────────────────────────────────────────
+        await pool.query(`
         CREATE TABLE IF NOT EXISTS smtp_settings (
             id INT AUTO_INCREMENT PRIMARY KEY,
             mail_host       VARCHAR(255) NOT NULL DEFAULT 'smtp.gmail.com',
@@ -419,50 +419,50 @@ async function initDB() {
             updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         );
     `);
-    // Seed defaults from .env if table is empty
-    const [smtpRows] = await pool.query('SELECT id FROM smtp_settings LIMIT 1');
-    if (smtpRows.length === 0) {
-        await pool.query(
-            'INSERT INTO smtp_settings (mail_host, mail_port, mail_secure, mail_user, mail_pass, mail_from_name, mail_from_email) VALUES (?,?,?,?,?,?,?)',
-            [
-                process.env.MAIL_HOST       || 'smtp.gmail.com',
-                parseInt(process.env.MAIL_PORT || '587'),
-                process.env.MAIL_SECURE === 'true' ? 1 : 0,
-                process.env.MAIL_USER       || '',
-                process.env.MAIL_PASS       || '',
-                process.env.MAIL_FROM_NAME  || 'AruvixLabs CRM',
-                process.env.MAIL_FROM_EMAIL || process.env.MAIL_USER || '',
-            ]
-        );
-    }
+        // Seed defaults from .env if table is empty
+        const [smtpRows] = await pool.query('SELECT id FROM smtp_settings LIMIT 1');
+        if (smtpRows.length === 0) {
+            await pool.query(
+                'INSERT INTO smtp_settings (mail_host, mail_port, mail_secure, mail_user, mail_pass, mail_from_name, mail_from_email) VALUES (?,?,?,?,?,?,?)',
+                [
+                    process.env.MAIL_HOST || 'smtp.gmail.com',
+                    parseInt(process.env.MAIL_PORT || '587'),
+                    process.env.MAIL_SECURE === 'true' ? 1 : 0,
+                    process.env.MAIL_USER || '',
+                    process.env.MAIL_PASS || '',
+                    process.env.MAIL_FROM_NAME || 'AruvixLabs CRM',
+                    process.env.MAIL_FROM_EMAIL || process.env.MAIL_USER || '',
+                ]
+            );
+        }
 
-    // Create default admin user
-    const adminEmail = 'admin@aruvixcrm.com';
-    const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [adminEmail]);
-    if (rows.length === 0) {
-        const hashedPassword = await bcrypt.hash('admin@123', 10);
-        
-        // Try to get admin role ID
-        const [adminRole] = await pool.query("SELECT id FROM roles WHERE name = 'Admin'");
-        const adminRoleId = adminRole.length > 0 ? adminRole[0].id : null;
+        // Create default admin user
+        const adminEmail = 'admin@aruvixcrm.com';
+        const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [adminEmail]);
+        if (rows.length === 0) {
+            const hashedPassword = await bcrypt.hash('admin@123', 10);
 
-        // Full permissions for all modules
-        const allModules = ['dashboard','profile','mail','projects','tasks','files','calendar','meetings','accounting','invoices','quotes','leads','clients','staff_attendance','my_attendance','user_notes','user_management','leaves','client_reports','team_chat','support','settings'];
-        const adminPerms = {};
-        allModules.forEach(m => adminPerms[m] = { view: true, create: true, edit: true, delete: true });
+            // Try to get admin role ID
+            const [adminRole] = await pool.query("SELECT id FROM roles WHERE name = 'Admin'");
+            const adminRoleId = adminRole.length > 0 ? adminRole[0].id : null;
 
-        await pool.query('INSERT INTO users (name, email, password, role, role_id, permissions) VALUES (?, ?, ?, ?, ?, ?)', ['Admin', adminEmail, hashedPassword, 'admin', adminRoleId, JSON.stringify(adminPerms)]);
-        console.log("Default admin user created with full permissions");
-    } else {
-        // Ensure existing admin user has full permissions and password is correct
-        const existing = rows[0];
-        const hashedPassword = await bcrypt.hash('admin@123', 10);
-        const allModules = ['dashboard','profile','mail','projects','tasks','files','calendar','meetings','accounting','invoices','quotes','leads','clients','staff_attendance','my_attendance','user_notes','user_management','leaves','client_reports','team_chat','support','settings'];
-        const adminPerms = {};
-        allModules.forEach(m => adminPerms[m] = { view: true, create: true, edit: true, delete: true });
-        await pool.query('UPDATE users SET permissions = ?, password = ? WHERE email = ?', [JSON.stringify(adminPerms), hashedPassword, adminEmail]);
-        console.log("Existing admin user permissions and password updated");
-    }
+            // Full permissions for all modules
+            const allModules = ['dashboard', 'profile', 'mail', 'projects', 'tasks', 'files', 'calendar', 'meetings', 'accounting', 'invoices', 'quotes', 'leads', 'clients', 'staff_attendance', 'my_attendance', 'user_notes', 'user_management', 'leaves', 'client_reports', 'team_chat', 'support', 'settings'];
+            const adminPerms = {};
+            allModules.forEach(m => adminPerms[m] = { view: true, create: true, edit: true, delete: true });
+
+            await pool.query('INSERT INTO users (name, email, password, role, role_id, permissions) VALUES (?, ?, ?, ?, ?, ?)', ['Admin', adminEmail, hashedPassword, 'admin', adminRoleId, JSON.stringify(adminPerms)]);
+            console.log("Default admin user created with full permissions");
+        } else {
+            // Ensure existing admin user has full permissions and password is correct
+            const existing = rows[0];
+            const hashedPassword = await bcrypt.hash('admin@123', 10);
+            const allModules = ['dashboard', 'profile', 'mail', 'projects', 'tasks', 'files', 'calendar', 'meetings', 'accounting', 'invoices', 'quotes', 'leads', 'clients', 'staff_attendance', 'my_attendance', 'user_notes', 'user_management', 'leaves', 'client_reports', 'team_chat', 'support', 'settings'];
+            const adminPerms = {};
+            allModules.forEach(m => adminPerms[m] = { view: true, create: true, edit: true, delete: true });
+            await pool.query('UPDATE users SET permissions = ?, password = ? WHERE email = ?', [JSON.stringify(adminPerms), hashedPassword, adminEmail]);
+            console.log("Existing admin user permissions and password updated");
+        }
 
     } catch (err) {
         console.error("Database Init Error:", err);
