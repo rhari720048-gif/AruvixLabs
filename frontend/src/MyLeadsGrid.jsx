@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PhoneCall, CheckCircle, ThumbsUp, ThumbsDown, X, Edit2, Trash2, MapPin, User, FileText, Activity, Clock, Save, PhoneOff, Car } from 'lucide-react';
+import { PhoneCall, CheckCircle, ThumbsUp, ThumbsDown, X, Edit2, Trash2, MapPin, User, FileText, Activity, Clock, Save, PhoneOff, Car, Calendar } from 'lucide-react';
 import ActionButtons from './ActionButtons';
 import EditLeadModal from './EditLeadModal';
 
