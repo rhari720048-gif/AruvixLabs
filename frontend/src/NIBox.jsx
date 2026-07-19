@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Archive, RefreshCw, User, Users, PlusCircle, CheckCircle, Edit3, PhoneCall, MapPin, Car, Clock, Phone } from 'lucide-react';
+import { Archive, RefreshCw, User, Users, PlusCircle, CheckCircle, Edit3, PhoneCall, MapPin, Car, Clock, Phone, PhoneOff } from 'lucide-react';
 import './index.css';
 import ViewModal from './ViewModal';
 import EditLeadModal from './EditLeadModal';
@@ -13,6 +13,11 @@ const NIBox = () => {
     const [selectedLead, setSelectedLead] = useState(null);
     const [feedback, setFeedback] = useState({ status: 'Interested', notes: '', callback_time: '' });
     const [loading, setLoading] = useState(true);
+    
+    // Call State
+    const [callPhase, setCallPhase] = useState('idle'); // 'idle', 'dialing', 'active', 'feedback'
+    const [secondsElapsed, setSecondsElapsed] = useState(0);
+    const [timerInterval, setTimerInterval] = useState(null);
     const [viewRecord, setViewRecord] = useState(null);
     const [editRecord, setEditRecord] = useState(null);
     
@@ -77,6 +82,53 @@ const NIBox = () => {
         }
     }, [activeTab]);
 
+    useEffect(() => {
+        return () => {
+            if (timerInterval) clearInterval(timerInterval);
+        };
+    }, [timerInterval]);
+
+    const resetCallState = () => {
+        setCallPhase('idle');
+        setSecondsElapsed(0);
+        setFeedback({ status: 'Interested', notes: '', callback_time: '' });
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            setTimerInterval(null);
+        }
+    };
+
+    const startDialing = (leadToCall) => {
+        if (selectedLead?.id !== leadToCall.id) setSelectedLead(leadToCall);
+        resetCallState();
+        setCallPhase('dialing');
+        window.location.href = `tel:${leadToCall.phone}`;
+        
+        setTimeout(() => {
+            setCallPhase('active');
+            setSecondsElapsed(0);
+            const interval = setInterval(() => {
+                setSecondsElapsed(prev => prev + 1);
+            }, 1000);
+            setTimerInterval(interval);
+        }, 2000);
+    };
+
+    const stopTimer = () => {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            setTimerInterval(null);
+        }
+        setCallPhase('feedback');
+    };
+
+    const formatTime = (totalSeconds) => {
+        if (totalSeconds == null) return '00:00';
+        const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+        const s = (totalSeconds % 60).toString().padStart(2, '0');
+        return `${m}:${s}`;
+    };
+
     const handleFeedbackSubmit = async (e) => {
         e.preventDefault();
         const finalStatus = feedback.status === 'Not Interested' ? 'NI' : feedback.status;
@@ -92,12 +144,13 @@ const NIBox = () => {
                     notes: feedback.notes,
                     callback_time: feedback.callback_time || null,
                     customer_id: selectedLead.id,
-                    duration: 0
+                    duration: secondsElapsed
                 })
             });
             if (res.ok) {
                 setSuccessMsg('Feedback submitted successfully!');
                 setSelectedLead(null);
+                resetCallState();
                 setFeedback({ status: 'Interested', notes: '', callback_time: '' });
                 fetchLeads(activeTab);
                 setTimeout(() => setSuccessMsg(''), 3000);
@@ -230,7 +283,7 @@ const NIBox = () => {
                                         <div style={{ fontWeight: '600', color: '#1f2937' }}>{lead.name}</div>
                                         <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                                             <button 
-                                                onClick={(e) => { e.stopPropagation(); window.location.href = `tel:${lead.phone}`; }}
+                                                onClick={(e) => { e.stopPropagation(); startDialing(lead); }}
                                                 title="Call Now"
                                                 style={{
                                                     background: '#d1fae5', color: '#10b981', border: 'none', borderRadius: '6px',
@@ -289,50 +342,148 @@ const NIBox = () => {
                                     </div>
                                 )}
 
-                                <form onSubmit={handleFeedbackSubmit} style={{ background: '#f8fafc', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0', marginTop: '20px' }}>
-                                    <h3 style={{ margin: '0 0 15px', color: '#1e293b' }}>Update Status</h3>
-                                    <div style={{ marginBottom: '15px' }}>
-                                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Status</label>
-                                        <select 
-                                            value={feedback.status} 
-                                            onChange={e => setFeedback({...feedback, status: e.target.value})}
-                                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                                        >
-                                            <option value="Interested">Interested / Follow-up</option>
-                                            <option value="Not Interested">Not Interested (NI)</option>
-                                            <option value="Call Later">Call Later</option>
-                                            <option value="Appointment">Appointment</option>
-                                            <option value="Converted">Converted (Deal Closed)</option>
-                                        </select>
-                                    </div>
+                                <div style={{ borderTop: '2px dashed #e5e7eb', paddingTop: '24px', marginTop: '24px', textAlign: 'center' }}>
+                                    {callPhase === 'idle' && (
+                                        <div>
+                                            <button 
+                                                onClick={() => startDialing(selectedLead)}
+                                                style={{
+                                                    display: 'inline-flex', alignItems: 'center', gap: '10px', cursor: 'pointer',
+                                                    background: '#10b981', color: 'white', padding: '12px 32px', border: 'none',
+                                                    borderRadius: '50px', fontWeight: 'bold', fontSize: '16px',
+                                                    boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)', marginBottom: '20px'
+                                                }}
+                                            >
+                                                <PhoneCall size={20} /> Dial Now
+                                            </button>
+                                            
+                                            <div style={{ textAlign: 'left' }}>
+                                                <form onSubmit={handleFeedbackSubmit} style={{ background: '#f8fafc', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                                                    <h3 style={{ margin: '0 0 15px', color: '#1e293b' }}>Update Status (Manual)</h3>
+                                                    <div style={{ marginBottom: '15px' }}>
+                                                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Status</label>
+                                                        <select 
+                                                            value={feedback.status} 
+                                                            onChange={e => setFeedback({...feedback, status: e.target.value})}
+                                                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                                                        >
+                                                            <option value="Interested">Interested / Follow-up</option>
+                                                            <option value="Not Interested">Not Interested (NI)</option>
+                                                            <option value="Call Later">Call Later</option>
+                                                            <option value="Appointment">Appointment</option>
+                                                            <option value="Converted">Converted (Deal Closed)</option>
+                                                        </select>
+                                                    </div>
 
-                                    {['Call Later', 'Appointment'].includes(feedback.status) && (
-                                        <div style={{ marginBottom: '15px' }}>
-                                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>New Date & Time</label>
-                                            <input 
-                                                type="datetime-local" 
-                                                value={feedback.callback_time} 
-                                                onChange={e => setFeedback({...feedback, callback_time: e.target.value})}
-                                                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                                                required
-                                            />
+                                                    {['Call Later', 'Appointment'].includes(feedback.status) && (
+                                                        <div style={{ marginBottom: '15px' }}>
+                                                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>New Date & Time</label>
+                                                            <input 
+                                                                type="datetime-local" 
+                                                                value={feedback.callback_time} 
+                                                                onChange={e => setFeedback({...feedback, callback_time: e.target.value})}
+                                                                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                                                                required
+                                                            />
+                                                        </div>
+                                                    )}
+
+                                                    <div style={{ marginBottom: '15px' }}>
+                                                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Notes</label>
+                                                        <textarea 
+                                                            value={feedback.notes} 
+                                                            onChange={e => setFeedback({...feedback, notes: e.target.value})}
+                                                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', minHeight: '80px', resize: 'vertical' }}
+                                                            required
+                                                        ></textarea>
+                                                    </div>
+                                                    
+                                                    <button type="submit" style={{ width: '100%', padding: '12px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                                        <CheckCircle size={18} /> Save Update
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </div>
                                     )}
 
-                                    <div style={{ marginBottom: '15px' }}>
-                                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Notes</label>
-                                        <textarea 
-                                            value={feedback.notes} 
-                                            onChange={e => setFeedback({...feedback, notes: e.target.value})}
-                                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', minHeight: '80px', resize: 'vertical' }}
-                                            required
-                                        ></textarea>
-                                    </div>
-                                    
-                                    <button type="submit" style={{ width: '100%', padding: '12px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                                        <CheckCircle size={18} /> Save Update
-                                    </button>
-                                </form>
+                                    {callPhase === 'dialing' && (
+                                        <div style={{ padding: '20px', animation: 'pulse 1.5s infinite' }}>
+                                            <PhoneCall size={48} color="#10b981" style={{ marginBottom: '10px' }} />
+                                            <h3 style={{ margin: 0, color: '#10b981' }}>Dialing...</h3>
+                                        </div>
+                                    )}
+
+                                    {callPhase === 'active' && (
+                                        <div style={{ background: '#f0fdf4', padding: '30px', borderRadius: '16px', border: '2px solid #86efac' }}>
+                                            <div style={{ fontSize: '48px', fontWeight: 'bold', color: '#15803d', fontFamily: 'monospace', marginBottom: '20px' }}>
+                                                {formatTime(secondsElapsed)}
+                                            </div>
+                                            <button 
+                                                onClick={stopTimer}
+                                                style={{
+                                                    display: 'inline-flex', alignItems: 'center', gap: '10px', cursor: 'pointer',
+                                                    background: '#ef4444', color: 'white', padding: '16px 40px', border: 'none',
+                                                    borderRadius: '50px', fontWeight: 'bold', fontSize: '18px',
+                                                    boxShadow: '0 4px 14px rgba(239, 68, 68, 0.4)'
+                                                }}
+                                            >
+                                                <PhoneOff size={24} /> End Call
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {callPhase === 'feedback' && (
+                                        <div style={{ textAlign: 'left' }}>
+                                            <form onSubmit={handleFeedbackSubmit} style={{ background: '#f8fafc', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                                                <h3 style={{ margin: '0 0 15px', color: '#1e293b', textAlign: 'center' }}>How did the call go?</h3>
+                                                <div style={{ textAlign: 'center', marginBottom: '20px', color: '#64748b', fontWeight: '500' }}>
+                                                    Call Duration: <span style={{ color: '#0f172a', fontWeight: 'bold' }}>{formatTime(secondsElapsed)}</span>
+                                                </div>
+                                                <div style={{ marginBottom: '15px' }}>
+                                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Status</label>
+                                                    <select 
+                                                        value={feedback.status} 
+                                                        onChange={e => setFeedback({...feedback, status: e.target.value})}
+                                                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                                                    >
+                                                        <option value="Interested">Interested / Follow-up</option>
+                                                        <option value="Not Interested">Not Interested (NI)</option>
+                                                        <option value="Call Later">Call Later</option>
+                                                        <option value="Appointment">Appointment</option>
+                                                        <option value="Converted">Converted (Deal Closed)</option>
+                                                    </select>
+                                                </div>
+
+                                                {['Call Later', 'Appointment'].includes(feedback.status) && (
+                                                    <div style={{ marginBottom: '15px' }}>
+                                                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>New Date & Time</label>
+                                                        <input 
+                                                            type="datetime-local" 
+                                                            value={feedback.callback_time} 
+                                                            onChange={e => setFeedback({...feedback, callback_time: e.target.value})}
+                                                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                                                            required
+                                                        />
+                                                    </div>
+                                                )}
+
+                                                <div style={{ marginBottom: '15px' }}>
+                                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Notes</label>
+                                                    <textarea 
+                                                        value={feedback.notes} 
+                                                        onChange={e => setFeedback({...feedback, notes: e.target.value})}
+                                                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', minHeight: '80px', resize: 'vertical' }}
+                                                        required
+                                                    ></textarea>
+                                                </div>
+                                                
+                                                <button type="submit" style={{ width: '100%', padding: '12px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                                    <CheckCircle size={18} /> Save Feedback
+                                                </button>
+                                            </form>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         ) : (
                             <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', flexDirection: 'column' }}>
