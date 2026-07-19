@@ -304,7 +304,6 @@ const AdminLeads = () => {
           <AllLeads 
             leads={leads} 
             employees={employees}
-            handleConvert={handleConvert} 
             handleDelete={canDelete ? handleDelete : undefined}
             handleBulkDelete={canDelete ? handleBulkDelete : undefined}
             handleBulkAssign={handleBulkAssign}

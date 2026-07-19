@@ -6,7 +6,7 @@ import EditLeadModal from './EditLeadModal';
 
 const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
 
-const AllLeads = ({ leads, employees = [], handleConvert, handleDelete, handleBulkDelete, handleBulkAssign, handleEdit, refreshLeads }) => {
+const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handleBulkAssign, handleEdit, refreshLeads }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIds, setSelectedIds] = useState([]);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState([]);
@@ -301,19 +301,12 @@ const AllLeads = ({ leads, employees = [], handleConvert, handleDelete, handleBu
                 </td>
                 <td data-label="Location" style={{ padding: '14px 16px', color: '#4b5563' }}>{lead.location}</td>
                 <td data-label="Actions" style={{ padding: '14px 16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <ActionButtons 
                       onView={() => setSelectedLead(lead)}
                       onEdit={() => setEditLead(lead)}
                       onDelete={() => { if(window.confirm('Delete this lead?')) handleDelete(lead.id) }}
                     />
-                    {lead.status === 'Converted' ? (
-                      <span style={{ fontSize: '11px', padding: '2px 8px', background: '#d1fae5', color: '#065f46', borderRadius: '12px', fontWeight: '600' }}>Converted</span>
-                    ) : (
-                      <button onClick={() => handleConvert(lead.id)} style={{ fontSize: '11px', padding: '4px 8px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '500' }}>
-                        Convert
-                      </button>
-                    )}
                   </div>
                 </td>
               </tr>

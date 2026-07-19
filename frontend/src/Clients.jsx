@@ -192,14 +192,17 @@ const Clients = () => {
             <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Client Name</th>
             <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Contact Info</th>
             <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Location</th>
+            <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Car Name with Year</th>
             <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Source</th>
+            <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Converted Date</th>
+            <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Converted By</th>
             <th style={{ padding: '14px 16px', textAlign: 'center', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Actions</th>
           </tr>
         </thead>
         <tbody>
           {data.length === 0 ? (
             <tr>
-              <td colSpan="5" style={{ padding: '30px', textAlign: 'center', color: '#6b7280' }}>No clients found.</td>
+              <td colSpan="8" style={{ padding: '30px', textAlign: 'center', color: '#6b7280' }}>No clients found.</td>
             </tr>
           ) : data.map(c => (
             <tr key={c.id} style={{ borderBottom: '1px solid #e5e7eb', transition: '0.2s', ':hover': {background: '#f9fafb'} }}>
@@ -208,8 +211,20 @@ const Clients = () => {
                 <div>{c.phone}</div>
               </td>
               <td data-label="Location" style={{ padding: '14px 16px', color: '#4b5563' }}>{c.district}</td>
+              <td data-label="Car Name with Year" style={{ padding: '14px 16px', color: '#4b5563' }}>
+                {c.car_model || c.car_name || '-'}
+                {c.registration_number ? <div style={{ fontSize: '12px', color: '#9ca3af' }}>{c.registration_number}</div> : null}
+              </td>
               <td data-label="Source" style={{ padding: '14px 16px' }}>
                 <span style={{ fontSize: '12px', padding: '4px 10px', background: '#d1fae5', color: '#065f46', borderRadius: '12px', fontWeight: '600' }}>{c.source}</span>
+              </td>
+              <td data-label="Converted Date" style={{ padding: '14px 16px', color: '#4b5563', fontSize: '13px' }}>
+                {c.converted_at ? new Date(c.converted_at).toLocaleString() : '-'}
+              </td>
+              <td data-label="Converted By" style={{ padding: '14px 16px', color: '#4b5563' }}>
+                {c.converted_by_name ? (
+                  <span style={{ fontSize: '12px', padding: '4px 10px', background: '#e0e7ff', color: '#4338ca', borderRadius: '12px', fontWeight: '600' }}>{c.converted_by_name}</span>
+                ) : '-'}
               </td>
               <td data-label="Actions" style={{ padding: '14px 16px', display: 'flex', justifyContent: 'center', gap: '8px' }}>
                 <ActionButtons 

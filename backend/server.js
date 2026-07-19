@@ -160,7 +160,8 @@ app.get('/api/customers', authenticate, async (req, res) => {
             return {
                 ...row,
                 assignee_name: assigneeNames.join(', '),
-                assignedToId: assigneeArray // Added for frontend backward/forward compatibility
+                assignedToId: assigneeArray,
+                converted_by_name: row.converted_by ? (userMap[row.converted_by] || 'Unknown') : null
             };
         });
 
@@ -184,6 +185,10 @@ app.put('/api/customers/:id', authenticate, async (req, res) => {
         } else {
             // Partial update (just status/notes)
             await pool.query('UPDATE customers SET status = ?, notes = ? WHERE id = ?', [status, notes, req.params.id]);
+            // Record conversion info when status changes to Converted
+            if (status === 'Converted') {
+                await pool.query('UPDATE customers SET converted_at = NOW(), converted_by = ? WHERE id = ? AND converted_at IS NULL', [req.user.id, req.params.id]);
+            }
         }
         res.json({ success: true });
     } catch (error) {

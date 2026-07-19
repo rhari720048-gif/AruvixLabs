@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, PhoneCall, Clock, MapPin, Car, CheckCircle, PlusCircle, Users, User, Edit3 } from 'lucide-react';
+import { Calendar, PhoneCall, Clock, MapPin, Car, CheckCircle, PlusCircle, Users, User, Edit3, UserCheck } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import SearchableSelect from './SearchableSelect';
 import ActionButtons from './ActionButtons';
 import ViewModal from './ViewModal';
@@ -8,6 +9,7 @@ import EditLeadModal from './EditLeadModal';
 const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
 
 const Appointments = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('my'); // 'my', 'all', 'manual'
   const [leads, setLeads] = useState([]);
   const [selectedLead, setSelectedLead] = useState(null);
@@ -28,6 +30,28 @@ const Appointments = () => {
       }
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const handleConvert = async (id) => {
+    if (window.confirm("Are you sure you want to convert this lead to a client?")) {
+      try {
+        const res = await fetch(`${API}/customers/${id}`, {
+          method: 'PUT',
+          headers: { 
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({ status: 'Converted', notes: 'Converted to Client' })
+        });
+        if (res.ok) {
+          setSelectedLead(null);
+          fetchLeads(activeTab);
+          navigate('/clients');
+        }
+      } catch (e) {
+        console.error(e);
+      }
     }
   };
   
@@ -237,11 +261,26 @@ const Appointments = () => {
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div style={{ fontWeight: '600', color: '#1f2937' }}>{lead.name}</div>
-                    <ActionButtons 
-                      onView={() => setViewLead(lead)}
-                      onEdit={() => setEditLead(lead)}
-                      onDelete={() => handleDelete(lead.id)}
-                    />
+                    <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); handleConvert(lead.id); }}
+                        title="Convert to Client"
+                        style={{
+                          background: '#d1fae5', color: '#10b981', border: 'none', borderRadius: '6px',
+                          width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          cursor: 'pointer', transition: '0.2s'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = '#a7f3d0'}
+                        onMouseLeave={e => e.currentTarget.style.background = '#d1fae5'}
+                      >
+                        <UserCheck size={16} />
+                      </button>
+                      <ActionButtons 
+                        onView={() => setViewLead(lead)}
+                        onEdit={() => setEditLead(lead)}
+                        onDelete={() => handleDelete(lead.id)}
+                      />
+                    </div>
                   </div>
                   <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <Car size={12} /> {lead.car_model || lead.car_name || 'No Car'} {lead.registration_number ? `(${lead.registration_number})` : ''}
@@ -262,7 +301,32 @@ const Appointments = () => {
             {selectedLead ? (
               <div>
                 <div style={{ borderBottom: '2px solid #f3f4f6', paddingBottom: '20px', marginBottom: '20px' }}>
-                  <h2 style={{ margin: '0 0 15px', color: '#111827', fontSize: '24px' }}>{selectedLead.name}</h2>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                    <h2 style={{ margin: 0, color: '#111827', fontSize: '24px' }}>{selectedLead.name}</h2>
+                    <button
+                      onClick={() => handleConvert(selectedLead.id)}
+                      title="Convert to Client"
+                      style={{
+                        padding: '8px 16px',
+                        background: '#10b981',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        transition: '0.2s',
+                        boxShadow: '0 2px 4px rgba(16,185,129,0.3)'
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 8px rgba(16,185,129,0.4)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = '#10b981'; e.currentTarget.style.boxShadow = '0 2px 4px rgba(16,185,129,0.3)'; }}
+                    >
+                      <UserCheck size={16} /> Convert to Client
+                    </button>
+                  </div>
                   <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563' }}>
                       <PhoneCall size={18} color="#6366f1" /> <strong>Phone:</strong> {selectedLead.phone}

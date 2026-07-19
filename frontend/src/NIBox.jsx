@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Archive, RefreshCw, User, Users, PlusCircle, CheckCircle, Edit3, PhoneCall, MapPin, Car, Clock } from 'lucide-react';
+import { Archive, RefreshCw, User, Users, PlusCircle, CheckCircle, Edit3, PhoneCall, MapPin, Car, Clock, Phone } from 'lucide-react';
 import './index.css';
 import ViewModal from './ViewModal';
 import EditLeadModal from './EditLeadModal';
@@ -228,11 +228,26 @@ const NIBox = () => {
                                 >
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                         <div style={{ fontWeight: '600', color: '#1f2937' }}>{lead.name}</div>
-                                        <ActionButtons 
-                                            onView={() => setViewRecord(lead)}
-                                            onEdit={() => setEditRecord(lead)}
-                                            onDelete={() => handleDelete(lead.id)}
-                                        />
+                                        <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                                            <button 
+                                                onClick={(e) => { e.stopPropagation(); window.location.href = `tel:${lead.phone}`; }}
+                                                title="Call Now"
+                                                style={{
+                                                    background: '#d1fae5', color: '#10b981', border: 'none', borderRadius: '6px',
+                                                    width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    cursor: 'pointer', transition: '0.2s'
+                                                }}
+                                                onMouseEnter={e => e.currentTarget.style.background = '#a7f3d0'}
+                                                onMouseLeave={e => e.currentTarget.style.background = '#d1fae5'}
+                                            >
+                                                <Phone size={16} />
+                                            </button>
+                                            <ActionButtons 
+                                                onView={() => setViewRecord(lead)}
+                                                onEdit={() => setEditRecord(lead)}
+                                                onDelete={() => handleDelete(lead.id)}
+                                            />
+                                        </div>
                                     </div>
                                     <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                         <Car size={12} /> {lead.car_model || lead.car_name || 'No Car'} {lead.registration_number ? `(${lead.registration_number})` : ''}
