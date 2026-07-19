@@ -314,19 +314,7 @@ const Appointments = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div style={{ fontWeight: '600', color: '#1f2937' }}>{lead.name}</div>
                     <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); setViewLead(lead); }}
-                        title="View Details"
-                        style={{
-                          background: '#e0e7ff', color: '#4f46e5', border: 'none', borderRadius: '6px',
-                          width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          cursor: 'pointer', transition: '0.2s'
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.background = '#c7d2fe'}
-                        onMouseLeave={e => e.currentTarget.style.background = '#e0e7ff'}
-                      >
-                        <Eye size={16} />
-                      </button>
+
                       <button 
                         onClick={(e) => { e.stopPropagation(); handleConvert(lead.id); }}
                         title="Convert to Client"
