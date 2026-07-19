@@ -32,7 +32,7 @@ const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdat
         phone: selectedLead.phone,
         district: selectedLead.district || selectedLead.location || '',
         status: selectedLead.status,
-        requirements: selectedLead.requirements || ''
+        year: selectedLead.year || ''
       });
       setIsEditing(false);
     } else {
@@ -168,7 +168,7 @@ const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdat
         name: editForm.name,
         phone: editForm.phone,
         location: editForm.district, // handleEdit maps location -> district payload
-        requirements: editForm.requirements,
+        year: editForm.year,
         car_model: editForm.car_model,
         car_number: editForm.registration_number,
         status: editForm.status
@@ -247,9 +247,9 @@ const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdat
               <MapPin size={14} /> {lead.location || lead.district || 'Location unknown'}
             </div>
 
-            {lead.requirements && (
+            {lead.year && (
               <div style={{ marginTop: '10px', fontSize: '13px', color: '#4b5563', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                <strong>Req:</strong> {lead.requirements}
+                <strong>Year:</strong> {lead.year}
               </div>
             )}
           </div>
@@ -355,12 +355,17 @@ const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdat
                   </div>
                 </div>
                 <div style={{ gridColumn: '1 / -1' }}>
-                  <div style={{ color: '#6b7280', fontSize: '13px', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}><FileText size={14}/> Requirements</div>
+                  <div style={{ color: '#6b7280', fontSize: '13px', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}><Calendar size={14}/> Year</div>
                   {isEditing ? (
-                    <textarea value={editForm.requirements} onChange={e => setEditForm({...editForm, requirements: e.target.value})} rows="3" style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', resize: 'vertical' }} />
+                    <select value={editForm.year} onChange={e => setEditForm({...editForm, year: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none', background: 'white' }}>
+                      <option value="">Select Year</option>
+                      {Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                        <option key={year} value={year}>{year}</option>
+                      ))}
+                    </select>
                   ) : (
                     <div style={{ fontWeight: '500', color: '#374151', fontSize: '15px', background: '#f9fafb', padding: '12px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-                      {selectedLead.requirements || 'N/A'}
+                      {selectedLead.year || 'N/A'}
                     </div>
                   )}
                 </div>

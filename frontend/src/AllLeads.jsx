@@ -32,7 +32,7 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
         phone: selectedLead.phone,
         district: selectedLead.district || selectedLead.location || '',
         status: selectedLead.status,
-        requirements: selectedLead.requirements || '',
+        year: selectedLead.year || '',
         car_model: selectedLead.car_model || selectedLead.car_name || ''
       });
       setIsEditing(false);
@@ -112,7 +112,7 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
         name: editForm.name,
         phone: editForm.phone,
         location: editForm.district,
-        requirements: editForm.requirements,
+        year: editForm.year,
         car_model: editForm.car_model,
         status: editForm.status
       });
@@ -194,12 +194,12 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
   };
 
   const downloadCSV = () => {
-    const headers = ['Client Name', 'Requirements', 'Mobile No', 'Location', 'Car Model', 'Car Number', 'Assigned To', 'Feedback', 'Status'];
+    const headers = ['Client Name', 'Year', 'Mobile No', 'Location', 'Car Model', 'Car Number', 'Assigned To', 'Feedback', 'Status'];
     const csvContent = [
       headers.join(','),
       ...filteredLeads.map(lead => [
         `"${lead.name || ''}"`,
-        `"${lead.requirements || ''}"`,
+        `"${lead.year || ''}"`,
         `"${lead.phone || ''}"`,
         `"${lead.location || ''}"`,
         `"${lead.car_model || ''}"`,
@@ -262,7 +262,7 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
               </th>
               <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Client Name</th>
               <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Vehicle</th>
-              <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Requirements</th>
+              <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Year</th>
               <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Mobile No</th>
               <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Location</th>
               <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Actions</th>
@@ -283,7 +283,7 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
                   {lead.car_model || '-'} 
                   {lead.registration_number && <span style={{ display: 'block', fontSize: '12px', color: '#9ca3af' }}>{lead.registration_number}</span>}
                 </td>
-                <td data-label="Requirements" style={{ padding: '14px 16px', color: '#4b5563' }}>{lead.requirements?.substring(0, 20)}{lead.requirements?.length > 20 ? '...' : ''}</td>
+                <td data-label="Year" style={{ padding: '14px 16px', color: '#4b5563' }}>{lead.year || '-'}</td>
                 <td data-label="Mobile No" style={{ padding: '14px 16px', color: '#4b5563' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     {lead.phone}
@@ -399,12 +399,17 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
                   )}
                 </div>
                 <div style={{ gridColumn: '1 / -1' }}>
-                  <div style={{ color: '#6b7280', fontSize: '13px', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}><FileText size={14}/> Requirements</div>
+                  <div style={{ color: '#6b7280', fontSize: '13px', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}><Calendar size={14}/> Year</div>
                   {isEditing ? (
-                    <textarea value={editForm.requirements} onChange={e => setEditForm({...editForm, requirements: e.target.value})} rows="3" style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', resize: 'vertical' }} />
+                    <select value={editForm.year} onChange={e => setEditForm({...editForm, year: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none', background: 'white' }}>
+                      <option value="">Select Year</option>
+                      {Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                        <option key={year} value={year}>{year}</option>
+                      ))}
+                    </select>
                   ) : (
                     <div style={{ fontWeight: '500', color: '#374151', fontSize: '15px', background: '#f9fafb', padding: '12px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-                      {selectedLead.requirements || 'N/A'}
+                      {selectedLead.year || 'N/A'}
                     </div>
                   )}
                 </div>

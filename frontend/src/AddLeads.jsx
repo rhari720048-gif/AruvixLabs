@@ -9,7 +9,7 @@ const AddLeads = ({ addLeads }) => {
   const [successMessage, setSuccessMessage] = useState('');
   
   // Manual Form State
-  const [manualForm, setManualForm] = useState({ name: '', phone: '', location: '', car_name: '' });
+  const [manualForm, setManualForm] = useState({ name: '', phone: '', location: '', car_name: '', year: '' });
 
   const showSuccess = (msg) => {
     setSuccessMessage(msg);
@@ -54,6 +54,7 @@ const AddLeads = ({ addLeads }) => {
             phone: phone.replace(/[^0-9+]/g, ''),
             location: location.substring(0, 50),
             car_name: '',
+            year: '',
             source: 'OCR Image',
             status: 'Pending'
           });
@@ -90,6 +91,7 @@ const AddLeads = ({ addLeads }) => {
           phone: row.phone || row.Phone || row.Contact || 'Unknown',
           location: row.location || row.Location || row.City || 'Unknown',
           car_name: row.car_name || row.car_model || row['Car Name'] || row['Car Name with Year'] || '',
+          year: row.year || row.Year || '',
           source: 'CSV',
           status: 'Pending'
         }));
@@ -116,12 +118,13 @@ const AddLeads = ({ addLeads }) => {
       phone: manualForm.phone,
       location: manualForm.location || 'Unknown',
       car_name: manualForm.car_name || '',
+      year: manualForm.year || '',
       source: 'Manual',
       status: 'Pending'
     };
     
     addLeads([newLead]);
-    setManualForm({ name: '', phone: '', location: '', car_name: '' });
+    setManualForm({ name: '', phone: '', location: '', car_name: '', year: '' });
     showSuccess('Lead added manually successfully!');
   };
 
@@ -203,7 +206,16 @@ const AddLeads = ({ addLeads }) => {
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>Car Name with Year</label>
-                <input type="text" value={manualForm.car_name} onChange={e => setManualForm({...manualForm, car_name: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="E.g., Honda City 2021" />
+                <input type="text" value={manualForm.car_name} onChange={e => setManualForm({...manualForm, car_name: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="E.g., Honda City" />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>Year</label>
+                <select value={manualForm.year} onChange={e => setManualForm({...manualForm, year: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', outline: 'none', background: 'white' }}>
+                  <option value="">Select Year</option>
+                  {Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
               </div>
               <button type="submit" style={{ background: 'var(--primary)', color: 'white', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: '600', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginTop: '10px' }}>
                 <CheckCircle size={18} /> Add Lead to System

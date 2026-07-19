@@ -67,7 +67,7 @@ const AdminLeads = () => {
           return {
             ...c,
             location: c.district || 'Unknown',
-            requirements: parts[0] || 'N/A',
+            year: parts[0] || 'N/A',
             feedback: parts[1] || 'None',
             assignedTo: c.assignee_name || 'Unassigned',
             assignedToId: c.assigned_to || ''
@@ -94,7 +94,7 @@ const AdminLeads = () => {
           district: lead.location,
           car_model: lead.car_name || '',
           registration_number: lead.car_number || '',
-          notes: (lead.requirements || 'N/A') + ' | ' + (lead.feedback || 'None'),
+          notes: (lead.year || 'N/A') + ' | ' + (lead.feedback || 'None'),
           source: lead.source || 'Manual',
           assigned_to: lead.assignedTo || null
         };
@@ -198,7 +198,7 @@ const AdminLeads = () => {
         name: updatedLead.name,
         phone: updatedLead.phone,
         district: updatedLead.location,
-        notes: (updatedLead.requirements || 'N/A') + ' | ' + (updatedLead.feedback || 'None'),
+        notes: (updatedLead.year || 'N/A') + ' | ' + (updatedLead.feedback || 'None'),
         source: updatedLead.source || 'Manual',
         status: updatedLead.status,
         assigned_to: updatedLead.assignedToId || null
