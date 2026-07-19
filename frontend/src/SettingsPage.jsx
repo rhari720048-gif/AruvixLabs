@@ -248,6 +248,7 @@ const SettingsPage = () => {
         { key: 'call_later',      label: 'Call Later'       },
         { key: 'ni_box',          label: 'NI Box'           },
         { key: 'call_history',    label: 'Call History'     },
+        { key: 'completed_work',  label: 'Completed Work'   },
       ]
     },
     {

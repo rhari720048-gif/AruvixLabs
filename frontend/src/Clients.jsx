@@ -174,6 +174,28 @@ const Clients = () => {
     }
   };
 
+  const handleCompleteWork = async (id) => {
+    if (window.confirm('Mark this client as Completed Work?')) {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API}/customers/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ status: 'Completed Work' })
+        });
+        if (res.ok) {
+          fetchClients();
+          showSuccess('Client marked as Completed Work!');
+        } else {
+          alert('Failed to update status.');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('An error occurred.');
+      }
+    }
+  };
+
   const handleEdit = (client) => {
     setEditClient(client);
   };
@@ -226,7 +248,13 @@ const Clients = () => {
                   <span style={{ fontSize: '12px', padding: '4px 10px', background: '#e0e7ff', color: '#4338ca', borderRadius: '12px', fontWeight: '600' }}>{c.converted_by_name}</span>
                 ) : '-'}
               </td>
-              <td data-label="Actions" style={{ padding: '14px 16px', display: 'flex', justifyContent: 'center', gap: '8px' }}>
+              <td data-label="Actions" style={{ padding: '14px 16px', display: 'flex', justifyContent: 'center', gap: '8px', alignItems: 'center' }}>
+                <button 
+                  onClick={() => handleCompleteWork(c.id)}
+                  style={{ background: '#10b981', color: 'white', padding: '6px 12px', borderRadius: '6px', border: 'none', fontSize: '12px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                >
+                  <CheckCircle size={14} /> Complete Work
+                </button>
                 <ActionButtons 
                   onView={() => handleView(c)}
                   onEdit={() => handleEdit(c)}

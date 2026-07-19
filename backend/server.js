@@ -173,6 +173,7 @@ app.get('/api/customers', authenticate, async (req, res) => {
 
 app.put('/api/customers/:id', authenticate, async (req, res) => {
     const { status, notes, name, phone, district, source, assigned_to, car_model, registration_number, callback_time } = req.body;
+    console.log('PUT /api/customers/:id', req.params.id, 'payload:', req.body);
     try {
         if (name) {
             // Full update
@@ -201,6 +202,8 @@ app.put('/api/customers/:id', authenticate, async (req, res) => {
             // Record conversion info when status changes to Converted
             if (status === 'Converted') {
                 await pool.query('UPDATE customers SET converted_at = NOW(), converted_by = ? WHERE id = ? AND converted_at IS NULL', [req.user.id, req.params.id]);
+            } else if (status === 'Completed Work') {
+                await pool.query('UPDATE customers SET completed_at = NOW() WHERE id = ?', [req.params.id]);
             }
         }
         res.json({ success: true });
