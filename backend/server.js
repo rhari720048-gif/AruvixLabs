@@ -172,16 +172,22 @@ app.get('/api/customers', authenticate, async (req, res) => {
 });
 
 app.put('/api/customers/:id', authenticate, async (req, res) => {
-    const { status, notes, name, phone, district, source, assigned_to, car_model, registration_number } = req.body;
+    const { status, notes, name, phone, district, source, assigned_to, car_model, registration_number, callback_time } = req.body;
     try {
         if (name) {
             // Full update
             const parsed = parseAssignedTo(assigned_to);
             const assignedToStr = JSON.stringify(parsed);
-            await pool.query(
-                'UPDATE customers SET name=?, phone=?, district=?, source=?, notes=?, status=?, assigned_to=?, car_model=?, registration_number=? WHERE id=?',
-                [name, phone, district, source, notes, status, assignedToStr, car_model || '', registration_number || '', req.params.id]
-            );
+            
+            const query = callback_time !== undefined
+                ? 'UPDATE customers SET name=?, phone=?, district=?, source=?, notes=?, status=?, assigned_to=?, car_model=?, registration_number=?, callback_time=? WHERE id=?'
+                : 'UPDATE customers SET name=?, phone=?, district=?, source=?, notes=?, status=?, assigned_to=?, car_model=?, registration_number=? WHERE id=?';
+                
+            const params = callback_time !== undefined
+                ? [name, phone, district, source, notes, status, assignedToStr, car_model || '', registration_number || '', callback_time || null, req.params.id]
+                : [name, phone, district, source, notes, status, assignedToStr, car_model || '', registration_number || '', req.params.id];
+                
+            await pool.query(query, params);
         } else {
             // Partial update (just status/notes)
             await pool.query('UPDATE customers SET status = ?, notes = ? WHERE id = ?', [status, notes, req.params.id]);

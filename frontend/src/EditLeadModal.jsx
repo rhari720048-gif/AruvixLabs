@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, CheckCircle, Save, User, MapPin, PhoneCall, Car, FileText, Edit3 } from 'lucide-react';
+import { X, CheckCircle, Save, User, MapPin, PhoneCall, Car, FileText, Edit3, Calendar } from 'lucide-react';
 import SearchableSelect from './SearchableSelect';
 
 const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
@@ -11,7 +11,8 @@ const EditLeadModal = ({ isOpen, onClose, data, onSave }) => {
     district: '',
     car_model: '',
     status: '',
-    source: ''
+    source: '',
+    callback_time: ''
   });
   const [users, setUsers] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,13 +33,25 @@ const EditLeadModal = ({ isOpen, onClose, data, onSave }) => {
           console.error("Error parsing assigned_to", e);
         }
 
+        let cbTime = '';
+        if (data.callback_time) {
+          try {
+            const d = new Date(data.callback_time);
+            const tzOffset = d.getTimezoneOffset() * 60000;
+            cbTime = (new Date(d - tzOffset)).toISOString().slice(0, 16);
+          } catch (e) {
+            console.error('Error formatting date', e);
+          }
+        }
+
         setFormData({
           name: data.name || '',
           phone: data.phone || '',
           district: data.district || data.location || '',
           car_model: data.car_model || data.car_name || '',
           status: data.status || 'Pending',
-          source: data.source || 'Manual'
+          source: data.source || 'Manual',
+          callback_time: cbTime
         });
       }
     }
@@ -70,7 +83,8 @@ const EditLeadModal = ({ isOpen, onClose, data, onSave }) => {
         district: formData.district,
         car_model: formData.car_model,
         status: formData.status,
-        source: formData.source
+        source: formData.source,
+        callback_time: formData.callback_time || null
       };
 
       const res = await fetch(`${API}/customers/${data.id}`, {
@@ -161,6 +175,16 @@ const EditLeadModal = ({ isOpen, onClose, data, onSave }) => {
             </label>
             <input 
               type="text" value={formData.car_model} onChange={e => setFormData({...formData, car_model: e.target.value})} 
+              style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} 
+            />
+          </div>
+
+          <div style={{ gridColumn: '1 / -1' }}>
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600', color: '#374151' }}>
+              <Calendar size={14} style={{ verticalAlign: 'middle', marginRight: '4px' }}/> Appointment / Callback Time
+            </label>
+            <input 
+              type="datetime-local" value={formData.callback_time} onChange={e => setFormData({...formData, callback_time: e.target.value})} 
               style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} 
             />
           </div>
