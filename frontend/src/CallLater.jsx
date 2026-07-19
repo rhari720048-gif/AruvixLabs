@@ -371,6 +371,19 @@ const CallLater = () => {
                                   <option value="Appointment">Appointment</option>
                                 </select>
                               </div>
+
+                              {['Call Later', 'Appointment'].includes(feedback.status) && (
+                                <div style={{ marginBottom: '15px' }}>
+                                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>New Date & Time</label>
+                                  <input 
+                                    type="datetime-local" 
+                                    value={feedback.callback_time} 
+                                    onChange={e => setFeedback({...feedback, callback_time: e.target.value})}
+                                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                                    required
+                                  />
+                                </div>
+                              )}
                               <div style={{ marginBottom: '15px' }}>
                                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Notes</label>
                                 <textarea 
@@ -434,6 +447,19 @@ const CallLater = () => {
                                   <option value="Appointment">Appointment</option>
                                 </select>
                               </div>
+
+                              {['Call Later', 'Appointment'].includes(feedback.status) && (
+                                <div style={{ marginBottom: '15px' }}>
+                                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>New Date & Time</label>
+                                  <input 
+                                    type="datetime-local" 
+                                    value={feedback.callback_time} 
+                                    onChange={e => setFeedback({...feedback, callback_time: e.target.value})}
+                                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                                    required
+                                  />
+                                </div>
+                              )}
                               <div style={{ marginBottom: '15px' }}>
                                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Notes</label>
                                 <textarea 
