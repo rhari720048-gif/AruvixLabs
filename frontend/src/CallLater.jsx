@@ -52,21 +52,24 @@ const CallLater = () => {
   };
 
   const startDialing = (leadToCall) => {
-    if (selectedLead?.id !== leadToCall.id) setSelectedLead(leadToCall);
-    resetCallState();
-    setCallPhase('dialing');
-        const a = document.createElement('a');
-        a.href = `tel:${leadToCall.phone}`;
-        a.click();
+    if (selectedLead?.id !== leadToCall.id) {
+        setSelectedLead(leadToCall);
+    }
     
     setTimeout(() => {
-      setCallPhase('active');
-      setSecondsElapsed(0);
-      const interval = setInterval(() => {
-        setSecondsElapsed(prev => prev + 1);
-      }, 1000);
-      setTimerInterval(interval);
-    }, 2000);
+        resetCallState();
+        setCallPhase('dialing');
+        window.location.href = `tel:${leadToCall.phone}`;
+        
+        setTimeout(() => {
+          setCallPhase('active');
+          setSecondsElapsed(0);
+          const interval = setInterval(() => {
+            setSecondsElapsed(prev => prev + 1);
+          }, 1000);
+          setTimerInterval(interval);
+        }, 2000);
+    }, 100);
   };
 
   const stopTimer = () => {

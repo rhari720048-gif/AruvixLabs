@@ -73,18 +73,25 @@ const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdat
   const startDialing = (leadToDial) => {
     const target = leadToDial || selectedLead;
     if (!target) return;
-    setCallPhase('dialing');
-    window.location.href = `tel:${target.phone}`; // Trigger the native dialer
     
-    // Start 2 second delay before timer begins
+    if (selectedLead?.id !== target.id) {
+        setSelectedLead(target);
+    }
+
     setTimeout(() => {
-      setCallPhase('active');
-      setSecondsElapsed(0);
-      const interval = setInterval(() => {
-        setSecondsElapsed(prev => prev + 1);
-      }, 1000);
-      setTimerInterval(interval);
-    }, 2000);
+        resetCallState();
+        setCallPhase('dialing');
+        window.location.href = `tel:${target.phone}`;
+        
+        setTimeout(() => {
+            setCallPhase('active');
+            setSecondsElapsed(0);
+            const interval = setInterval(() => {
+                setSecondsElapsed(prev => prev + 1);
+            }, 1000);
+            setTimerInterval(interval);
+        }, 2000);
+    }, 100);
   };
 
   const stopTimer = () => {

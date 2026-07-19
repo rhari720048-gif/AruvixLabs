@@ -72,19 +72,25 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
   const startDialing = (leadToDial) => {
     const target = leadToDial || selectedLead;
     if (!target) return;
-    setCallPhase('dialing');
-    const a = document.createElement('a');
-    a.href = `tel:${target.phone}`;
-    a.click();
     
+    if (selectedLead?.id !== target.id) {
+        setSelectedLead(target);
+    }
+
     setTimeout(() => {
-      setCallPhase('active');
-      setSecondsElapsed(0);
-      const interval = setInterval(() => {
-        setSecondsElapsed(prev => prev + 1);
-      }, 1000);
-      setTimerInterval(interval);
-    }, 2000);
+        resetCallState();
+        setCallPhase('dialing');
+        window.location.href = `tel:${target.phone}`;
+        
+        setTimeout(() => {
+            setCallPhase('active');
+            setSecondsElapsed(0);
+            const interval = setInterval(() => {
+                setSecondsElapsed(prev => prev + 1);
+            }, 1000);
+            setTimerInterval(interval);
+        }, 2000);
+    }, 100);
   };
 
   const stopTimer = () => {
