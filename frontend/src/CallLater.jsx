@@ -10,7 +10,7 @@ const CallLater = () => {
   const [activeTab, setActiveTab] = useState('my'); // 'my', 'all', 'manual'
   const [leads, setLeads] = useState([]);
   const [selectedLead, setSelectedLead] = useState(null);
-  const [feedback, setFeedback] = useState({ status: 'Interested', notes: '', callback_time: '' });
+  const [feedback, setFeedback] = useState({ status: 'Call Later', notes: '', callback_time: '' });
   const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(true);
   
@@ -44,7 +44,7 @@ const CallLater = () => {
   const resetCallState = () => {
     setCallPhase('idle');
     setSecondsElapsed(0);
-    setFeedback({ status: 'Interested', notes: '', callback_time: '' });
+    setFeedback({ status: 'Call Later', notes: '', callback_time: '' });
     if (timerInterval) {
       clearInterval(timerInterval);
       setTimerInterval(null);
@@ -366,11 +366,9 @@ const CallLater = () => {
                                   onChange={e => setFeedback({...feedback, status: e.target.value})}
                                   style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                                 >
-                                  <option value="Interested">Interested</option>
-                                  <option value="Not Interested">Not Interested</option>
+                                  <option value="Not Interested">Not Interested (NI)</option>
                                   <option value="Call Later">Call Later</option>
                                   <option value="Appointment">Appointment</option>
-                                  <option value="Converted">Converted</option>
                                 </select>
                               </div>
                               <div style={{ marginBottom: '15px' }}>
@@ -431,11 +429,9 @@ const CallLater = () => {
                                   onChange={e => setFeedback({...feedback, status: e.target.value})}
                                   style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                                 >
-                                  <option value="Interested">Interested</option>
-                                  <option value="Not Interested">Not Interested</option>
+                                  <option value="Not Interested">Not Interested (NI)</option>
                                   <option value="Call Later">Call Later</option>
                                   <option value="Appointment">Appointment</option>
-                                  <option value="Converted">Converted</option>
                                 </select>
                               </div>
                               <div style={{ marginBottom: '15px' }}>

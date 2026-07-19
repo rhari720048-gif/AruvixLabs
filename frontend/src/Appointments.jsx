@@ -61,7 +61,7 @@ const Appointments = () => {
   };
   
   // Feedback state for existing appointments
-  const [feedback, setFeedback] = useState({ status: 'Interested', notes: '', callback_time: '' });
+  const [feedback, setFeedback] = useState({ status: 'Call Later', notes: '', callback_time: '' });
   const [successMsg, setSuccessMsg] = useState('');
   
   // Manual form state
@@ -86,7 +86,7 @@ const Appointments = () => {
   const resetCallState = () => {
     setCallPhase('idle');
     setSecondsElapsed(0);
-    setFeedback({ status: 'Interested', notes: '', callback_time: '' });
+    setFeedback({ status: 'Call Later', notes: '', callback_time: '' });
     if (timerInterval) {
       clearInterval(timerInterval);
       setTimerInterval(null);
@@ -442,11 +442,9 @@ const Appointments = () => {
                                   style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }}
                                   required
                                 >
-                                  <option value="Interested">Interested / Follow-up</option>
-                                  <option value="Converted">Converted (Deal Closed)</option>
-                                  <option value="Call Later">Reschedule Appointment</option>
                                   <option value="Not Interested">Not Interested (NI)</option>
-                                  <option value="No Answer">No Answer / Busy</option>
+                                  <option value="Call Later">Call Later</option>
+                                  <option value="Appointment">Appointment</option>
                                 </select>
                               </div>
 
@@ -524,11 +522,9 @@ const Appointments = () => {
                                   style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }}
                                   required
                                 >
-                                  <option value="Interested">Interested / Follow-up</option>
-                                  <option value="Converted">Converted (Deal Closed)</option>
-                                  <option value="Call Later">Reschedule Appointment</option>
                                   <option value="Not Interested">Not Interested (NI)</option>
-                                  <option value="No Answer">No Answer / Busy</option>
+                                  <option value="Call Later">Call Later</option>
+                                  <option value="Appointment">Appointment</option>
                                 </select>
                               </div>
 
