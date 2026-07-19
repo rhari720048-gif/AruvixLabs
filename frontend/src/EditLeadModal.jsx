@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, CheckCircle, Save, User, MapPin, PhoneCall, Car, FileText, Edit3, Calendar } from 'lucide-react';
 import SearchableSelect from './SearchableSelect';
+import ModernDateTimePicker from './ModernDateTimePicker';
+import toast from 'react-hot-toast';
 
 const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
 
@@ -101,13 +103,14 @@ const EditLeadModal = ({ isOpen, onClose, data, onSave }) => {
           // Pass back the updated object so parent can update its state without a full reload
           onSave({ ...data, ...payload, assigned_to: JSON.stringify(payload.assigned_to) });
         }
+        toast.success("Lead details updated successfully!");
         onClose();
       } else {
-        alert("Failed to update lead.");
+        toast.error("Failed to update lead.");
       }
     } catch (e) {
       console.error(e);
-      alert("Error saving lead details.");
+      toast.error("Error saving lead details.");
     } finally {
       setIsSubmitting(false);
     }
@@ -151,10 +154,10 @@ const EditLeadModal = ({ isOpen, onClose, data, onSave }) => {
 
           <div>
             <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600', color: '#374151' }}>
-              <PhoneCall size={14} style={{ verticalAlign: 'middle', marginRight: '4px' }}/> Phone Number
+              <PhoneCall size={14} style={{ verticalAlign: 'middle', marginRight: '4px' }}/> Phone Number (10 digits only)
             </label>
             <input 
-              type="tel" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} 
+              type="tel" maxLength={10} value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value.replace(/[^0-9]/g, '').slice(0, 10)})} 
               style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} required 
             />
           </div>
@@ -180,12 +183,10 @@ const EditLeadModal = ({ isOpen, onClose, data, onSave }) => {
           </div>
 
           <div style={{ gridColumn: '1 / -1' }}>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600', color: '#374151' }}>
-              <Calendar size={14} style={{ verticalAlign: 'middle', marginRight: '4px' }}/> Appointment / Callback Time
-            </label>
-            <input 
-              type="datetime-local" value={formData.callback_time} onChange={e => setFormData({...formData, callback_time: e.target.value})} 
-              style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} 
+            <ModernDateTimePicker 
+              label="Appointment / Callback Date & Time"
+              value={formData.callback_time}
+              onChange={val => setFormData({...formData, callback_time: val})}
             />
           </div>
 

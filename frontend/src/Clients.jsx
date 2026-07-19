@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { PlusCircle, List, CheckCircle, Download, Upload, Users, Eye, Edit2, Trash2 } from 'lucide-react';
+import { PlusCircle, List, CheckCircle, Download, Upload, Users, Eye, Edit2, Trash2, UserCheck, ShieldCheck, Sparkles } from 'lucide-react';
 import Papa from 'papaparse';
 import ViewModal from './ViewModal';
 import EditLeadModal from './EditLeadModal';
 import ActionButtons from './ActionButtons';
 import { getPerms } from './permissions';
+import toast from 'react-hot-toast';
 
 const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
 
@@ -25,7 +26,6 @@ const Clients = () => {
   });
   const [clients, setClients] = useState([]);
   const [form, setForm] = useState({ name: '', phone: '', email: '', district: '', car_model: '', registration_number: '', source: 'Manual Entry' });
-  const [successMessage, setSuccessMessage] = useState('');
   const [viewClient, setViewClient] = useState(null);
   const [editClient, setEditClient] = useState(null);
   const [currentUser, setCurrentUser] = useState('');
@@ -44,17 +44,12 @@ const Clients = () => {
       });
       if (res.ok) {
         const data = await res.json();
-        // Clients are leads that have been converted
-        setClients(data.filter(c => c.status === 'Converted'));
+        setClients(data.filter(c => c.status === 'Converted' || c.status === 'Converted Client' || c.status === 'Client'));
       }
     } catch (e) {
       console.error(e);
+      toast.error('Failed to load clients.');
     }
-  };
-
-  const showSuccess = (msg) => {
-    setSuccessMessage(msg);
-    setTimeout(() => setSuccessMessage(''), 3000);
   };
 
   const handleManualSubmit = async (e) => {
@@ -82,7 +77,6 @@ const Clients = () => {
 
       if (res.ok) {
         const { id } = await res.json();
-        // Mark as converted
         await fetch(`${API}/customers/${id}`, {
           method: 'PUT',
           headers: { 
@@ -93,11 +87,12 @@ const Clients = () => {
         });
         
         fetchClients();
-        showSuccess('Client added successfully!');
+        toast.success('Client added successfully!');
         setForm({ name: '', phone: '', email: '', district: '', car_model: '', registration_number: '', source: 'Manual Entry' });
       }
     } catch (error) {
       console.error(error);
+      toast.error('Error adding client.');
     }
   };
 
@@ -135,13 +130,13 @@ const Clients = () => {
           } catch (e) { console.error(e); }
         }
         fetchClients();
-        showSuccess(`Imported clients from CSV!`);
+        toast.success(`Imported clients from CSV!`);
       }
     });
   };
 
   const exportCSV = () => {
-    if (clients.length === 0) return alert('No clients to export.');
+    if (clients.length === 0) return toast.error('No clients to export.');
     const csv = Papa.unparse(clients);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -163,13 +158,13 @@ const Clients = () => {
         });
         if (res.ok) {
           fetchClients();
-          showSuccess('Client deleted successfully!');
+          toast.success('Client deleted successfully!');
         } else {
-          alert('Failed to delete client.');
+          toast.error('Failed to delete client.');
         }
       } catch (err) {
         console.error(err);
-        alert('An error occurred while deleting.');
+        toast.error('An error occurred while deleting.');
       }
     }
   };
@@ -185,79 +180,73 @@ const Clients = () => {
         });
         if (res.ok) {
           fetchClients();
-          showSuccess('Client marked as Completed Work!');
+          toast.success('Client marked as Completed Work!');
         } else {
-          alert('Failed to update status.');
+          toast.error('Failed to update status.');
         }
       } catch (err) {
         console.error(err);
-        alert('An error occurred.');
+        toast.error('An error occurred.');
       }
     }
   };
 
-  const handleEdit = (client) => {
-    setEditClient(client);
-  };
-
-  const handleView = (client) => {
-    setViewClient(client);
-  };
-
-
+  const myClientsCount = clients.filter(c => c.converted_by_name === currentUser).length;
 
   const renderTable = (data) => (
-    <div className="data-table-container" style={{ background: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', overflow: 'hidden', border: '1px solid #e5e7eb' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+    <div className="data-table-container">
+      <table>
         <thead>
-          <tr style={{ background: '#f3f4f6', borderBottom: '1px solid #e5e7eb' }}>
-            <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Client Name</th>
-            <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Contact Info</th>
-            <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Location</th>
-            <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Car Name with Year</th>
-            <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Source</th>
-            <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Converted Date</th>
-            <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Converted By</th>
-            <th style={{ padding: '14px 16px', textAlign: 'center', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Actions</th>
+          <tr>
+            <th>Client Name</th>
+            <th>Contact Info</th>
+            <th>Location</th>
+            <th>Car Details</th>
+            <th>Source</th>
+            <th>Converted Date</th>
+            <th>Converted By</th>
+            <th style={{ textAlign: 'center' }}>Actions</th>
           </tr>
         </thead>
         <tbody>
           {data.length === 0 ? (
             <tr>
-              <td colSpan="8" style={{ padding: '30px', textAlign: 'center', color: '#6b7280' }}>No clients found.</td>
+              <td colSpan="8" style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>No clients found.</td>
             </tr>
           ) : data.map(c => (
-            <tr key={c.id} style={{ borderBottom: '1px solid #e5e7eb', transition: '0.2s', ':hover': {background: '#f9fafb'} }}>
-              <td data-label="Client Name" style={{ padding: '14px 16px', color: '#1f2937', fontWeight: '600' }}>{c.name}</td>
-              <td data-label="Contact Info" style={{ padding: '14px 16px', color: '#4b5563' }}>
-                <div>{c.phone}</div>
+            <tr key={c.id}>
+              <td data-label="Client Name">
+                <div style={{ fontWeight: '700', color: '#0F172A' }}>{c.name}</div>
               </td>
-              <td data-label="Location" style={{ padding: '14px 16px', color: '#4b5563' }}>{c.district}</td>
-              <td data-label="Car Name with Year" style={{ padding: '14px 16px', color: '#4b5563' }}>
-                {c.car_model || c.car_name || '-'}
-                {c.registration_number ? <div style={{ fontSize: '12px', color: '#9ca3af' }}>{c.registration_number}</div> : null}
+              <td data-label="Contact Info">
+                <div style={{ fontWeight: '600' }}>{c.phone}</div>
               </td>
-              <td data-label="Source" style={{ padding: '14px 16px' }}>
-                <span style={{ fontSize: '12px', padding: '4px 10px', background: '#d1fae5', color: '#065f46', borderRadius: '12px', fontWeight: '600' }}>{c.source}</span>
+              <td data-label="Location">{c.district || c.location || '-'}</td>
+              <td data-label="Car Details">
+                <div style={{ fontWeight: '600' }}>{c.car_model || c.car_name || '-'}</div>
+                {c.registration_number ? <div style={{ fontSize: '12px', color: '#64748b' }}>{c.registration_number}</div> : null}
               </td>
-              <td data-label="Converted Date" style={{ padding: '14px 16px', color: '#4b5563', fontSize: '13px' }}>
-                {c.converted_at ? new Date(c.converted_at).toLocaleString() : '-'}
+              <td data-label="Source">
+                <span className="badge converted">{c.source || 'Manual'}</span>
               </td>
-              <td data-label="Converted By" style={{ padding: '14px 16px', color: '#4b5563' }}>
+              <td data-label="Converted Date" style={{ fontSize: '13px' }}>
+                {c.converted_at ? new Date(c.converted_at).toLocaleDateString() : '-'}
+              </td>
+              <td data-label="Converted By">
                 {c.converted_by_name ? (
-                  <span style={{ fontSize: '12px', padding: '4px 10px', background: '#e0e7ff', color: '#4338ca', borderRadius: '12px', fontWeight: '600' }}>{c.converted_by_name}</span>
+                  <span className="badge callback">{c.converted_by_name}</span>
                 ) : '-'}
               </td>
-              <td data-label="Actions" style={{ padding: '14px 16px', display: 'flex', justifyContent: 'center', gap: '8px', alignItems: 'center' }}>
+              <td data-label="Actions" style={{ display: 'flex', justifyContent: 'center', gap: '8px', alignItems: 'center' }}>
                 <button 
                   onClick={() => handleCompleteWork(c.id)}
-                  style={{ background: '#10b981', color: 'white', padding: '6px 12px', borderRadius: '6px', border: 'none', fontSize: '12px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                  className="btn btn-success" style={{ padding: '6px 12px', fontSize: '12px' }}
                 >
                   <CheckCircle size={14} /> Complete Work
                 </button>
                 <ActionButtons 
-                  onView={() => handleView(c)}
-                  onEdit={() => handleEdit(c)}
+                  onView={() => setViewClient(c)}
+                  onEdit={() => setEditClient(c)}
                   onDelete={() => handleDelete(c.id)}
                 />
               </td>
@@ -270,44 +259,56 @@ const Clients = () => {
 
   if (!hasAddTab && !hasAllTab && !hasMineTab) {
     return (
-      <div style={{ textAlign: 'center', padding: '40px 20px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb' }}>
-        <p style={{ margin: 0, fontSize: '15px', color: '#dc2626', fontWeight: '600' }}>Access Denied</p>
-        <p style={{ margin: '8px 0 0', fontSize: '13px', color: '#6b7280' }}>You do not have permission to access any categories in Clients. Please contact your administrator.</p>
+      <div style={{ textAlign: 'center', padding: '40px 20px', background: 'white', borderRadius: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', border: '1px solid #e2e8f0' }}>
+        <p style={{ margin: 0, fontSize: '16px', color: '#dc2626', fontWeight: '700' }}>Access Denied</p>
+        <p style={{ margin: '8px 0 0', fontSize: '14px', color: '#64748b' }}>You do not have permission to access Client directory. Please contact your administrator.</p>
       </div>
     );
   }
 
   return (
-    <div className="clients-page">
-      <div style={{ display: 'flex', gap: '15px', borderBottom: '2px solid #e5e7eb', paddingBottom: '10px', marginBottom: '25px' }}>
+    <div className="clients-page" style={{ animation: 'fadeIn 0.3s ease-out' }}>
+      <div className="crm-page-header">
+        <div className="crm-page-title-group">
+          <h1>
+            <Users size={28} color="var(--primary)" />
+            Client Directory
+          </h1>
+          <p>Converted client portfolio, customer accounts, and work order transitions</p>
+        </div>
+      </div>
+
+
+
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
         {hasAddTab && (
           <button 
             onClick={() => setActiveTab('add')}
-            style={{ padding: '12px 24px', background: activeTab === 'add' ? 'var(--primary)' : 'transparent', color: activeTab === 'add' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
+            className={`btn ${activeTab === 'add' ? 'btn-primary' : 'btn-secondary'}`}
           >
-            <PlusCircle size={18} /> Add Clients
+            <PlusCircle size={18} /> Add Client
           </button>
         )}
         {hasAllTab && (
           <button 
             onClick={() => setActiveTab('all')}
-            style={{ padding: '12px 24px', background: activeTab === 'all' ? 'var(--primary)' : 'transparent', color: activeTab === 'all' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
+            className={`btn ${activeTab === 'all' ? 'btn-primary' : 'btn-secondary'}`}
           >
-            <List size={18} /> All Clients
+            <List size={18} /> All Clients ({clients.length})
           </button>
         )}
         {hasMineTab && (
           <button 
             onClick={() => setActiveTab('mine')}
-            style={{ padding: '12px 24px', background: activeTab === 'mine' ? 'var(--primary)' : 'transparent', color: activeTab === 'mine' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
+            className={`btn ${activeTab === 'mine' ? 'btn-primary' : 'btn-secondary'}`}
           >
-            <Users size={18} /> My Clients
+            <Users size={18} /> My Clients ({myClientsCount})
           </button>
         )}
         {(activeTab === 'all' || activeTab === 'mine') && (
           <button 
             onClick={exportCSV}
-            style={{ marginLeft: 'auto', padding: '12px 24px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
+            className="btn btn-success" style={{ marginLeft: 'auto' }}
           >
             <Download size={18} /> Export CSV
           </button>
@@ -315,99 +316,67 @@ const Clients = () => {
       </div>
 
       <div className="page-content">
-        {successMessage && (
-          <div style={{ padding: '12px 20px', background: '#d1fae5', color: '#065f46', borderRadius: '8px', marginBottom: '20px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <CheckCircle size={18} /> {successMessage}
-          </div>
-        )}
-
         {activeTab === 'add' && hasAddTab && (
-          <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
-            {/* Manual Form */}
-            <div style={{ background: 'white', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb' }}>
-              <h2 style={{ marginBottom: '20px', color: '#1f2937', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Users size={24} color="var(--primary)" /> Manual Client Entry
-              </h2>
-              <form onSubmit={handleManualSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+          <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+            <div className="card-panel">
+              <h3 style={{ marginBottom: '20px', color: '#0F172A', fontWeight: '800', fontSize: '18px' }}>Manual Client Entry</h3>
+              <form onSubmit={handleManualSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>Client/Company Name</label>
-                  <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', outline: 'none' }} required />
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '700', color: '#475569' }}>Client Name *</label>
+                  <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} placeholder="e.g. John Doe" required />
                 </div>
-                <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                   <div>
-                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>Phone</label>
-                    <input type="text" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', outline: 'none' }} />
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '700', color: '#475569' }}>Phone (10 digits only)</label>
+                    <input type="tel" maxLength={10} value={form.phone} onChange={e => setForm({...form, phone: e.target.value.replace(/[^0-9]/g, '').slice(0, 10)})} placeholder="Mobile number" />
                   </div>
                   <div>
-                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>Email</label>
-                    <input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', outline: 'none' }} />
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '700', color: '#475569' }}>Email</label>
+                    <input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} placeholder="Email address" />
                   </div>
                 </div>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>Location</label>
-                  <input type="text" value={form.district} onChange={e => setForm({...form, district: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', outline: 'none' }} />
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '700', color: '#475569' }}>Location</label>
+                  <input type="text" value={form.district} onChange={e => setForm({...form, district: e.target.value})} placeholder="City / District" />
                 </div>
-                <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                   <div>
-                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>Car Model</label>
-                    <input type="text" value={form.car_model} onChange={e => setForm({...form, car_model: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="E.g., Honda City" />
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '700', color: '#475569' }}>Car Model</label>
+                    <input type="text" value={form.car_model} onChange={e => setForm({...form, car_model: e.target.value})} placeholder="Honda City" />
                   </div>
                   <div>
-                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>Car Number</label>
-                    <input type="text" value={form.registration_number} onChange={e => setForm({...form, registration_number: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="E.g., TN-01-AB-1234" />
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '700', color: '#475569' }}>Car Number</label>
+                    <input type="text" value={form.registration_number} onChange={e => setForm({...form, registration_number: e.target.value})} placeholder="TN-01-AB-1234" />
                   </div>
                 </div>
-                <button type="submit" style={{ marginTop: '10px', background: 'var(--primary)', color: 'white', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: '600', cursor: 'pointer' }}>
-                  Save Client
+                <button type="submit" className="btn btn-primary" style={{ padding: '14px', marginTop: '10px' }}>
+                  <PlusCircle size={18} /> Save Client
                 </button>
               </form>
             </div>
 
-            {/* CSV Import */}
-            <div style={{ background: 'white', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb' }}>
-              <h2 style={{ marginBottom: '20px', color: '#1f2937', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Upload size={24} color="#10b981" /> Import CSV
-              </h2>
-              <div style={{ border: '2px dashed #d1d5db', borderRadius: '12px', padding: '40px 20px', textAlign: 'center', background: '#f9fafb' }}>
-                <Upload size={40} color="#9ca3af" style={{ marginBottom: '15px' }} />
-                <p style={{ color: '#4b5563', marginBottom: '20px' }}>Upload a CSV file containing Name, Phone, Email, Location columns.</p>
-                <label style={{ background: '#e0e7ff', color: '#4338ca', padding: '12px 24px', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'inline-block' }}>
-                  Select CSV File
-                  <input type="file" accept=".csv" onChange={handleFileUpload} style={{ display: 'none' }} />
-                </label>
-              </div>
+            <div className="card-panel" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <Upload size={48} color="var(--primary)" style={{ marginBottom: '16px' }} />
+              <h3 style={{ marginBottom: '8px', color: '#0F172A', fontWeight: '800' }}>Bulk Import Clients</h3>
+              <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '20px' }}>Upload CSV spreadsheet with headers Name, Phone, Location.</p>
+              <label className="btn btn-success" style={{ cursor: 'pointer' }}>
+                <Upload size={18} /> Choose CSV File
+                <input type="file" accept=".csv" onChange={handleFileUpload} style={{ display: 'none' }} />
+              </label>
             </div>
           </div>
         )}
 
-        {activeTab === 'all' && hasAllTab && (
-          <div>
-            <h2 style={{ marginBottom: '20px', color: 'var(--text-dark)' }}>All Clients ({clients.length})</h2>
-            {renderTable(clients)}
-          </div>
-        )}
-
-        {activeTab === 'mine' && hasMineTab && (
-          <div>
-            <h2 style={{ marginBottom: '20px', color: 'var(--text-dark)' }}>My Clients ({clients.filter(c => c.assignedTo === currentUser).length})</h2>
-            {renderTable(clients.filter(c => c.assignedTo === currentUser))}
-          </div>
-        )}
+        {activeTab === 'all' && hasAllTab && renderTable(clients)}
+        {activeTab === 'mine' && hasMineTab && renderTable(clients.filter(c => c.converted_by_name === currentUser))}
       </div>
 
-      <ViewModal 
-        isOpen={!!viewClient} 
-        onClose={() => setViewClient(null)} 
-        title="Client Details" 
-        data={viewClient || {}} 
-      />
-
-      <EditLeadModal 
-        isOpen={!!editClient} 
-        onClose={() => setEditClient(null)} 
-        data={editClient} 
-        onSave={(updated) => { fetchClients(); setEditClient(null); }} 
-      />
+      {viewClient && (
+        <ViewModal isOpen={true} data={viewClient} type="client" title="Client Profile Details" onClose={() => setViewClient(null)} />
+      )}
+      {editClient && (
+        <EditLeadModal isOpen={true} data={editClient} onClose={() => setEditClient(null)} onSave={() => { fetchClients(); setEditClient(null); }} />
+      )}
     </div>
   );
 };

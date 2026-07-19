@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Clock, Phone, FileText, Search, User, Users, PlusCircle, CheckCircle, Edit3, Trash2 } from 'lucide-react';
+import { Clock, Phone, FileText, Search, User, Users, Trash2, Calendar, PhoneCall, Filter } from 'lucide-react';
 import { getPerms } from './permissions';
+import toast from 'react-hot-toast';
 
 const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
 
@@ -25,6 +26,7 @@ const CallHistory = () => {
       }
     } catch (e) {
       console.error(e);
+      toast.error("Failed to load call history.");
     }
   };
 
@@ -37,16 +39,15 @@ const CallHistory = () => {
       });
       if (res.ok) {
         setLogs(logs.filter(l => l.id !== id));
+        toast.success("Call log deleted successfully.");
       } else {
-        alert("Failed to delete call log.");
+        toast.error("Failed to delete call log.");
       }
     } catch (e) {
       console.error(e);
-      alert("Error deleting call log.");
+      toast.error("Error deleting call log.");
     }
   };
-
-
 
   const formatTime = (totalSeconds) => {
     if (totalSeconds == null) return '00:00';
@@ -82,125 +83,126 @@ const CallHistory = () => {
       grouped[empName].duration += (log.duration || 0);
       grouped[empName].logs.push(log);
     });
-    // Convert to array and sort by number of calls descending
     return Object.entries(grouped).sort((a, b) => b[1].calls - a[1].calls);
   }, [filteredLogs]);
 
   return (
-    <div className="page-container" style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: 'calc(100vh - 100px)' }}>
-      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', background: 'white', padding: '15px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-          <button 
-              onClick={() => setActiveTab('my')}
-              style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: activeTab === 'my' ? 'var(--primary)' : '#e5e7eb', color: activeTab === 'my' ? 'white' : '#374151', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', transition: '0.3s', fontWeight: '500' }}
-          >
-              <User size={18} /> My Call History
-          </button>
-          <button 
-              onClick={() => setActiveTab('all')}
-              style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: activeTab === 'all' ? 'var(--primary)' : '#e5e7eb', color: activeTab === 'all' ? 'white' : '#374151', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', transition: '0.3s', fontWeight: '500' }}
-          >
-              <Users size={18} /> All Call History
-          </button>
+    <div className="page-call-history" style={{ animation: 'fadeIn 0.3s ease-out' }}>
+      <div className="crm-page-header">
+        <div className="crm-page-title-group">
+          <h1>
+            <PhoneCall size={28} color="var(--primary)" />
+            Call Activity Log
+          </h1>
+          <p>Comprehensive audit history of completed calls, talk time, and outcome notes</p>
+        </div>
       </div>
 
-        <div style={{ background: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <div style={{ padding: '20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
-            <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: 0, color: '#111827' }}>
-              <Clock color="#6366f1" /> {activeTab === 'my' ? 'My Call History' : 'All Call History'}
-            </h2>
-            <div style={{ display: 'flex', alignItems: 'center', background: '#f8fafc', padding: '8px 15px', borderRadius: '8px', border: '1px solid #e2e8f0', minWidth: '300px' }}>
-              <Search size={18} color="#64748b" style={{ marginRight: '10px' }} />
-              <input 
-                type="text" 
-                placeholder="Search by phone number or name..." 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '15px' }}
-              />
-            </div>
-          </div>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
-            {userGroupedLogs.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '50px', color: '#94a3b8' }}>
-                No call history available.
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-                {userGroupedLogs.map(([empName, groupData]) => (
-                  <div key={empName} style={{ border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden' }}>
-                    <div style={{ background: '#f8fafc', padding: '15px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{ background: '#e0e7ff', padding: '8px', borderRadius: '50%' }}>
-                          <User size={20} color="#4f46e5" />
-                        </div>
-                        <h3 style={{ margin: 0, color: '#1e293b', fontSize: '18px' }}>{empName}</h3>
-                      </div>
-                      <div style={{ display: 'flex', gap: '20px', fontSize: '14px', color: '#64748b' }}>
-                        <span>Total Calls: <strong style={{ color: '#0f172a' }}>{groupData.calls}</strong></span>
-                        <span>Duration: <strong style={{ color: '#0f172a' }}>{formatDurationLong(groupData.duration)}</strong></span>
-                      </div>
-                    </div>
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
+        <button 
+          onClick={() => setActiveTab('my')}
+          className={`btn ${activeTab === 'my' ? 'btn-primary' : 'btn-secondary'}`}
+        >
+          <User size={18} /> My Call History
+        </button>
+        <button 
+          onClick={() => setActiveTab('all')}
+          className={`btn ${activeTab === 'all' ? 'btn-primary' : 'btn-secondary'}`}
+        >
+          <Users size={18} /> All Staff Call Logs
+        </button>
+      </div>
 
-                    <div className="data-table-container">
-                      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                        <thead>
-                          <tr style={{ borderBottom: '2px solid #e2e8f0', background: 'white' }}>
-                            <th style={{ padding: '12px 20px', color: '#475569', fontWeight: '600', fontSize: '13px' }}>Date & Time</th>
-                            <th style={{ padding: '12px 20px', color: '#475569', fontWeight: '600', fontSize: '13px' }}>Customer</th>
-                            <th style={{ padding: '12px 20px', color: '#475569', fontWeight: '600', fontSize: '13px' }}>Phone</th>
-                            <th style={{ padding: '12px 20px', color: '#475569', fontWeight: '600', fontSize: '13px' }}>Status</th>
-                            <th style={{ padding: '12px 20px', color: '#475569', fontWeight: '600', fontSize: '13px' }}>Duration</th>
-                            <th style={{ padding: '12px 20px', color: '#475569', fontWeight: '600', fontSize: '13px' }}>Notes</th>
-                            {canDelete && <th style={{ padding: '12px 20px', color: '#475569', fontWeight: '600', fontSize: '13px', textAlign: 'center' }}>Actions</th>}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {groupData.logs.map(log => (
-                            <tr key={log.id} style={{ borderBottom: '1px solid #f1f5f9', transition: '0.2s', background: 'white' }}>
-                              <td data-label="Date & Time" style={{ padding: '12px 20px', color: '#475569', fontSize: '14px' }}>
-                                {new Date(log.created_at).toLocaleString()}
-                              </td>
-                              <td data-label="Customer" style={{ padding: '12px 20px', fontWeight: '500', color: '#1e293b' }}>
-                                {log.customer_name || 'Unknown'}
-                              </td>
-                              <td data-label="Phone" style={{ padding: '12px 20px', color: '#475569' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                  <Phone size={14} /> {log.phone || '-'}
-                                </div>
-                              </td>
-                              <td data-label="Status" style={{ padding: '12px 20px' }}>
-                                <span style={{ 
-                                  padding: '4px 10px', borderRadius: '50px', fontSize: '12px', fontWeight: '600',
-                                  background: log.status === 'Appointment' ? '#d1fae5' : log.status === 'NI' || log.status === 'Not Interested' ? '#fee2e2' : '#fef3c7',
-                                  color: log.status === 'Appointment' ? '#065f46' : log.status === 'NI' || log.status === 'Not Interested' ? '#991b1b' : '#92400e'
-                                }}>
-                                  {log.status}
-                                </span>
-                              </td>
-                              <td data-label="Duration" style={{ padding: '12px 20px', fontFamily: 'monospace', fontWeight: '600', color: '#334155' }}>
-                                {formatTime(log.duration)}
-                              </td>
-                              <td data-label="Notes" style={{ padding: '12px 20px', color: '#64748b', fontSize: '13px' }}>
-                                {log.notes || '-'}
-                              </td>
-                              {canDelete && (
-                                <td data-label="Actions" style={{ padding: '12px 20px', textAlign: 'center' }}>
-                                  <button onClick={() => handleDelete(log.id)} style={{ background: '#fee2e2', border: 'none', borderRadius: '6px', cursor: 'pointer', padding: '6px', color: '#ef4444', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <Trash2 size={16} />
-                                  </button>
-                                </td>
-                              )}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+      <div className="card-panel" style={{ padding: '16px 24px', marginBottom: '24px' }}>
+        <div style={{ position: 'relative', width: '100%', maxWidth: '400px' }}>
+          <Search size={18} color="#94a3b8" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }} />
+          <input 
+            type="text" 
+            placeholder="Search by phone number or customer..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{ width: '100%', paddingLeft: '42px' }}
+          />
         </div>
+      </div>
+
+      {userGroupedLogs.length === 0 ? (
+        <div className="card-panel" style={{ textAlign: 'center', padding: '50px', color: '#64748b' }}>
+          No call history records available.
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {userGroupedLogs.map(([empName, groupData]) => (
+            <div key={empName} className="card-panel" style={{ padding: 0, overflow: 'hidden' }}>
+              <div style={{ background: '#f8fafc', padding: '16px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(79, 70, 229, 0.1)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <User size={20} />
+                  </div>
+                  <div>
+                    <h3 style={{ margin: 0, color: '#0F172A', fontSize: '18px', fontWeight: '800' }}>{empName}</h3>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '16px', fontSize: '13px', color: '#64748b' }}>
+                  <span>Calls: <strong style={{ color: '#0F172A' }}>{groupData.calls}</strong></span>
+                  <span>Talk Time: <strong style={{ color: 'var(--primary)' }}>{formatDurationLong(groupData.duration)}</strong></span>
+                </div>
+              </div>
+
+              <div className="data-table-container" style={{ border: 'none', borderRadius: 0 }}>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date & Time</th>
+                      <th>Customer Name</th>
+                      <th>Phone</th>
+                      <th>Outcome Status</th>
+                      <th>Call Duration</th>
+                      <th>Notes</th>
+                      {canDelete && <th style={{ textAlign: 'center' }}>Actions</th>}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {groupData.logs.map(log => (
+                      <tr key={log.id}>
+                        <td data-label="Date & Time" style={{ fontSize: '13px' }}>
+                          {new Date(log.created_at).toLocaleString()}
+                        </td>
+                        <td data-label="Customer Name">
+                          <div style={{ fontWeight: '700', color: '#0F172A' }}>{log.customer_name || 'Unknown'}</div>
+                        </td>
+                        <td data-label="Phone">
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600' }}>
+                            <Phone size={14} color="var(--primary)" /> {log.phone || '-'}
+                          </div>
+                        </td>
+                        <td data-label="Outcome Status">
+                          <span className={`status-pill ${log.status === 'Appointment' ? 'interested' : log.status === 'NI' || log.status === 'Not Interested' ? 'ni' : 'callback'}`}>
+                            {log.status}
+                          </span>
+                        </td>
+                        <td data-label="Call Duration" style={{ fontFamily: 'monospace', fontWeight: '700', color: '#0F172A' }}>
+                          {formatTime(log.duration)}
+                        </td>
+                        <td data-label="Notes" style={{ color: '#64748b', fontSize: '13px', maxWidth: '250px' }}>
+                          {log.notes || '-'}
+                        </td>
+                        {canDelete && (
+                          <td data-label="Actions" style={{ display: 'flex', justifyContent: 'center' }}>
+                            <button onClick={() => handleDelete(log.id)} className="btn btn-secondary" style={{ padding: '6px', color: '#ef4444' }} title="Delete Log">
+                              <Trash2 size={16} color="#ef4444" />
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

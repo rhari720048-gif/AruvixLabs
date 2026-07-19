@@ -4,6 +4,9 @@ import './index.css';
 import ViewModal from './ViewModal';
 import EditLeadModal from './EditLeadModal';
 import ActionButtons from './ActionButtons';
+import ModernDateTimePicker from './ModernDateTimePicker';
+import SearchableSelect from './SearchableSelect';
+import toast from 'react-hot-toast';
 
 const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
 
@@ -25,7 +28,6 @@ const NIBox = () => {
     const [manualForm, setManualForm] = useState({ name: '', phone: '', location: '', car_name: '', notes: '' });
     const [users, setUsers] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [successMsg, setSuccessMsg] = useState('');
 
     const handleDelete = async (id) => {
         if (!window.confirm("Are you sure you want to delete this lead?")) return;
@@ -37,8 +39,14 @@ const NIBox = () => {
             if (res.ok) {
                 if (selectedLead?.id === id) setSelectedLead(null);
                 fetchLeads(activeTab);
+                toast.success("Lead deleted successfully!");
+            } else {
+                toast.error("Failed to delete lead.");
             }
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            console.error(e);
+            toast.error("An error occurred while deleting.");
+        }
     };
 
     const fetchLeads = async (type = activeTab) => {
@@ -151,205 +159,165 @@ const NIBox = () => {
                 })
             });
             if (res.ok) {
-                setSuccessMsg('Feedback submitted successfully!');
+                toast.success("Feedback submitted successfully!");
                 setSelectedLead(null);
                 resetCallState();
-                setFeedback({ status: 'Call Later', notes: '', callback_time: '' });
                 fetchLeads(activeTab);
-                setTimeout(() => setSuccessMsg(''), 3000);
+            } else {
+                toast.error("Failed to submit feedback.");
             }
         } catch (e) {
             console.error(e);
+            toast.error("An error occurred while submitting feedback.");
         }
     };
 
     const handleManualSubmit = async (e) => {
         e.preventDefault();
-        if (!manualForm.name || !manualForm.phone) {
-            return alert("Name and Phone are required!");
-        }
-        
+        if (!manualForm.name || !manualForm.phone) return toast.error("Name and Phone are required!");
         setIsSubmitting(true);
         try {
-            const res = await fetch(`${API}/telecalling/manual-ni`, {
+            const res = await fetch(`${API}/telecalling/manual-entry`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 },
-                body: JSON.stringify(manualForm)
+                body: JSON.stringify({ ...manualForm, status: 'NI', duration: 0 })
             });
             if (res.ok) {
-                setSuccessMsg('Manual NI lead added successfully!');
+                toast.success('Manual NI lead added successfully!');
                 setManualForm({ name: '', phone: '', location: '', car_name: '', notes: '' });
-                setTimeout(() => setSuccessMsg(''), 3000);
             } else {
                 const err = await res.json();
-                alert(err.error || "Failed to save NI lead");
+                toast.error(err.error || "Failed to save lead");
             }
         } catch (e) {
             console.error(e);
-            alert("An error occurred");
+            toast.error("An error occurred");
         } finally {
             setIsSubmitting(false);
         }
     };
 
     return (
-        <div className="page-container" style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: 'calc(100vh - 100px)' }}>
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', background: 'white', padding: '15px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+        <div className="page-ni-box" style={{ animation: 'fadeIn 0.3s ease-out' }}>
+            <div className="crm-page-header">
+                <div className="crm-page-title-group">
+                    <h1>
+                        <Archive size={28} color="var(--primary)" />
+                        Not Interested (NI) Archive
+                    </h1>
+                    <p>Archived leads, disposition feedback logs, and re-engagement recovery options</p>
+                </div>
+            </div>
+
+
+
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
                 <button 
                     onClick={() => setActiveTab('my')}
-                    style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: activeTab === 'my' ? 'var(--primary)' : '#e5e7eb', color: activeTab === 'my' ? 'white' : '#374151', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', transition: '0.3s', fontWeight: '500' }}
+                    className={`btn ${activeTab === 'my' ? 'btn-primary' : 'btn-secondary'}`}
                 >
-                    <User size={18} /> My NI Leads
+                    <User size={18} /> My NI Leads ({leads.length})
                 </button>
                 <button 
                     onClick={() => setActiveTab('all')}
-                    style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: activeTab === 'all' ? 'var(--primary)' : '#e5e7eb', color: activeTab === 'all' ? 'white' : '#374151', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', transition: '0.3s', fontWeight: '500' }}
+                    className={`btn ${activeTab === 'all' ? 'btn-primary' : 'btn-secondary'}`}
                 >
                     <Users size={18} /> All NI Leads
                 </button>
-                <button 
-                    onClick={() => setActiveTab('manual')}
-                    style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: activeTab === 'manual' ? 'var(--primary)' : '#e5e7eb', color: activeTab === 'manual' ? 'white' : '#374151', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', transition: '0.3s', fontWeight: '500' }}
-                >
-                    <PlusCircle size={18} /> Manual Entry
-                </button>
             </div>
 
-            {successMsg && (
-                <div style={{ background: '#d1fae5', color: '#065f46', padding: '12px 20px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '500' }}>
-                    <CheckCircle size={18} /> {successMsg}
-                </div>
-            )}
-
-            {activeTab === 'manual' ? (
-                <div style={{ background: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', padding: '30px', overflowY: 'auto' }}>
-                    <h2 style={{ marginBottom: '20px', color: '#111827', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <Edit3 size={24} color="var(--primary)" /> Add NI Lead Manually
-                    </h2>
-                    <form onSubmit={handleManualSubmit} className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', maxWidth: '800px' }}>
-                        <div style={{ gridColumn: '1 / -1' }}>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Customer Name *</label>
-                            <input type="text" value={manualForm.name} onChange={e => setManualForm({...manualForm, name: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="Enter name" required />
-                        </div>
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Phone Number *</label>
-                            <input type="tel" value={manualForm.phone} onChange={e => setManualForm({...manualForm, phone: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="Enter phone" required />
-                        </div>
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Location</label>
-                            <input type="text" value={manualForm.location} onChange={e => setManualForm({...manualForm, location: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="Enter location" />
-                        </div>
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Car Name with Year</label>
-                            <input type="text" value={manualForm.car_name} onChange={e => setManualForm({...manualForm, car_name: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="E.g., Honda City 2021" />
-                        </div>
-                        <div style={{ gridColumn: '1 / -1' }}>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Notes</label>
-                            <textarea value={manualForm.notes} onChange={e => setManualForm({...manualForm, notes: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none', height: '80px', resize: 'vertical' }} placeholder="Add any details about why they are not interested..."></textarea>
-                        </div>
-                        <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
-                            <button type="submit" disabled={isSubmitting} style={{ padding: '12px 24px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px', opacity: isSubmitting ? 0.7 : 1 }}>
-                                {isSubmitting ? 'Saving...' : 'Save Manual NI Entry'}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            ) : (
-                <div style={{ display: 'flex', gap: '20px', flex: 1, overflow: 'hidden' }}>
-                    {/* Sidebar List of Leads */}
-                    <div style={{ flex: '0 0 300px', background: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-                        <div style={{ padding: '15px 20px', borderBottom: '1px solid #e5e7eb', margin: 0, position: 'sticky', top: 0, background: 'white', zIndex: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <h3 style={{ margin: 0 }}>
-                                {activeTab === 'my' ? 'My NI Leads' : 'All NI Leads'} ({leads.length})
-                            </h3>
-                            <button onClick={() => fetchLeads(activeTab)} style={{ padding: '4px 8px', background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px' }}>
-                                <RefreshCw size={12} />
-                            </button>
-                        </div>
-                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, flex: 1 }}>
-                            {leads.map(lead => (
-                                <li 
-                                    key={lead.id} 
-                                    onClick={() => setSelectedLead(lead)}
-                                    style={{ 
-                                        padding: '15px 20px', 
-                                        borderBottom: '1px solid #f3f4f6', 
-                                        cursor: 'pointer',
-                                        background: selectedLead?.id === lead.id ? '#eff6ff' : 'transparent',
-                                        transition: '0.2s'
-                                    }}
-                                >
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                        <div style={{ fontWeight: '600', color: '#1f2937' }}>{lead.name}</div>
-                                        <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                                            <a 
-                                                href={`tel:${lead.phone}`}
-                                                onClick={(e) => { e.stopPropagation(); startDialing(lead); }}
-                                                title="Call Now"
-                                                style={{
-                                                    background: '#d1fae5', color: '#10b981', border: 'none', borderRadius: '6px',
-                                                    width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    cursor: 'pointer', transition: '0.2s', textDecoration: 'none'
-                                                }}
-                                                onMouseEnter={e => e.currentTarget.style.background = '#a7f3d0'}
-                                                onMouseLeave={e => e.currentTarget.style.background = '#d1fae5'}
-                                            >
-                                                <Phone size={16} />
-                                            </a>
-                                            <ActionButtons 
-                                                onView={() => setViewRecord(lead)}
-                                                onEdit={() => setEditRecord(lead)}
-                                                onDelete={() => handleDelete(lead.id)}
-                                            />
-                                        </div>
-                                    </div>
-                                    <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                        <Car size={12} /> {lead.car_model || lead.car_name || 'No Car'} {lead.registration_number ? `(${lead.registration_number})` : ''}
-                                    </div>
-                                    <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                        <Archive size={12} /> {lead.callback_time ? `Callback: ${new Date(lead.callback_time).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}` : 'Not Interested'}
-                                    </div>
-                                </li>
-                            ))}
-                            {!loading && leads.length === 0 && (
-                                <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>No leads in the NI Box.</div>
-                            )}
-                        </ul>
+            <div className={`split-view-container ${selectedLead ? 'has-selected' : 'no-selected'}`}>
+                {/* Sidebar List of Leads */}
+                <div className={`split-sidebar ${selectedLead ? 'mobile-hide' : ''}`}>
+                    <div className="split-sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h3 style={{ margin: 0 }}>
+                            {activeTab === 'my' ? 'My NI Leads' : 'All NI Leads'} ({leads.length})
+                        </h3>
+                        <button onClick={() => fetchLeads(activeTab)} style={{ padding: '6px 12px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
+                            <RefreshCw size={14} /> Refresh
+                        </button>
                     </div>
-
-                    {/* Main Dialing/Feedback Area */}
-                    <div style={{ flex: 1, background: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', padding: '24px', overflowY: 'auto' }}>
-                        {selectedLead ? (
-                            <div>
-                                <div style={{ borderBottom: '2px solid #f3f4f6', paddingBottom: '20px', marginBottom: '20px' }}>
-                                    <h2 style={{ margin: '0 0 15px', color: '#111827', fontSize: '24px' }}>{selectedLead.name}</h2>
-                                    <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563' }}>
-                                            <PhoneCall size={18} color="#6366f1" /> <strong>Phone:</strong> {selectedLead.phone}
-                                        </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563' }}>
-                                            <MapPin size={18} color="#10b981" /> <strong>District:</strong> {selectedLead.district || '-'}
-                                        </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563' }}>
-                                            <Car size={18} color="#f59e0b" /> <strong>Vehicle:</strong> {selectedLead.car_model || selectedLead.car_name || '-'} {selectedLead.registration_number ? `(${selectedLead.registration_number})` : ''}
-                                        </div>
-                                        {selectedLead.callback_time && (
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#f59e0b', gridColumn: '1 / -1' }}>
-                                                <Clock size={18} color="#f59e0b" /> <strong>Callback Scheduled:</strong> {new Date(selectedLead.callback_time).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
-                                            </div>
-                                        )}
+                    
+                    <ul className="split-sidebar-list" style={{ listStyle: 'none', padding: '16px', margin: 0 }}>
+                        {leads.map(lead => (
+                            <li 
+                                key={lead.id} 
+                                className={`contact-card ${selectedLead?.id === lead.id ? 'active' : ''}`}
+                                onClick={() => setSelectedLead(lead)}
+                            >
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                    <div style={{ fontWeight: '700', color: '#1e293b', fontSize: '15px' }}>{lead.name}</div>
+                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                        <a 
+                                            href={`tel:${lead.phone}`}
+                                            onClick={(e) => { e.stopPropagation(); startDialing(lead); }}
+                                            title="Call Now"
+                                            style={{ padding: '6px', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white', border: 'none', borderRadius: '50%', cursor: 'pointer', display: 'flex', textDecoration: 'none', boxShadow: '0 4px 10px rgba(16, 185, 129, 0.3)' }}
+                                        >
+                                            <Phone size={14} />
+                                        </a>
+                                        <ActionButtons 
+                                            onView={() => setViewLead(lead)}
+                                            onEdit={() => setEditLead(lead)}
+                                            onDelete={() => handleDelete(lead.id)}
+                                        />
                                     </div>
                                 </div>
-                                
-                                {selectedLead.last_note && (
-                                    <div style={{ marginTop: '15px', padding: '15px', background: '#f8fafc', borderRadius: '8px', borderLeft: '4px solid #6366f1' }}>
-                                        <strong style={{ color: '#374151', display: 'block', marginBottom: '5px' }}>Previous Notes / Feedback:</strong>
-                                        <span style={{ color: '#4b5563', whiteSpace: 'pre-wrap' }}>{selectedLead.last_note}</span>
+                                <div style={{ fontSize: '13px', color: '#64748b', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <Car size={14} /> {lead.car_model || lead.car_name || 'No Car'} {lead.registration_number ? `(${lead.registration_number})` : ''}
+                                </div>
+                                {activeTab === 'all' && (
+                                    <div style={{ fontSize: '12px', color: '#6366f1', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}>
+                                        <User size={12} /> Assignee: {lead.assignee_name || 'Unassigned'}
                                     </div>
                                 )}
+                            </li>
+                        ))}
+                        {leads.length === 0 && (
+                            <div style={{ padding: '20px', textAlign: 'center', color: '#94a3b8' }}>No NI leads found.</div>
+                        )}
+                    </ul>
+                </div>
+
+                {/* Main Dialing/Feedback Area */}
+                <div className={`split-main ${!selectedLead ? 'mobile-hide' : ''}`} style={{ display: 'flex', flexDirection: 'column' }}>
+                    {selectedLead ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                            <div className="split-main-header">
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <button 
+                                        type="button"
+                                        onClick={() => setSelectedLead(null)}
+                                        className="btn btn-secondary mobile-back-btn"
+                                        style={{ padding: '6px 12px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                    >
+                                        ← Back to List
+                                    </button>
+                                    <h2 style={{ margin: 0, color: '#111827', fontSize: '20px' }}>{selectedLead.name}</h2>
+                                </div>
+                            </div>
+                                <div className="split-main-content">
+                                    <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#4b5563', padding: '16px', background: '#f8fafc', borderRadius: '12px' }}>
+                                            <PhoneCall size={20} color="#6366f1" /> <strong>Phone:</strong> {selectedLead.phone}
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#4b5563', padding: '16px', background: '#f8fafc', borderRadius: '12px' }}>
+                                            <MapPin size={20} color="#10b981" /> <strong>District:</strong> {selectedLead.district || '-'}
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#4b5563', padding: '16px', background: '#f8fafc', borderRadius: '12px' }}>
+                                            <Car size={20} color="#f59e0b" /> <strong>Vehicle:</strong> {selectedLead.car_model || selectedLead.car_name || '-'} {selectedLead.registration_number ? `(${selectedLead.registration_number})` : ''}
+                                        </div>
+                                    </div>
+                                    
+                                    {selectedLead.last_note && (
+                                        <div style={{ marginTop: '24px', padding: '20px', background: '#eff6ff', borderRadius: '16px', borderLeft: '4px solid #6366f1' }}>
+                                            <strong style={{ color: '#1e293b', display: 'block', marginBottom: '8px' }}>Previous Notes / Feedback:</strong>
+                                            <span style={{ color: '#475569', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>{selectedLead.last_note}</span>
+                                        </div>
+                                    )}
 
                                 <div style={{ borderTop: '2px dashed #e5e7eb', paddingTop: '24px', marginTop: '24px', textAlign: 'center' }}>
                                     {callPhase === 'idle' && (
@@ -370,46 +338,45 @@ const NIBox = () => {
                                                 <PhoneCall size={24} /> Dial Now
                                             </a>
                                             
-                                            <div style={{ textAlign: 'left' }}>
-                                                <form onSubmit={handleFeedbackSubmit} style={{ background: '#f8fafc', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                                                    <h3 style={{ margin: '0 0 15px', color: '#1e293b' }}>Update Status (Manual)</h3>
-                                                    <div style={{ marginBottom: '15px' }}>
-                                                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Status</label>
-                                                        <select 
-                                                            value={feedback.status} 
-                                                            onChange={e => setFeedback({...feedback, status: e.target.value})}
-                                                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                                                        >
-                                                            <option value="Not Interested">Not Interested (NI)</option>
-                                                            <option value="Call Later">Call Later</option>
-                                                            <option value="Appointment">Appointment</option>
-                                                        </select>
-                                                    </div>
+                                            <div style={{ textAlign: 'left', marginTop: '30px' }}>
+                                                <form onSubmit={handleFeedbackSubmit} style={{ background: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
+                                                    <h3 style={{ margin: '0 0 20px', color: '#0f172a', fontWeight: '800' }}>Update Status (Manual)</h3>
+                                                     <div style={{ marginBottom: '20px' }}>
+                                                         <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#475569', fontSize: '13px' }}>Status</label>
+                                                         <SearchableSelect 
+                                                             options={[
+                                                               { label: 'Not Interested (NI)', value: 'Not Interested' },
+                                                               { label: 'Call Later', value: 'Call Later' },
+                                                               { label: 'Appointment', value: 'Appointment' }
+                                                             ]}
+                                                             value={feedback.status} 
+                                                             onChange={val => setFeedback({...feedback, status: val})}
+                                                             placeholder="Select status..."
+                                                         />
+                                                     </div>
 
                                                     {['Call Later', 'Appointment'].includes(feedback.status) && (
-                                                        <div style={{ marginBottom: '15px' }}>
-                                                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>New Date & Time</label>
-                                                            <input 
-                                                                type="datetime-local" 
-                                                                value={feedback.callback_time} 
-                                                                onChange={e => setFeedback({...feedback, callback_time: e.target.value})}
-                                                                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                                                                required
+                                                        <div style={{ marginBottom: '20px' }}>
+                                                            <ModernDateTimePicker 
+                                                                label="New Date & Time"
+                                                                value={feedback.callback_time}
+                                                                onChange={val => setFeedback({...feedback, callback_time: val})}
+                                                                required={true}
                                                             />
                                                         </div>
                                                     )}
 
-                                                    <div style={{ marginBottom: '15px' }}>
-                                                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Notes</label>
+                                                    <div style={{ marginBottom: '20px' }}>
+                                                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#475569', fontSize: '13px' }}>Notes</label>
                                                         <textarea 
                                                             value={feedback.notes} 
                                                             onChange={e => setFeedback({...feedback, notes: e.target.value})}
-                                                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', minHeight: '80px', resize: 'vertical' }}
+                                                            style={{ width: '100%', minHeight: '80px', resize: 'vertical' }}
                                                             required
                                                         ></textarea>
                                                     </div>
                                                     
-                                                    <button type="submit" style={{ width: '100%', padding: '12px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                                    <button type="submit" style={{ width: '100%', padding: '14px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                                                         <CheckCircle size={18} /> Save Update
                                                     </button>
                                                 </form>
@@ -418,24 +385,24 @@ const NIBox = () => {
                                     )}
 
                                     {callPhase === 'dialing' && (
-                                        <div style={{ padding: '20px', animation: 'pulse 1.5s infinite' }}>
-                                            <PhoneCall size={48} color="#10b981" style={{ marginBottom: '10px' }} />
-                                            <h3 style={{ margin: 0, color: '#10b981' }}>Dialing...</h3>
+                                        <div style={{ padding: '40px', animation: 'pulse 1.5s infinite', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                            <PhoneCall size={56} color="#10b981" style={{ marginBottom: '16px' }} />
+                                            <h3 style={{ margin: 0, color: '#10b981', fontSize: '24px' }}>Dialing...</h3>
                                         </div>
                                     )}
 
                                     {callPhase === 'active' && (
-                                        <div style={{ background: '#f0fdf4', padding: '30px', borderRadius: '16px', border: '2px solid #86efac' }}>
-                                            <div style={{ fontSize: '48px', fontWeight: 'bold', color: '#15803d', fontFamily: 'monospace', marginBottom: '20px' }}>
+                                        <div style={{ background: '#f0fdf4', padding: '40px', borderRadius: '24px', border: '2px solid #86efac', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                            <div style={{ fontSize: '56px', fontWeight: '800', color: '#15803d', fontFamily: 'monospace', marginBottom: '32px', letterSpacing: '-0.02em' }}>
                                                 {formatTime(secondsElapsed)}
                                             </div>
                                             <button 
                                                 onClick={stopTimer}
                                                 style={{
                                                     display: 'inline-flex', alignItems: 'center', gap: '10px', cursor: 'pointer',
-                                                    background: '#ef4444', color: 'white', padding: '16px 40px', border: 'none',
+                                                    background: '#ef4444', color: 'white', padding: '18px 48px', border: 'none',
                                                     borderRadius: '50px', fontWeight: 'bold', fontSize: '18px',
-                                                    boxShadow: '0 4px 14px rgba(239, 68, 68, 0.4)'
+                                                    boxShadow: '0 8px 20px rgba(239, 68, 68, 0.4)'
                                                 }}
                                             >
                                                 <PhoneOff size={24} /> End Call
@@ -445,17 +412,17 @@ const NIBox = () => {
 
                                     {callPhase === 'feedback' && (
                                         <div style={{ textAlign: 'left' }}>
-                                            <form onSubmit={handleFeedbackSubmit} style={{ background: '#f8fafc', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                                                <h3 style={{ margin: '0 0 15px', color: '#1e293b', textAlign: 'center' }}>How did the call go?</h3>
-                                                <div style={{ textAlign: 'center', marginBottom: '20px', color: '#64748b', fontWeight: '500' }}>
-                                                    Call Duration: <span style={{ color: '#0f172a', fontWeight: 'bold' }}>{formatTime(secondsElapsed)}</span>
+                                            <form onSubmit={handleFeedbackSubmit} style={{ background: 'white', padding: '32px', borderRadius: '24px', border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
+                                                <h3 style={{ margin: '0 0 24px', color: '#0f172a', textAlign: 'center', fontWeight: '800', fontSize: '20px' }}>How did the call go?</h3>
+                                                <div style={{ textAlign: 'center', marginBottom: '32px', color: '#64748b', fontSize: '15px' }}>
+                                                    Call Duration: <span style={{ color: '#0f172a', fontWeight: '800', fontSize: '18px', background: '#f1f5f9', padding: '6px 12px', borderRadius: '8px', marginLeft: '8px' }}>{formatTime(secondsElapsed)}</span>
                                                 </div>
-                                                <div style={{ marginBottom: '15px' }}>
-                                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Status</label>
+                                                <div style={{ marginBottom: '20px' }}>
+                                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#475569', fontSize: '13px' }}>Status</label>
                                                     <select 
                                                         value={feedback.status} 
                                                         onChange={e => setFeedback({...feedback, status: e.target.value})}
-                                                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                                                        style={{ width: '100%' }}
                                                     >
                                                         <option value="Not Interested">Not Interested (NI)</option>
                                                         <option value="Call Later">Call Later</option>
@@ -464,29 +431,29 @@ const NIBox = () => {
                                                 </div>
 
                                                 {['Call Later', 'Appointment'].includes(feedback.status) && (
-                                                    <div style={{ marginBottom: '15px' }}>
-                                                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>New Date & Time</label>
+                                                    <div style={{ marginBottom: '20px' }}>
+                                                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#475569', fontSize: '13px' }}>New Date & Time</label>
                                                         <input 
                                                             type="datetime-local" 
                                                             value={feedback.callback_time} 
                                                             onChange={e => setFeedback({...feedback, callback_time: e.target.value})}
-                                                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                                                            style={{ width: '100%' }}
                                                             required
                                                         />
                                                     </div>
                                                 )}
 
-                                                <div style={{ marginBottom: '15px' }}>
-                                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Notes</label>
+                                                <div style={{ marginBottom: '20px' }}>
+                                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#475569', fontSize: '13px' }}>Notes</label>
                                                     <textarea 
                                                         value={feedback.notes} 
                                                         onChange={e => setFeedback({...feedback, notes: e.target.value})}
-                                                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', minHeight: '80px', resize: 'vertical' }}
+                                                        style={{ width: '100%', minHeight: '80px', resize: 'vertical' }}
                                                         required
                                                     ></textarea>
                                                 </div>
                                                 
-                                                <button type="submit" style={{ width: '100%', padding: '12px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                                <button type="submit" style={{ width: '100%', padding: '14px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                                                     <CheckCircle size={18} /> Save Feedback
                                                 </button>
                                             </form>
@@ -494,6 +461,7 @@ const NIBox = () => {
                                     )}
                                 </div>
                             </div>
+                        </div>
                         ) : (
                             <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', flexDirection: 'column' }}>
                                 <Archive size={48} style={{ marginBottom: '15px', opacity: 0.5 }} />
@@ -502,7 +470,6 @@ const NIBox = () => {
                         )}
                     </div>
                 </div>
-            )}
 
             {viewRecord && (
                 <ViewModal 

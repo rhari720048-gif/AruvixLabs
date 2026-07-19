@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { PhoneCall, CheckCircle, ThumbsUp, ThumbsDown, X, Edit2, Trash2, MapPin, User, FileText, Activity, Clock, Save, PhoneOff, Car, Calendar } from 'lucide-react';
 import ActionButtons from './ActionButtons';
 import EditLeadModal from './EditLeadModal';
+import toast from 'react-hot-toast';
 
 const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
 
@@ -17,7 +18,6 @@ const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdat
   const [timerInterval, setTimerInterval] = useState(null);
 
   const [feedback, setFeedback] = useState({ selection: '', notes: '', reason: '' });
-  const [successMsg, setSuccessMsg] = useState('');
 
   // Edit Mode State
   const [isEditing, setIsEditing] = useState(false);
@@ -110,13 +110,13 @@ const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdat
 
   const handleFeedbackSubmit = async (e) => {
     e.preventDefault();
-    if (!feedback.selection) return alert('Please select a call outcome');
+    if (!feedback.selection) return toast.error('Please select a call outcome');
     
     if (['Appointment', 'Call Later'].includes(feedback.selection) && !feedback.notes) {
-       return alert('Please enter feedback notes.');
+       return toast.error('Please enter feedback notes.');
     }
     if (feedback.selection === 'Not Interested' && !feedback.reason) {
-       return alert('Please enter a reason.');
+       return toast.error('Please enter a reason.');
     }
 
     const finalStatus = feedback.selection === 'Not Interested' ? 'NI' : feedback.selection;
@@ -138,7 +138,7 @@ const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdat
         })
       });
       if (res.ok) {
-        setSuccessMsg('Feedback submitted successfully!');
+        toast.success('Feedback submitted successfully!');
         
         // Refresh local lead data optimistically
         selectedLead.status = finalStatus;
@@ -146,19 +146,21 @@ const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdat
         resetCallState();
         fetchCallHistory(selectedLead.id);
         
-        setTimeout(() => {
-          setSuccessMsg('');
-          setSelectedLead(null); // Close modal on success
-          if (onStatusUpdate) {
-             if (finalStatus === 'Appointment') onStatusUpdate('appointment');
-             else if (finalStatus === 'Call Later') onStatusUpdate('call-later');
-             else if (finalStatus === 'NI') onStatusUpdate('ni');
-          }
-        }, 1500);
+        if (onStatusUpdate) {
+            let tab = '';
+            if (finalStatus === 'Appointment') tab = 'appointment';
+            else if (finalStatus === 'Call Later') tab = 'call-later';
+            else if (finalStatus === 'NI') tab = 'ni';
+            
+            if (tab) onStatusUpdate(tab);
+        }
+        setSelectedLead(null);
+      } else {
+        toast.error("Failed to submit feedback.");
       }
     } catch (e) {
       console.error(e);
-      alert('Failed to submit feedback.');
+      toast.error("An error occurred while submitting feedback.");
     }
   };
 
@@ -169,13 +171,11 @@ const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdat
 
   const saveEdit = () => {
     if (handleEdit) {
-      // AdminLeads handles edit which expects: name, phone, location(as district in AdminLeads payload), requirements, status, etc.
-      // We package it similar to what AdminLeads expects.
       handleEdit(selectedLead.id, {
         ...selectedLead,
         name: editForm.name,
         phone: editForm.phone,
-        location: editForm.district, // handleEdit maps location -> district payload
+        location: editForm.district, 
         year: editForm.year,
         car_model: editForm.car_model,
         car_number: editForm.registration_number,
@@ -199,43 +199,31 @@ const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdat
         <h2 style={{ color: 'var(--text-dark)', margin: 0 }}>My Leads ({leads.length})</h2>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
         {leads.map(lead => (
           <div 
             key={lead.id} 
             onClick={() => setSelectedLead(lead)}
+            className="modern-stat-card"
             style={{ 
-              background: 'white', 
-              borderRadius: '12px', 
-              padding: '20px', 
-              boxShadow: '0 4px 6px rgba(0,0,0,0.05)', 
-              border: '1px solid #e5e7eb',
               cursor: 'pointer',
-              transition: 'transform 0.2s, box-shadow 0.2s',
               display: 'flex',
               flexDirection: 'column',
-              gap: '10px'
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.transform = 'translateY(-4px)';
-              e.currentTarget.style.boxShadow = '0 10px 15px rgba(0,0,0,0.1)';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.05)';
+              gap: '12px',
+              padding: '24px'
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <h3 style={{ margin: 0, color: '#1f2937', fontSize: '18px', fontWeight: '600' }}>{lead.name}</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <h3 style={{ margin: 0, color: '#1e293b', fontSize: '18px', fontWeight: '800' }}>{lead.name}</h3>
                 <span style={{ 
-                  padding: '2px 8px', 
+                  padding: '4px 10px', 
                   borderRadius: '20px', 
-                  fontSize: '11px', 
-                  fontWeight: '600',
+                  fontSize: '12px', 
+                  fontWeight: '700',
                   alignSelf: 'flex-start',
-                  background: lead.status === 'Converted' ? '#d1fae5' : lead.status === 'NI' ? '#fee2e2' : '#f3f4f6',
-                  color: lead.status === 'Converted' ? '#065f46' : lead.status === 'NI' ? '#991b1b' : '#374151'
+                  background: lead.status === 'Converted' ? '#d1fae5' : lead.status === 'NI' ? '#fee2e2' : '#f1f5f9',
+                  color: lead.status === 'Converted' ? '#065f46' : lead.status === 'NI' ? '#991b1b' : '#475569'
                 }}>
                   {lead.status || 'Pending'}
                 </span>
@@ -247,8 +235,8 @@ const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdat
               />
             </div>
             
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6b7280', fontSize: '14px' }}>
-              {lead.phone}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#64748b', fontSize: '14px', fontWeight: '500' }}>
+              <Phone size={16} /> {lead.phone}
               <a 
                 href={`tel:${lead.phone}`}
                 onClick={(e) => {
@@ -256,27 +244,28 @@ const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdat
                   setSelectedLead(lead);
                   startDialing(lead);
                 }} 
-                style={{ padding: '4px', background: '#10b981', color: 'white', border: 'none', borderRadius: '50%', display: 'inline-flex', cursor: 'pointer', textDecoration: 'none' }} 
+                style={{ marginLeft: 'auto', padding: '8px 16px', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white', border: 'none', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer', textDecoration: 'none', fontWeight: 'bold', fontSize: '13px', boxShadow: '0 4px 10px rgba(16, 185, 129, 0.25)' }} 
                 title="Call Now"
               >
-                <PhoneCall size={12} />
+                <PhoneCall size={14} /> Call
               </a>
             </div>
             
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6b7280', fontSize: '14px' }}>
-              <MapPin size={14} /> {lead.location || lead.district || 'Location unknown'}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#64748b', fontSize: '14px', fontWeight: '500' }}>
+              <MapPin size={16} /> {lead.location || lead.district || 'Location unknown'}
             </div>
 
             {lead.year && (
-              <div style={{ marginTop: '10px', fontSize: '13px', color: '#4b5563', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                <strong>Year:</strong> {lead.year}
+              <div style={{ marginTop: '8px', fontSize: '13px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '500' }}>
+                <Car size={16} /> {lead.year}
               </div>
             )}
           </div>
         ))}
         {leads.length === 0 && (
-          <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px', color: '#6b7280', background: '#f9fafb', borderRadius: '12px', border: '2px dashed #e5e7eb' }}>
-            No leads assigned to you yet.
+          <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '60px 40px', color: '#94a3b8', background: 'white', borderRadius: '16px', border: '2px dashed #cbd5e1' }}>
+            <h3 style={{ fontSize: '18px', color: '#475569', margin: '0 0 10px' }}>No Leads Found</h3>
+            <p style={{ margin: 0 }}>There are no leads assigned to you yet.</p>
           </div>
         )}
       </div>
@@ -313,12 +302,6 @@ const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdat
 
             {/* Modal Body */}
             <div style={{ padding: '24px' }}>
-              {successMsg && (
-                <div style={{ background: '#d1fae5', color: '#065f46', padding: '12px 20px', borderRadius: '8px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '500' }}>
-                  <CheckCircle size={20} /> {successMsg}
-                </div>
-              )}
-
               {/* Lead Details Grid */}
               <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '30px' }}>
                 <div>

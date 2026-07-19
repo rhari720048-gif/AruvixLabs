@@ -138,7 +138,17 @@ app.put('/api/auth/profile', authenticate, async (req, res) => {
 
 app.get('/api/customers', authenticate, async (req, res) => {
     try {
-        let query = 'SELECT c.* FROM customers c ORDER BY c.created_at DESC';
+        let query = `
+            SELECT c.*, l.notes as last_note, l.callback_time 
+            FROM customers c
+            LEFT JOIN (
+                SELECT customer_id, MAX(id) as max_id
+                FROM call_logs
+                GROUP BY customer_id
+            ) l_max ON c.id = l_max.customer_id
+            LEFT JOIN call_logs l ON l_max.max_id = l.id
+            ORDER BY c.created_at DESC
+        `;
         let params = [];
         const [rows] = await pool.query(query, params);
 

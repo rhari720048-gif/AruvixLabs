@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { PhoneCall, Download, Search, Trash2, CheckCircle, ThumbsUp, ThumbsDown, X, Edit2, MapPin, User, FileText, Activity, Clock, Save, PhoneOff, Car, Calendar } from 'lucide-react';
+import { PhoneCall, Download, Search, Trash2, CheckCircle, ThumbsUp, ThumbsDown, X, Edit2, MapPin, User, Users, FileText, Activity, Clock, Save, PhoneOff, Car, Calendar } from 'lucide-react';
 import SearchableSelect from './SearchableSelect';
 import ActionButtons from './ActionButtons';
 import EditLeadModal from './EditLeadModal';
+import toast from 'react-hot-toast';
 
 const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
 
@@ -18,7 +19,6 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
   const [secondsElapsed, setSecondsElapsed] = useState(0);
   const [timerInterval, setTimerInterval] = useState(null);
   const [feedback, setFeedback] = useState({ selection: '', notes: '', reason: '', callback_time: '' });
-  const [successMsg, setSuccessMsg] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({});
   const [modalEditLead, setModalEditLead] = useState(null);
@@ -130,13 +130,13 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
 
   const handleFeedbackSubmit = async (e) => {
     e.preventDefault();
-    if (!feedback.selection) return alert('Please select a call outcome');
+    if (!feedback.selection) return toast.error('Please select a call outcome');
     
     if (['Appointment', 'Call Later'].includes(feedback.selection) && !feedback.notes) {
-       return alert('Please enter feedback notes.');
+       return toast.error('Please enter feedback notes.');
     }
     if (feedback.selection === 'Not Interested' && !feedback.reason) {
-       return alert('Please enter a reason.');
+       return toast.error('Please enter a reason.');
     }
 
     const finalStatus = feedback.selection === 'Not Interested' ? 'NI' : feedback.selection;
@@ -158,22 +158,21 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
         })
       });
       if (res.ok) {
-        setSuccessMsg('Feedback submitted successfully!');
+        toast.success('Feedback submitted successfully!');
         
         selectedLead.status = finalStatus;
         
         resetCallState();
         fetchCallHistory(selectedLead.id);
         
-        setTimeout(() => {
-          setSuccessMsg('');
-          setSelectedLead(null);
-          if (refreshLeads) refreshLeads();
-        }, 1500);
+        if (refreshLeads) refreshLeads();
+        setSelectedLead(null);
+      } else {
+        toast.error("Failed to submit feedback.");
       }
     } catch (e) {
       console.error(e);
-      alert('Failed to submit feedback.');
+      toast.error('Failed to submit feedback.');
     }
   };
 
@@ -227,87 +226,124 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
   };
 
   return (
-    <div className="all-leads-container">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
-        <h2 style={{ color: 'var(--text-dark)', margin: 0 }}>All Leads ({filteredLeads.length})</h2>
-        
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-          {selectedIds.length > 0 && handleBulkDelete && (
-            <button onClick={() => {
-              if (window.confirm(`Are you sure you want to delete ${selectedIds.length} leads?`)) {
-                handleBulkDelete(selectedIds);
-                setSelectedIds([]);
-              }
-            }} style={{ padding: '8px 16px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '500' }}>
-              <Trash2 size={16} /> Delete Selected ({selectedIds.length})
-            </button>
-          )}
-
-          <div style={{ position: 'relative', flexGrow: 1, minWidth: '200px' }}>
-            <Search size={18} color="#9ca3af" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
-            <input 
-              type="text" 
-              placeholder="Search leads..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ padding: '10px 10px 10px 38px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none', width: '100%', maxWidth: '300px' }}
-            />
-          </div>
-
-          <button onClick={downloadCSV} style={{ padding: '10px 16px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '500' }}>
-            <Download size={16} /> Export
+    <div className="page-all-leads" style={{ animation: 'fadeIn 0.3s ease-out' }}>
+      <div className="crm-page-header">
+        <div className="crm-page-title-group">
+          <h1>
+            <Users size={28} color="var(--primary)" />
+            Lead Management & Telecalling Queue
+          </h1>
+          <p>Database of prospect leads, assigned contacts, and quick dial actions</p>
+        </div>
+        <div className="crm-page-actions">
+          <button onClick={downloadCSV} className="btn btn-secondary">
+            <Download size={16} /> Export CSV
           </button>
         </div>
       </div>
+
+      {/* Dashboard-Style KPI Cards */}
+      <div className="modern-stats-grid">
+        <div className="modern-stat-card grad-total">
+          <div className="modern-stat-header">
+            <span>Total Leads</span>
+            <Users size={20} />
+          </div>
+          <div className="modern-stat-value">{leads.length}</div>
+          <Users size={90} className="bg-icon" />
+        </div>
+
+        <div className="modern-stat-card grad-pending">
+          <div className="modern-stat-header">
+            <span>Filtered Results</span>
+            <PhoneCall size={20} />
+          </div>
+          <div className="modern-stat-value">{filteredLeads.length}</div>
+          <PhoneCall size={90} className="bg-icon" />
+        </div>
+
+        <div className="modern-stat-card grad-converted">
+          <div className="modern-stat-header">
+            <span>Converted Clients</span>
+            <CheckCircle size={20} />
+          </div>
+          <div className="modern-stat-value">{leads.filter(l => l.status === 'Converted').length}</div>
+          <CheckCircle size={90} className="bg-icon" />
+        </div>
+      </div>
+
+      <div className="card-panel" style={{ padding: '16px 24px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+        <div style={{ position: 'relative', flex: 1, maxWidth: '400px' }}>
+          <Search size={18} color="#94a3b8" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }} />
+          <input 
+            type="text" 
+            placeholder="Search leads by name, phone, car..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{ width: '100%', paddingLeft: '42px' }}
+          />
+        </div>
+
+        {selectedIds.length > 0 && handleBulkDelete && (
+          <button onClick={() => {
+            if (window.confirm(`Are you sure you want to delete ${selectedIds.length} leads?`)) {
+              handleBulkDelete(selectedIds);
+              setSelectedIds([]);
+            }
+          }} className="btn btn-danger">
+            <Trash2 size={16} /> Delete Selected ({selectedIds.length})
+          </button>
+        )}
+      </div>
       
-      <div className="data-table-container" style={{ background: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', overflowX: 'auto', border: '1px solid #e5e7eb' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '900px' }}>
+      <div className="modern-table-container">
+        <table>
           <thead>
-            <tr style={{ background: '#f3f4f6', borderBottom: '1px solid #e5e7eb' }}>
-              <th style={{ padding: '14px 16px', textAlign: 'left', width: '40px' }}>
+            <tr>
+              <th style={{ width: '40px' }}>
                 <input type="checkbox" checked={selectedIds.length === filteredLeads.length && filteredLeads.length > 0} onChange={toggleSelectAll} style={{ cursor: 'pointer' }} />
               </th>
-              <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Client Name</th>
-              <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Vehicle</th>
-              <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Year</th>
-              <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Mobile No</th>
-              <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Location</th>
-              <th style={{ padding: '14px 16px', textAlign: 'left', color: '#4b5563', fontWeight: '600', fontSize: '13px', textTransform: 'uppercase' }}>Actions</th>
+              <th>Client Name</th>
+              <th>Vehicle</th>
+              <th>Year</th>
+              <th>Mobile No</th>
+              <th>Location</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredLeads.length === 0 ? (
               <tr>
-                <td colSpan="7" style={{ padding: '30px', textAlign: 'center', color: '#6b7280' }}>No leads found.</td>
+                <td colSpan="7" className="empty-state">No leads found.</td>
               </tr>
             ) : filteredLeads.map(lead => (
-              <tr key={lead.id} style={{ borderBottom: '1px solid #e5e7eb', transition: '0.2s', background: selectedIds.includes(lead.id) ? '#eff6ff' : 'transparent' }}>
-                <td data-label="Select" style={{ padding: '14px 16px' }}>
+              <tr key={lead.id} className={selectedIds.includes(lead.id) ? 'selected-row' : ''}>
+                <td data-label="Select">
                   <input type="checkbox" checked={selectedIds.includes(lead.id)} onChange={() => toggleSelect(lead.id)} style={{ cursor: 'pointer' }} />
                 </td>
-                <td data-label="Client Name" style={{ padding: '14px 16px', color: '#1f2937', fontWeight: '500' }}>{lead.name}</td>
-                <td data-label="Vehicle" style={{ padding: '14px 16px', color: '#4b5563' }}>
+                <td data-label="Client Name" style={{ fontWeight: '600', color: '#1e293b' }}>{lead.name}</td>
+                <td data-label="Vehicle">
                   {lead.car_model || '-'} 
-                  {lead.registration_number && <span style={{ display: 'block', fontSize: '12px', color: '#9ca3af' }}>{lead.registration_number}</span>}
+                  {lead.registration_number && <span style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>{lead.registration_number}</span>}
                 </td>
-                <td data-label="Year" style={{ padding: '14px 16px', color: '#4b5563' }}>{lead.year || '-'}</td>
-                <td data-label="Mobile No" style={{ padding: '14px 16px', color: '#4b5563' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {lead.phone}
+                <td data-label="Year">{lead.year || '-'}</td>
+                <td data-label="Mobile No">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '16px' }}>
+                    <span style={{ fontWeight: '600' }}>{lead.phone}</span>
                     <a 
                       href={`tel:${lead.phone}`}
                       onClick={(e) => {
                         setSelectedLead(lead);
                         startDialing(lead);
                       }} 
-                      style={{ padding: '6px', background: '#10b981', color: 'white', border: 'none', borderRadius: '50%', cursor: 'pointer', display: 'flex', textDecoration: 'none' }} title="Call Now"
+                      className="call-btn" title="Call Now"
                     >
-                      <PhoneCall size={14} />
+                      <PhoneCall size={14} /> Call
                     </a>
                   </div>
                 </td>
-                <td data-label="Location" style={{ padding: '14px 16px', color: '#4b5563' }}>{lead.location}</td>
-                <td data-label="Actions" style={{ padding: '14px 16px' }}>
+                <td data-label="Location">{lead.location}</td>
+                <td data-label="Actions">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <ActionButtons 
                       onView={() => setSelectedLead(lead)}
@@ -354,12 +390,6 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
 
             {/* Modal Body */}
             <div style={{ padding: '24px' }}>
-              {successMsg && (
-                <div style={{ background: '#d1fae5', color: '#065f46', padding: '12px 20px', borderRadius: '8px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '500' }}>
-                  <CheckCircle size={20} /> {successMsg}
-                </div>
-              )}
-
               {/* Lead Details Grid */}
               <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '30px' }}>
                 <div>

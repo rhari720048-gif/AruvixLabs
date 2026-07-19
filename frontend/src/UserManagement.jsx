@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Users, UserPlus, Search, Pencil, Trash2, X, CheckCircle,
+  Users, UserPlus, Search, Pencil, Trash2, X,
   ShieldCheck, User, Eye, EyeOff, RefreshCw, Mail, Phone
 } from 'lucide-react';
 import { getPerms } from './permissions';
+import SearchableSelect from './SearchableSelect';
+import toast from 'react-hot-toast';
 
 const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
 const token = () => localStorage.getItem('token');
@@ -39,12 +41,10 @@ export default function UserManagement() {
   const [form, setForm]           = useState(defaultForm);
   const [showPass, setShowPass]   = useState(false);
   const [saving, setSaving]       = useState(false);
-  const [toast, setToast]         = useState('');
   const [deleteId, setDeleteId]   = useState(null);
   const [dbRoles, setDbRoles]     = useState([]);
 
   // ── helpers ──────────────────────────────────────────────────────────
-  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
 
   const fetchUsersAndRoles = async () => {
     setLoading(true);
@@ -54,16 +54,26 @@ export default function UserManagement() {
         fetch(`${API}/users`, { headers }),
         fetch(`${API}/roles`, { headers })
       ]);
-      if (usersRes.ok) setUsers(await usersRes.json());
+      if (usersRes.ok) {
+        const uData = await usersRes.json();
+        setUsers(Array.isArray(uData) ? uData : []);
+      } else {
+        setUsers([]);
+      }
       if (rolesRes.ok) {
         const rolesList = await rolesRes.json();
-        setDbRoles(Array.isArray(rolesList) && rolesList.length ? rolesList : ROLES.map((r, index) => ({ id: index, name: r })));
+        const rawList = Array.isArray(rolesList) ? rolesList : [];
+        const normalized = rawList.length
+          ? rawList.map((r, idx) => typeof r === 'string' ? { id: idx, name: r } : { id: r?.id || idx, name: r?.name || String(r || 'employee') })
+          : ROLES.map((r, idx) => ({ id: idx, name: r }));
+        setDbRoles(normalized);
       } else {
-        setDbRoles(ROLES.map((r, index) => ({ id: index, name: r })));
+        setDbRoles(ROLES.map((r, idx) => ({ id: idx, name: r })));
       }
     } catch (e) {
       console.error(e);
-      setDbRoles(ROLES.map((r, index) => ({ id: index, name: r })));
+      setUsers([]);
+      setDbRoles(ROLES.map((r, idx) => ({ id: idx, name: r })));
     }
     setLoading(false);
   };
@@ -71,28 +81,38 @@ export default function UserManagement() {
   useEffect(() => { fetchUsersAndRoles(); }, []);
 
   // ── filtered list ─────────────────────────────────────────────────
-  const filtered = users.filter(u => {
-    const q = search.toLowerCase();
-    const matchSearch = u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
-    const matchRole   = roleFilter === 'all' || (u.role && u.role.toLowerCase() === roleFilter.toLowerCase());
+  const safeUsers = Array.isArray(users) ? users : [];
+  const safeRoles = Array.isArray(dbRoles) ? dbRoles : [];
+
+  const filtered = safeUsers.filter(u => {
+    if (!u) return false;
+    const q = (search || '').toLowerCase();
+    const matchSearch = (u.name || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q);
+    const matchRole   = roleFilter === 'all' || ((u.role || '').toLowerCase() === (roleFilter || '').toLowerCase());
     return matchSearch && matchRole;
   });
 
   // ── open modal ────────────────────────────────────────────────────
   const openAdd = () => {
     setEditUser(null);
-    setForm({ ...defaultForm, role: dbRoles.length > 0 ? dbRoles[0].name : 'Employee' });
+    const firstRole = safeRoles.length > 0 ? (typeof safeRoles[0] === 'string' ? safeRoles[0] : (safeRoles[0]?.name || 'employee')) : 'employee';
+    setForm({ ...defaultForm, role: firstRole });
     setShowPass(false);
     setShowModal(true);
   };
   const openEdit = (u) => {
+    if (!u) return;
     setEditUser(u);
-    const matchedRole = dbRoles.find(r => r.name.toLowerCase() === (u.role || '').toLowerCase());
+    const matchedRole = safeRoles.find(r => {
+      const rName = typeof r === 'string' ? r : (r?.name || '');
+      return rName.toLowerCase() === (u.role || '').toLowerCase();
+    });
+    const matchedRoleName = matchedRole ? (typeof matchedRole === 'string' ? matchedRole : matchedRole.name) : (u.role || 'employee');
     setForm({
-      name: u.name,
-      email: u.email,
+      name: u.name || '',
+      email: u.email || '',
       phone: u.phone || '',
-      role: matchedRole ? matchedRole.name : (u.role || 'Employee'),
+      role: matchedRoleName,
       password: '',
       status: u.status || 'Active'
     });
@@ -115,9 +135,9 @@ export default function UserManagement() {
         });
         if (res.ok) {
           fetchUsersAndRoles();
-          showToast('User updated successfully!');
+          toast.success('User updated successfully!');
         } else {
-          showToast('Failed to update user.');
+          toast.error('Failed to update user.');
         }
       } else {
         // POST /api/users
@@ -128,15 +148,15 @@ export default function UserManagement() {
         });
         if (res.ok) {
           fetchUsersAndRoles();
-          showToast('User added successfully!');
+          toast.success('User added successfully!');
         } else {
           const err = await res.json();
-          alert(err.error || 'Failed to add user');
+          toast.error(err.error || 'Failed to add user');
         }
       }
     } catch (e) {
       console.error(e);
-      showToast('Error saving user');
+      toast.error('Error saving user');
     }
     setSaving(false);
     closeModal();
@@ -145,22 +165,40 @@ export default function UserManagement() {
   // ── delete ────────────────────────────────────────────────────────
   const handleDelete = async (id) => {
     try {
-      const res = await fetch(`${API}/users/${deleteId}`, {
+      const res = await fetch(`${API}/users/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token()}` }
       });
       if (res.ok) {
-        fetchUsersAndRoles();
-        showToast('User deleted successfully!');
+        setUsers(users.filter((u) => u.id !== id));
+        toast.success('User deleted successfully!');
+      } else {
+        toast.error('Failed to delete user.');
       }
-    } catch {}
+    } catch (e) {
+      console.error(e);
+      toast.error('Error deleting user');
+    }
     setDeleteId(null);
   };
 
   // ── toggle status ─────────────────────────────────────────────────
-  const toggleStatus = (id) => {
-    setUsers(users.map(u => u.id === id ? { ...u, status: u.status === 'Active' ? 'Inactive' : 'Active' } : u));
-    showToast('Status updated!');
+  const toggleStatus = async (id) => {
+    const user = users.find(u => u.id === id);
+    const newStatus = user.status === 'Active' ? 'Inactive' : 'Active';
+    try {
+      const res = await fetch(`${API}/users/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (res.ok) {
+        setUsers(users.map(u => u.id === id ? { ...u, status: newStatus } : u));
+        toast.success('Status updated!');
+      }
+    } catch {
+      toast.error('Failed to update status');
+    }
   };
 
   // ── styles ─────────────────────────────────────────────────────────
@@ -179,46 +217,56 @@ export default function UserManagement() {
   ];
 
   return (
-    <div style={{ maxWidth: 1100 }}>
-
-      {/* Toast */}
-      {toast && (
-        <div style={{ position: 'fixed', top: 24, right: 24, zIndex: 9999, display: 'flex', alignItems: 'center', gap: 8, background: '#1f2937', color: 'white', padding: '14px 22px', borderRadius: 12, fontWeight: 600, fontSize: 14, boxShadow: '0 8px 30px rgba(0,0,0,0.2)', animation: 'slideIn 0.3s ease' }}>
-          <CheckCircle size={18} color="#10b981" /> {toast}
+    <div style={{ maxWidth: 1100, animation: 'fadeIn 0.3s ease-out' }}>
+      {/* Header & Actions */}
+      <div className="crm-page-header">
+        <div className="crm-page-title-group">
+          <h1>
+            <Users size={28} color="var(--primary)" />
+            Staff & Team Management
+          </h1>
+          <p>Manage staff members, system access roles, and permission levels</p>
         </div>
-      )}
-
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <div>
-          <h2 style={{ margin: 0, color: '#111827', fontSize: 24, fontWeight: 700 }}>User Management</h2>
-          <p style={{ margin: '4px 0 0', color: '#6b7280', fontSize: 14 }}>Manage team members, roles, and access</p>
-        </div>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={fetchUsersAndRoles} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 16px', background: '#f3f4f6', color: '#374151', border: '1px solid #e5e7eb', borderRadius: 10, fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
+        <div className="crm-page-actions">
+          <button onClick={fetchUsersAndRoles} className="btn btn-secondary">
             <RefreshCw size={15} /> Refresh
           </button>
           {canCreate && (
-            <button onClick={openAdd} id="add-user-btn" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: '#6366f1', color: 'white', border: 'none', borderRadius: 10, fontWeight: 600, fontSize: 14, cursor: 'pointer', boxShadow: '0 2px 8px rgba(99,102,241,0.35)' }}>
-              <UserPlus size={16} /> Add User
+            <button onClick={openAdd} id="add-user-btn" className="btn btn-primary">
+              <UserPlus size={16} /> Add Team Member
             </button>
           )}
         </div>
       </div>
 
-      {/* Stats Row */}
-      <div className="stats-grid" style={{ gap: 16, marginBottom: 24 }}>
-        {stats.map((s, i) => (
-          <div key={i} style={{ background: 'white', borderRadius: 12, padding: '18px 20px', border: '1px solid #e5e7eb', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 10, background: s.color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Users size={20} color={s.color} />
-            </div>
-            <div>
-              <div style={{ fontSize: 24, fontWeight: 800, color: '#111827' }}>{s.value}</div>
-              <div style={{ fontSize: 12, color: '#6b7280', fontWeight: 500 }}>{s.label}</div>
-            </div>
+      {/* Modern Dashboard-Style KPI Cards */}
+      <div className="modern-stats-grid">
+        <div className="modern-stat-card grad-total">
+          <div className="modern-stat-header">
+            <span>Total Team Members</span>
+            <Users size={20} />
           </div>
-        ))}
+          <div className="modern-stat-value">{users.length}</div>
+          <Users size={90} className="bg-icon" />
+        </div>
+
+        <div className="modern-stat-card grad-converted">
+          <div className="modern-stat-header">
+            <span>Active Staff</span>
+            <ShieldCheck size={20} />
+          </div>
+          <div className="modern-stat-value">{users.filter(u => u.status === 'Active').length}</div>
+          <ShieldCheck size={90} className="bg-icon" />
+        </div>
+
+        <div className="modern-stat-card grad-appointments">
+          <div className="modern-stat-header">
+            <span>System Admins</span>
+            <UserPlus size={20} />
+          </div>
+          <div className="modern-stat-value">{users.filter(u => (u.role || '').toLowerCase() === 'admin').length}</div>
+          <UserPlus size={90} className="bg-icon" />
+        </div>
       </div>
 
       {/* Search & Filter */}
@@ -237,12 +285,18 @@ export default function UserManagement() {
             style={{ padding: '8px 16px', background: roleFilter === 'all' ? '#6366f1' : '#f3f4f6', color: roleFilter === 'all' ? 'white' : '#6b7280', border: 'none', borderRadius: 8, fontWeight: 600, fontSize: 13, cursor: 'pointer', textTransform: 'capitalize', transition: '0.2s' }}>
             All Roles
           </button>
-          {dbRoles.filter(r => users.some(u => u.role?.toLowerCase() === r.name.toLowerCase())).map(r => (
-            <button key={r.id || r.name} onClick={() => setRoleFilter(r.name)}
-              style={{ padding: '8px 16px', background: roleFilter === r.name ? '#6366f1' : '#f3f4f6', color: roleFilter === r.name ? 'white' : '#6b7280', border: 'none', borderRadius: 8, fontWeight: 600, fontSize: 13, cursor: 'pointer', textTransform: 'capitalize', transition: '0.2s' }}>
-              {r.name}
-            </button>
-          ))}
+          {dbRoles.filter(r => {
+            const rName = typeof r === 'string' ? r : (r.name || '');
+            return users.some(u => (u.role || '').toLowerCase() === rName.toLowerCase());
+          }).map(r => {
+            const rName = typeof r === 'string' ? r : r.name;
+            return (
+              <button key={r.id || rName} onClick={() => setRoleFilter(rName)}
+                style={{ padding: '8px 16px', background: roleFilter === rName ? '#6366f1' : '#f3f4f6', color: roleFilter === rName ? 'white' : '#6b7280', border: 'none', borderRadius: 8, fontWeight: 600, fontSize: 13, cursor: 'pointer', textTransform: 'capitalize', transition: '0.2s' }}>
+                {rName}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -372,35 +426,37 @@ export default function UserManagement() {
                 </div>
 
                 <div>
-                  <label style={lbl}>Phone Number</label>
+                  <label style={lbl}>Phone Number (10 digits only)</label>
                   <div style={{ position: 'relative' }}>
                     <Phone size={15} color="#9ca3af" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
-                    <input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} style={{ ...inp, paddingLeft: 36 }} placeholder="+91 9876543210" />
+                    <input type="tel" maxLength={10} value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value.replace(/[^0-9]/g, '').slice(0, 10) })} style={{ ...inp, paddingLeft: 36 }} placeholder="9876543210" />
                   </div>
                 </div>
 
                 <div>
                   <label style={lbl}>Role *</label>
-                  <select
-                    required
+                  <SearchableSelect 
+                    options={dbRoles.map(r => {
+                      const name = typeof r === 'string' ? r : (r.name || String(r));
+                      return { label: name, value: name };
+                    })}
                     value={form.role}
-                    onChange={e => setForm({ ...form, role: e.target.value })}
-                    style={inp}
-                  >
-                    {dbRoles.map(r => (
-                      <option key={r.id || r.name} value={r.name}>
-                        {r.name}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={val => setForm({ ...form, role: val })}
+                    placeholder="Select Role..."
+                  />
                 </div>
 
                 <div>
                   <label style={lbl}>Status</label>
-                  <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} style={inp}>
-                    <option>Active</option>
-                    <option>Inactive</option>
-                  </select>
+                  <SearchableSelect 
+                    options={[
+                      { label: 'Active', value: 'Active' },
+                      { label: 'Inactive', value: 'Inactive' }
+                    ]}
+                    value={form.status}
+                    onChange={val => setForm({ ...form, status: val })}
+                    placeholder="Select Status..."
+                  />
                 </div>
 
                 <div>

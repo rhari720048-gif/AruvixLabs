@@ -4,6 +4,7 @@ import AllLeads from './AllLeads';
 import MyLeadsGrid from './MyLeadsGrid';
 import { UserPlus, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { getPerms } from './permissions';
 const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
 
@@ -12,14 +13,12 @@ const AdminLeads = () => {
   const perms = getPerms('leads');
   const hasAddTab = perms.add_leads ?? perms.canCreate;
   const hasAllTab = perms.all_leads ?? perms.canView;
-  const hasMineTab = perms.my_leads ?? perms.canView;
   const canCreate = perms.create ?? perms.canCreate;
   const canDelete = perms.delete ?? perms.canDelete;
   const canEdit = perms.edit ?? perms.canEdit;
 
   const [activePage, setActivePage] = useState(() => {
     if (hasAllTab) return 'all';
-    if (hasMineTab) return 'mine';
     if (hasAddTab) return 'add';
     return '';
   });
@@ -99,7 +98,7 @@ const AdminLeads = () => {
           assigned_to: lead.assignedTo || null
         };
         
-        await fetch(`${API}/customers`, {
+        const res = await fetch(`${API}/customers`, {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
@@ -107,11 +106,16 @@ const AdminLeads = () => {
           },
           body: JSON.stringify(payload)
         });
+        if (!res.ok) {
+           toast.error(`Failed to add lead: ${lead.name}`);
+        }
       } catch (e) {
         console.error("Error adding lead:", e);
+        toast.error(`Error adding lead: ${lead.name}`);
       }
     }
     
+    toast.success("Leads processed!");
     fetchLeads(); // Refresh from DB
   };
 
@@ -129,11 +133,15 @@ const AdminLeads = () => {
         });
         
         if (res.ok) {
+          toast.success("Lead successfully converted!");
           fetchLeads(); // Refresh leads
           navigate('/clients');
+        } else {
+          toast.error("Failed to convert lead.");
         }
       } catch (e) {
         console.error(e);
+        toast.error("An error occurred during conversion.");
       }
     }
   };
@@ -146,10 +154,14 @@ const AdminLeads = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
+        toast.success("Lead deleted successfully!");
         fetchLeads();
+      } else {
+        toast.error("Failed to delete lead.");
       }
     } catch (e) {
       console.error(e);
+      toast.error("An error occurred while deleting.");
     }
   };
 
@@ -165,10 +177,14 @@ const AdminLeads = () => {
         body: JSON.stringify({ ids })
       });
       if (res.ok) {
+        toast.success(`Successfully deleted ${ids.length} leads!`);
         fetchLeads();
+      } else {
+        toast.error("Failed to delete leads.");
       }
     } catch (e) {
       console.error(e);
+      toast.error("An error occurred while deleting leads.");
     }
   };
 
@@ -184,10 +200,14 @@ const AdminLeads = () => {
         body: JSON.stringify({ lead_ids: ids, employee_id })
       });
       if (res.ok) {
+        toast.success(`Assigned ${ids.length} leads successfully!`);
         fetchLeads();
+      } else {
+        toast.error("Failed to assign leads.");
       }
     } catch (e) {
       console.error(e);
+      toast.error("An error occurred while assigning leads.");
     }
   };
 
@@ -213,10 +233,14 @@ const AdminLeads = () => {
         body: JSON.stringify(payload)
       });
       if (res.ok) {
+        toast.success("Lead edited successfully!");
         fetchLeads();
+      } else {
+        toast.error("Failed to edit lead.");
       }
     } catch (e) {
       console.error(e);
+      toast.error("An error occurred while editing lead.");
     }
   };
 
@@ -274,27 +298,6 @@ const AdminLeads = () => {
             <Users size={18} /> All Leads
           </button>
         )}
-        {hasMineTab && (
-          <button 
-            onClick={() => setActivePage('mine')}
-            style={{
-              padding: '12px 24px', 
-              background: activePage === 'mine' ? 'var(--primary)' : 'transparent', 
-              color: activePage === 'mine' ? 'white' : '#4b5563', 
-              border: 'none', 
-              borderRadius: '8px',
-              fontSize: '15px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              transition: '0.2s'
-            }}
-          >
-            <Users size={18} /> My Leads
-          </button>
-        )}
       </div>
 
       <div className="page-content">
@@ -309,33 +312,6 @@ const AdminLeads = () => {
             handleBulkAssign={handleBulkAssign}
             handleEdit={canEdit ? handleEdit : undefined}
             refreshLeads={fetchLeads}
-          />
-        ) : activePage === 'mine' && hasMineTab ? (
-          <MyLeadsGrid 
-            leads={leads.filter(l => {
-              let ids = [];
-              if (Array.isArray(l.assignedToId)) {
-                ids = l.assignedToId;
-              } else if (typeof l.assignedToId === 'string') {
-                try {
-                  ids = JSON.parse(l.assignedToId || '[]');
-                } catch (e) {
-                  ids = [l.assignedToId];
-                }
-              } else if (l.assignedToId) {
-                ids = [l.assignedToId];
-              }
-              const idList = Array.isArray(ids) ? ids.map(id => parseInt(id, 10)) : [parseInt(ids, 10)];
-              return idList.includes(parseInt(currentUserId, 10));
-            })} 
-            employees={employees}
-            handleEdit={canEdit ? handleEdit : null}
-            handleDelete={canDelete ? handleDelete : null}
-            onStatusUpdate={(newTab) => {
-               if (newTab === 'appointment') navigate('/appointments');
-               else if (newTab === 'call-later') navigate('/call-later');
-               else if (newTab === 'ni') navigate('/ni-box');
-            }}
           />
         ) : null}
       </div>

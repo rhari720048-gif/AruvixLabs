@@ -5,6 +5,7 @@ import SearchableSelect from './SearchableSelect';
 import ActionButtons from './ActionButtons';
 import ViewModal from './ViewModal';
 import EditLeadModal from './EditLeadModal';
+import ModernDateTimePicker from './ModernDateTimePicker';
 
 const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
 
@@ -218,110 +219,106 @@ const Appointments = () => {
   };
 
   return (
-    <div className="page-container" style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: 'calc(100vh - 100px)' }}>
-      
-      <div style={{ display: 'flex', gap: '10px', background: 'white', padding: '15px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+    <div className="page-appointments" style={{ animation: 'fadeIn 0.3s ease-out' }}>
+      <div className="crm-page-header">
+        <div className="crm-page-title-group">
+          <h1>
+            <Calendar size={28} color="var(--primary)" />
+            Scheduled Appointments & Call Workspace
+          </h1>
+          <p>Active calling workflow, scheduled client visits, and disposition logging</p>
+        </div>
+      </div>
+
+
+
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
         <button 
           onClick={() => setActiveTab('my')}
-          style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: activeTab === 'my' ? 'var(--primary)' : '#e5e7eb', color: activeTab === 'my' ? 'white' : '#374151', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', transition: '0.3s', fontWeight: '500' }}
+          className={`btn ${activeTab === 'my' ? 'btn-primary' : 'btn-secondary'}`}
         >
-          <User size={18} /> My Appointments
+          <User size={18} /> My Appointments ({leads.length})
         </button>
         <button 
           onClick={() => setActiveTab('all')}
-          style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: activeTab === 'all' ? 'var(--primary)' : '#e5e7eb', color: activeTab === 'all' ? 'white' : '#374151', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', transition: '0.3s', fontWeight: '500' }}
+          className={`btn ${activeTab === 'all' ? 'btn-primary' : 'btn-secondary'}`}
         >
           <Users size={18} /> All Appointments
         </button>
         <button 
           onClick={() => setActiveTab('manual')}
-          style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: activeTab === 'manual' ? 'var(--primary)' : '#e5e7eb', color: activeTab === 'manual' ? 'white' : '#374151', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', transition: '0.3s', fontWeight: '500' }}
+          className={`btn ${activeTab === 'manual' ? 'btn-primary' : 'btn-secondary'}`}
         >
-          <PlusCircle size={18} /> Manual Appointment Entry
+          <PlusCircle size={18} /> Add Manual Appointment
         </button>
       </div>
 
       {successMsg && (
-        <div style={{ background: '#d1fae5', color: '#065f46', padding: '12px 20px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '500' }}>
+        <div style={{ background: '#d1fae5', color: '#065f46', padding: '12px 20px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600', marginBottom: '20px' }}>
           <CheckCircle size={18} /> {successMsg}
         </div>
       )}
 
       {activeTab === 'manual' ? (
-        <div style={{ background: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', padding: '30px', overflowY: 'auto' }}>
-          <h2 style={{ marginBottom: '20px', color: '#111827', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Edit3 size={24} color="var(--primary)" /> Add Appointment Manually
-          </h2>
-          <form onSubmit={handleManualSubmit} className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', maxWidth: '800px' }}>
-            <div style={{ gridColumn: '1 / -1' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Customer Name *</label>
-              <input type="text" value={manualForm.name} onChange={e => setManualForm({...manualForm, name: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="Enter name" required />
+        <div style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', maxWidth: '600px', margin: '0 auto', width: '100%' }}>
+          <h2 style={{ marginBottom: '20px', color: '#111827', fontSize: '20px' }}>Add Manual Appointment</h2>
+          <form onSubmit={handleManualSubmit} style={{ display: 'grid', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600' }}>Name</label>
+              <input type="text" required value={manualForm.name} onChange={e => setManualForm({...manualForm, name: e.target.value})} style={{ width: '100%' }} />
             </div>
             <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Phone Number *</label>
-              <input type="tel" value={manualForm.phone} onChange={e => setManualForm({...manualForm, phone: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="Enter phone" required />
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600' }}>Phone (10 digits only)</label>
+              <input type="tel" required maxLength={10} value={manualForm.phone} onChange={e => setManualForm({...manualForm, phone: e.target.value.replace(/[^0-9]/g, '').slice(0, 10)})} style={{ width: '100%' }} placeholder="Enter 10 digit mobile number" />
             </div>
             <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Location</label>
-              <input type="text" value={manualForm.location} onChange={e => setManualForm({...manualForm, location: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="Enter location" />
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600' }}>Location</label>
+              <input type="text" value={manualForm.location} onChange={e => setManualForm({...manualForm, location: e.target.value})} style={{ width: '100%' }} />
             </div>
             <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Car Name with Year</label>
-              <input type="text" value={manualForm.car_name} onChange={e => setManualForm({...manualForm, car_name: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="E.g., Honda City 2021" />
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600' }}>Car Interest</label>
+              <input type="text" value={manualForm.car_name} onChange={e => setManualForm({...manualForm, car_name: e.target.value})} style={{ width: '100%' }} />
             </div>
-            
-            <div style={{ gridColumn: '1 / -1', borderTop: '1px solid #e5e7eb', paddingTop: '20px', marginTop: '10px' }}>
-              <h3 style={{ marginBottom: '15px', color: '#111827' }}>Appointment Details</h3>
-            </div>
-            
             <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Appointment Date & Time *</label>
-              <input type="datetime-local" value={manualForm.callback_time} onChange={e => setManualForm({...manualForm, callback_time: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} required />
+              <ModernDateTimePicker 
+                label="Appointment Date & Time"
+                value={manualForm.callback_time}
+                onChange={val => setManualForm({...manualForm, callback_time: val})}
+                required={true}
+              />
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Initial Meeting Notes / Feedback</label>
-              <textarea 
-                value={manualForm.notes} 
-                onChange={e => setManualForm({...manualForm, notes: e.target.value})}
-                rows="3"
-                placeholder="Enter details about this appointment..."
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none', resize: 'vertical' }}
-              ></textarea>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600' }}>Notes</label>
+              <textarea rows={3} value={manualForm.notes} onChange={e => setManualForm({...manualForm, notes: e.target.value})} style={{ width: '100%', resize: 'vertical' }} />
             </div>
             <div style={{ gridColumn: '1 / -1', marginTop: '10px' }}>
-              <button type="submit" disabled={isSubmitting} style={{ padding: '12px 30px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: isSubmitting ? 'not-allowed' : 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px', opacity: isSubmitting ? 0.7 : 1 }}>
+              <button className="btn btn-primary" type="submit" disabled={isSubmitting} style={{ width: '100%', opacity: isSubmitting ? 0.7 : 1 }}>
                 <CheckCircle size={20} /> {isSubmitting ? 'Saving...' : 'Save Appointment'}
               </button>
             </div>
           </form>
         </div>
       ) : (
-        <div style={{ display: 'flex', gap: '20px', flex: 1, overflow: 'hidden' }}>
+        <div className="split-view-container">
           {/* Sidebar List of Leads */}
-          <div style={{ flex: '0 0 300px', background: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-            <h3 style={{ padding: '15px 20px', borderBottom: '1px solid #e5e7eb', margin: 0, position: 'sticky', top: 0, background: 'white', zIndex: 10 }}>
+          <div className="split-sidebar">
+            <h3 className="split-sidebar-header">
               {activeTab === 'my' ? 'My Appointments' : 'All Appointments'} ({leads.length})
             </h3>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, flex: 1 }}>
+            <ul className="split-sidebar-list" style={{ listStyle: 'none', padding: '16px', margin: 0 }}>
               {leads.map(lead => (
                 <li 
                   key={lead.id} 
+                  className={`contact-card ${selectedLead?.id === lead.id ? 'active' : ''}`}
                   onClick={() => setSelectedLead(lead)}
-                  style={{ 
-                    padding: '15px 20px', 
-                    borderBottom: '1px solid #f3f4f6', 
-                    cursor: 'pointer',
-                    background: selectedLead?.id === lead.id ? '#eff6ff' : 'transparent',
-                    transition: '0.2s'
-                  }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div style={{ fontWeight: '600', color: '#1f2937' }}>{lead.name}</div>
-                    <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                    <div style={{ fontWeight: '700', color: '#1e293b', fontSize: '15px' }}>{lead.name}</div>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                       <a 
                         href={`tel:${lead.phone}`}
                         onClick={(e) => { e.stopPropagation(); startDialing(lead); }} 
-                        style={{ padding: '6px', background: '#10b981', color: 'white', border: 'none', borderRadius: '50%', cursor: 'pointer', display: 'flex', textDecoration: 'none' }} title="Call Now"
+                        style={{ padding: '6px', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white', border: 'none', borderRadius: '50%', cursor: 'pointer', display: 'flex', textDecoration: 'none', boxShadow: '0 4px 10px rgba(16, 185, 129, 0.3)' }} title="Call Now"
                       >
                         <PhoneCall size={14} />
                       </a>
@@ -329,14 +326,14 @@ const Appointments = () => {
                         onClick={(e) => { e.stopPropagation(); handleConvert(lead.id); }}
                         title="Convert to Client"
                         style={{
-                          background: '#d1fae5', color: '#10b981', border: 'none', borderRadius: '6px',
-                          width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          background: '#d1fae5', color: '#10b981', border: 'none', borderRadius: '50%',
+                          width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center',
                           cursor: 'pointer', transition: '0.2s'
                         }}
                         onMouseEnter={e => e.currentTarget.style.background = '#a7f3d0'}
                         onMouseLeave={e => e.currentTarget.style.background = '#d1fae5'}
                       >
-                        <UserCheck size={16} />
+                        <UserCheck size={14} />
                       </button>
                       <ActionButtons 
                         onView={() => setViewLead(lead)}
@@ -345,75 +342,71 @@ const Appointments = () => {
                       />
                     </div>
                   </div>
-                  <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Car size={12} /> {lead.car_model || lead.car_name || 'No Car'} {lead.registration_number ? `(${lead.registration_number})` : ''}
+                  <div style={{ fontSize: '13px', color: '#64748b', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Car size={14} /> {lead.car_model || lead.car_name || 'No Car'} {lead.registration_number ? `(${lead.registration_number})` : ''}
                   </div>
-                  <div style={{ fontSize: '12px', color: '#10b981', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Calendar size={12} /> {lead.callback_time ? new Date(lead.callback_time).toLocaleString() : 'No time set'}
+                  <div style={{ fontSize: '13px', color: '#10b981', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600' }}>
+                    <Calendar size={14} /> {lead.callback_time ? new Date(lead.callback_time).toLocaleString() : 'No time set'}
                   </div>
                 </li>
               ))}
               {leads.length === 0 && (
-                <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>No appointments scheduled.</div>
+                <div style={{ padding: '20px', textAlign: 'center', color: '#94a3b8' }}>No appointments scheduled.</div>
               )}
             </ul>
           </div>
 
-          {/* Main Dialing/Feedback Area */}
-          <div style={{ flex: 1, background: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', padding: '24px', overflowY: 'auto' }}>
+          {/* Main Details Panel */}
+          <div className="split-main">
             {selectedLead ? (
-              <div>
-                <div style={{ borderBottom: '2px solid #f3f4f6', paddingBottom: '20px', marginBottom: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                    <h2 style={{ margin: 0, color: '#111827', fontSize: '24px' }}>{selectedLead.name}</h2>
-                    <button
-                      onClick={() => handleConvert(selectedLead.id)}
-                      title="Convert to Client"
-                      style={{
-                        padding: '8px 16px',
-                        background: '#10b981',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '8px',
-                        fontWeight: '600',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        transition: '0.2s',
-                        boxShadow: '0 2px 4px rgba(16,185,129,0.3)'
-                      }}
-                      onMouseEnter={e => { e.currentTarget.style.background = '#059669'; e.currentTarget.style.boxShadow = '0 4px 8px rgba(16,185,129,0.4)'; }}
-                      onMouseLeave={e => { e.currentTarget.style.background = '#10b981'; e.currentTarget.style.boxShadow = '0 2px 4px rgba(16,185,129,0.3)'; }}
-                    >
-                      <UserCheck size={16} /> Convert to Client
-                    </button>
-                  </div>
-                  <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563' }}>
-                      <PhoneCall size={18} color="#6366f1" /> <strong>Phone:</strong> {selectedLead.phone}
+              <div className="split-main" style={{ display: 'flex', flexDirection: 'column' }}>
+                <div className="split-main-header">
+                  <h2 style={{ margin: 0, color: '#111827', fontSize: '24px' }}>{selectedLead.name}</h2>
+                  <button
+                    onClick={() => handleConvert(selectedLead.id)}
+                    title="Convert to Client"
+                    style={{
+                      padding: '8px 16px',
+                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '12px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      boxShadow: '0 4px 10px rgba(16, 185, 129, 0.2)'
+                    }}
+                  >
+                    <UserCheck size={16} /> Convert to Client
+                  </button>
+                </div>
+                <div className="split-main-content">
+                  <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#4b5563', padding: '16px', background: '#f8fafc', borderRadius: '12px' }}>
+                      <PhoneCall size={20} color="#6366f1" /> <strong>Phone:</strong> {selectedLead.phone}
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563' }}>
-                      <MapPin size={18} color="#10b981" /> <strong>Location:</strong> {selectedLead.district || '-'}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#4b5563', padding: '16px', background: '#f8fafc', borderRadius: '12px' }}>
+                      <MapPin size={20} color="#10b981" /> <strong>Location:</strong> {selectedLead.district || '-'}
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563' }}>
-                      <Car size={18} color="#f59e0b" /> <strong>Vehicle:</strong> {selectedLead.car_model || selectedLead.car_name || '-'} {selectedLead.registration_number ? `(${selectedLead.registration_number})` : ''}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#4b5563', padding: '16px', background: '#f8fafc', borderRadius: '12px' }}>
+                      <Car size={20} color="#f59e0b" /> <strong>Vehicle:</strong> {selectedLead.car_model || selectedLead.car_name || '-'} {selectedLead.registration_number ? `(${selectedLead.registration_number})` : ''}
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563' }}>
-                      <Calendar size={18} color="#10b981" /> <strong>Appointment Time:</strong> {selectedLead.callback_time ? new Date(selectedLead.callback_time).toLocaleString() : 'No time set'}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#4b5563', padding: '16px', background: '#f8fafc', borderRadius: '12px' }}>
+                      <Calendar size={20} color="#10b981" /> <strong>Time:</strong> {selectedLead.callback_time ? new Date(selectedLead.callback_time).toLocaleString() : 'No time set'}
                     </div>
-                  </div>
                   </div>
                   
                   {selectedLead.last_note && (
-                    <div style={{ marginTop: '15px', padding: '15px', background: '#f8fafc', borderRadius: '8px', borderLeft: '4px solid #6366f1', marginBottom: '20px' }}>
-                      <strong style={{ color: '#374151', display: 'block', marginBottom: '5px' }}>Previous Notes / Feedback:</strong>
-                      <span style={{ color: '#4b5563', whiteSpace: 'pre-wrap' }}>{selectedLead.last_note}</span>
+                    <div style={{ marginTop: '24px', padding: '20px', background: '#eff6ff', borderRadius: '16px', borderLeft: '4px solid #6366f1' }}>
+                      <strong style={{ color: '#1e293b', display: 'block', marginBottom: '8px' }}>Previous Notes / Feedback:</strong>
+                      <span style={{ color: '#475569', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>{selectedLead.last_note}</span>
                     </div>
                   )}
 
-                  <div style={{ borderTop: '2px dashed #e5e7eb', paddingTop: '24px', marginTop: '24px', textAlign: 'center' }}>
+                  <div style={{ borderTop: '2px dashed #e5e7eb', paddingTop: '32px', marginTop: '32px', textAlign: 'center' }}>
                     {callPhase === 'idle' && (
                       <div>
                         <a 
@@ -421,26 +414,23 @@ const Appointments = () => {
                           onClick={() => startDialing(selectedLead)}
                           style={{
                             display: 'inline-flex', alignItems: 'center', gap: '10px', cursor: 'pointer',
-                            background: '#10b981', color: 'white', padding: '16px 32px', border: 'none',
+                            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white', padding: '18px 40px', border: 'none',
                             borderRadius: '50px', textDecoration: 'none', fontWeight: 'bold',
-                            fontSize: '18px', boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)',
-                            transition: 'transform 0.2s'
+                            fontSize: '18px', boxShadow: '0 8px 20px rgba(16, 185, 129, 0.3)'
                           }}
-                          onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
-                          onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                         >
                           <PhoneCall size={24} /> Dial Now
                         </a>
                         
-                        <div style={{ textAlign: 'left', marginTop: '20px' }}>
-                            <form onSubmit={handleFeedbackSubmit} style={{ background: '#f8fafc', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                              <h3 style={{ margin: '0 0 15px', color: '#1e293b' }}>Update Status (Manual)</h3>
-                              <div style={{ marginBottom: '15px' }}>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Status</label>
+                        <div style={{ textAlign: 'left', marginTop: '30px' }}>
+                            <form onSubmit={handleFeedbackSubmit} style={{ background: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
+                              <h3 style={{ margin: '0 0 20px', color: '#0f172a', fontWeight: '800' }}>Update Status (Manual)</h3>
+                              <div style={{ marginBottom: '20px' }}>
+                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#475569', fontSize: '13px' }}>Status</label>
                                 <select 
                                   value={feedback.status} 
                                   onChange={e => setFeedback({...feedback, status: e.target.value})}
-                                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                                  style={{ width: '100%' }}
                                   required
                                 >
                                   <option value="">Select Status...</option>
@@ -451,19 +441,19 @@ const Appointments = () => {
                               </div>
 
                               {['Call Later', 'Appointment'].includes(feedback.status) && (
-                                <div style={{ marginBottom: '15px' }}>
-                                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>New Date & Time</label>
+                                <div style={{ marginBottom: '20px' }}>
+                                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#475569', fontSize: '13px' }}>New Date & Time</label>
                                   <input 
                                     type="datetime-local" 
                                     value={feedback.callback_time} 
                                     onChange={e => setFeedback({...feedback, callback_time: e.target.value})}
-                                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                                    style={{ width: '100%' }}
                                     required
                                   />
                                 </div>
                               )}
-                              <div style={{ marginBottom: '15px' }}>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Notes</label>
+                              <div style={{ marginBottom: '20px' }}>
+                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#475569', fontSize: '13px' }}>Notes</label>
                                 <textarea 
                                   value={feedback.notes} 
                                   onChange={e => setFeedback({...feedback, notes: e.target.value})}
@@ -559,6 +549,7 @@ const Appointments = () => {
                     )}
                   </div>
               </div>
+            </div>
             ) : (
               <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', flexDirection: 'column' }}>
                 <Calendar size={48} style={{ marginBottom: '15px', opacity: 0.5 }} />

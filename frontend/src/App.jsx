@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import Landing from './Landing';
 import Login from './Login';
-import { LayoutDashboard, User, UserPlus, Users, Settings, ChevronRight, Pencil, X, CheckCircle, Camera, Eye, Edit2, Trash2, PhoneCall, Clock, Calendar, Archive } from 'lucide-react';
+import { LayoutDashboard, User, UserPlus, Users, Settings, ChevronRight, Pencil, X, CheckCircle, Camera, Eye, Edit2, Trash2, PhoneCall, Clock, Calendar, Archive, Building } from 'lucide-react';
 import AdminLeads from './AdminLeads';
 import SettingsPage from './SettingsPage';
 import Clients from './Clients';
@@ -10,6 +10,7 @@ import UserManagement from './UserManagement';
 import Header from './Header';
 import ViewModal from './ViewModal';
 import { getPerms } from './permissions';
+import { Toaster } from 'react-hot-toast';
 import './index.css';
 
 import Appointments from './Appointments';
@@ -86,6 +87,8 @@ const Sidebar = ({ isSidebarOpen, setSidebarOpen }) => {
 
 
 
+const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
+
 const Dashboard = () => {
   const [data, setData] = useState([]);
   const [reports, setReports] = useState(null);
@@ -97,13 +100,13 @@ const Dashboard = () => {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    fetch('https://aruvixlabs.onrender.com/api/customers', {
+    fetch(`${API}/customers`, {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => res.json()).then(resData => {
       if (Array.isArray(resData)) setData(resData);
     }).catch(e => console.error(e));
 
-    fetch('https://aruvixlabs.onrender.com/api/telecalling/reports', {
+    fetch(`${API}/telecalling/reports`, {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => res.json()).then(resData => {
       setReports(resData);
@@ -111,22 +114,23 @@ const Dashboard = () => {
   }, []);
 
   const handleView = (c) => setViewRecord(c);
-  const handleEdit = (c) => alert(`Editing ${c.name}`);
+  const handleEdit = (c) => toast(`Editing ${c.name}`, { icon: '✏️' });
   const handleDelete = async (id) => {
     if (window.confirm('Delete this record?')) {
       try {
-        const res = await fetch(`https://aruvixlabs.onrender.com/api/customers/${id}`, {
+        const res = await fetch(`${API}/customers/${id}`, {
           method: 'DELETE',
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         if (res.ok) {
           setData(data.filter(c => c.id !== id));
+          toast.success("Record deleted successfully.");
         } else {
-          alert('Failed to delete record.');
+          toast.error('Failed to delete record.');
         }
       } catch (err) {
         console.error(err);
-        alert('An error occurred while deleting.');
+        toast.error('An error occurred while deleting.');
       }
     }
   };
@@ -144,40 +148,83 @@ const Dashboard = () => {
 
   return (
     <div>
-      <div className="stats-grid">
-        <div className="stat-card">
-          <span className="stat-label">Total Leads</span>
-          <span className="stat-value">{total}</span>
-        </div>
-        <div className="stat-card" style={{ borderLeft: '4px solid #3b82f6' }}>
-          <span className="stat-label">Uncalled / Pending</span>
-          <span className="stat-value" style={{ color: '#3b82f6' }}>{pending}</span>
-        </div>
-        <div className="stat-card" style={{ borderLeft: '4px solid #8b5cf6' }}>
-          <span className="stat-label">Appointments</span>
-          <span className="stat-value" style={{ color: '#8b5cf6' }}>{apts}</span>
-        </div>
-        <div className="stat-card" style={{ borderLeft: '4px solid #f59e0b' }}>
-          <span className="stat-label">Call Later</span>
-          <span className="stat-value" style={{ color: '#f59e0b' }}>{callLater}</span>
-        </div>
-        <div className="stat-card" style={{ borderLeft: '4px solid #ef4444' }}>
-          <span className="stat-label">Not Interested (NI)</span>
-          <span className="stat-value" style={{ color: '#ef4444' }}>{ni}</span>
-        </div>
-        <div className="stat-card" style={{ borderLeft: '4px solid #10b981' }}>
-          <span className="stat-label">Clients (Converted)</span>
-          <span className="stat-value" style={{ color: '#10b981' }}>{converted}</span>
-        </div>
-        <div className="stat-card" style={{ borderLeft: '4px solid #059669' }}>
-          <span className="stat-label">Completed Work</span>
-          <span className="stat-value" style={{ color: '#059669' }}>{completed}</span>
+      <div className="modern-dashboard-header">
+        <div>
+          <h1>Dashboard Overview</h1>
+          <p>Welcome back, here is your CRM summary</p>
         </div>
       </div>
 
-      <h3>Recent Records</h3>
-      <br />
-      <div className="data-table-container">
+      <div className="modern-stats-grid">
+        <div className="modern-stat-card grad-total">
+          <div className="modern-stat-header">
+            <span>Total Leads</span>
+            <Users size={20} />
+          </div>
+          <div className="modern-stat-value">{total}</div>
+          <Users size={100} className="bg-icon" />
+        </div>
+        
+        <div className="modern-stat-card grad-pending">
+          <div className="modern-stat-header">
+            <span>Uncalled / Pending</span>
+            <PhoneCall size={20} />
+          </div>
+          <div className="modern-stat-value">{pending}</div>
+          <PhoneCall size={100} className="bg-icon" />
+        </div>
+        
+        <div className="modern-stat-card grad-appointments">
+          <div className="modern-stat-header">
+            <span>Appointments</span>
+            <Calendar size={20} />
+          </div>
+          <div className="modern-stat-value">{apts}</div>
+          <Calendar size={100} className="bg-icon" />
+        </div>
+        
+        <div className="modern-stat-card grad-call-later">
+          <div className="modern-stat-header">
+            <span>Call Later</span>
+            <Clock size={20} />
+          </div>
+          <div className="modern-stat-value">{callLater}</div>
+          <Clock size={100} className="bg-icon" />
+        </div>
+        
+        <div className="modern-stat-card grad-ni">
+          <div className="modern-stat-header">
+            <span>Not Interested (NI)</span>
+            <Archive size={20} />
+          </div>
+          <div className="modern-stat-value">{ni}</div>
+          <Archive size={100} className="bg-icon" />
+        </div>
+        
+        <div className="modern-stat-card grad-converted">
+          <div className="modern-stat-header">
+            <span>Clients (Converted)</span>
+            <UserPlus size={20} />
+          </div>
+          <div className="modern-stat-value">{converted}</div>
+          <UserPlus size={100} className="bg-icon" />
+        </div>
+
+        <div className="modern-stat-card grad-completed">
+          <div className="modern-stat-header">
+            <span>Completed Work</span>
+            <CheckCircle size={20} />
+          </div>
+          <div className="modern-stat-value">{completed}</div>
+          <CheckCircle size={100} className="bg-icon" />
+        </div>
+      </div>
+
+      <div className="modern-section-title">
+        <LayoutDashboard size={24} color="#3b82f6" />
+        Recent Records
+      </div>
+      <div className="modern-table-container">
         <table>
           <thead>
             <tr>
@@ -193,21 +240,23 @@ const Dashboard = () => {
             {data.slice(0, 10).map(c => (
               <tr key={c.id}>
                 <td data-label="ID">{c.customer_id}</td>
-                <td data-label="Name">{c.name}</td>
+                <td data-label="Name">
+                  <div style={{ fontWeight: 600, color: '#111827' }}>{c.name}</div>
+                </td>
                 <td data-label="Phone">{c.phone}</td>
                 <td data-label="Location">{c.district || c.location || '-'}</td>
                 <td data-label="Status">
                   <span className={`badge ${c.status ? c.status.toLowerCase().replace(' ', '-') : ''}`}>{c.status}</span>
                 </td>
                 <td data-label="Actions" style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
-                  <button onClick={() => handleView(c)} style={{ background: '#e0e7ff', color: '#4338ca', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="View"><Eye size={16} /></button>
-                  {canEdit && <button onClick={() => handleEdit(c)} style={{ background: '#fef3c7', color: '#d97706', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="Edit"><Edit2 size={16} /></button>}
-                  {canDelete && <button onClick={() => handleDelete(c.id)} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '6px', borderRadius: '6px', cursor: 'pointer' }} title="Delete"><Trash2 size={16} /></button>}
+                  <button onClick={() => handleView(c)} style={{ background: '#e0e7ff', color: '#4338ca', border: 'none', padding: '8px', borderRadius: '8px', cursor: 'pointer', transition: 'background 0.2s' }} title="View" onMouseOver={e=>e.currentTarget.style.background='#c7d2fe'} onMouseOut={e=>e.currentTarget.style.background='#e0e7ff'}><Eye size={16} /></button>
+                  {canEdit && <button onClick={() => handleEdit(c)} style={{ background: '#fef3c7', color: '#d97706', border: 'none', padding: '8px', borderRadius: '8px', cursor: 'pointer', transition: 'background 0.2s' }} title="Edit" onMouseOver={e=>e.currentTarget.style.background='#fde68a'} onMouseOut={e=>e.currentTarget.style.background='#fef3c7'}><Edit2 size={16} /></button>}
+                  {canDelete && <button onClick={() => handleDelete(c.id)} style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '8px', borderRadius: '8px', cursor: 'pointer', transition: 'background 0.2s' }} title="Delete" onMouseOver={e=>e.currentTarget.style.background='#fecaca'} onMouseOut={e=>e.currentTarget.style.background='#fee2e2'}><Trash2 size={16} /></button>}
                 </td>
               </tr>
             ))}
             {data.length === 0 && (
-              <tr><td colSpan="6" style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>No records found</td></tr>
+              <tr><td colSpan="6" style={{ textAlign: 'center', padding: '30px', color: '#6b7280' }}>No recent records found.</td></tr>
             )}
           </tbody>
         </table>
@@ -302,7 +351,7 @@ const ProfilePage = () => {
   const [draft, setDraft] = useState({ ...form });
 
   useEffect(() => {
-    fetch('https://aruvixlabs.onrender.com/api/auth/me', {
+    fetch(`${API}/auth/me`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
       .then(res => res.ok ? res.json() : null)
@@ -330,7 +379,7 @@ const ProfilePage = () => {
   const handleSave = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('https://aruvixlabs.onrender.com/api/auth/profile', {
+      const res = await fetch(`${API}/auth/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -368,51 +417,89 @@ const ProfilePage = () => {
   });
 
   return (
-    <div style={{ maxWidth: 780 }}>
+    <div style={{ maxWidth: 880, animation: 'fadeIn 0.3s ease-out' }}>
+      <div className="crm-page-header">
+        <div className="crm-page-title-group">
+          <h1>
+            <User size={28} color="var(--primary)" />
+            My User Profile
+          </h1>
+          <p>Personal profile preferences, contact information, and role credentials</p>
+        </div>
+      </div>
+
       {saved && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#d1fae5', color: '#065f46', padding: '12px 20px', borderRadius: 8, marginBottom: 20, fontWeight: 500 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#d1fae5', color: '#065f46', padding: '12px 20px', borderRadius: 16, marginBottom: 20, fontWeight: 600 }}>
           <CheckCircle size={18} /> Profile updated successfully!
         </div>
       )}
 
+      {/* Dashboard-Style KPI Cards for Profile */}
+      <div className="modern-stats-grid">
+        <div className="modern-stat-card grad-profile">
+          <div className="modern-stat-header">
+            <span>Account Role</span>
+            <User size={20} />
+          </div>
+          <div className="modern-stat-value" style={{ fontSize: '28px', textTransform: 'capitalize' }}>{form.role || 'Staff'}</div>
+          <User size={90} className="bg-icon" />
+        </div>
+
+        <div className="modern-stat-card grad-converted">
+          <div className="modern-stat-header">
+            <span>Account Status</span>
+            <CheckCircle size={20} />
+          </div>
+          <div className="modern-stat-value" style={{ fontSize: '28px' }}>Active</div>
+          <CheckCircle size={90} className="bg-icon" />
+        </div>
+
+        <div className="modern-stat-card grad-pending">
+          <div className="modern-stat-header">
+            <span>Department</span>
+            <Building size={20} />
+          </div>
+          <div className="modern-stat-value" style={{ fontSize: '28px' }}>{form.department || 'Sales'}</div>
+          <Building size={90} className="bg-icon" />
+        </div>
+      </div>
+
       {/* Profile Header Card */}
-      <div style={{ background: 'white', borderRadius: 16, boxShadow: '0 4px 20px rgba(0,0,0,0.07)', border: '1px solid #e5e7eb', overflow: 'hidden', marginBottom: 24 }}>
-        <div style={{ height: 100, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }} />
+      <div className="card-panel" style={{ overflow: 'hidden', padding: 0, marginBottom: 24 }}>
+        <div style={{ height: 120, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }} />
         <div style={{ padding: '0 30px 24px', position: 'relative' }}>
           {/* Avatar */}
           <div style={{ position: 'relative', display: 'inline-block', marginTop: -44 }}>
-            <div style={{ width: 88, height: 88, borderRadius: '50%', background: '#6366f1', border: '4px solid white', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', boxShadow: '0 2px 12px rgba(99,102,241,0.3)' }}>
-              {avatar ? <img src={avatar} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: 'white', fontSize: 32, fontWeight: 700 }}>{form.name.charAt(0)}</span>}
+            <div style={{ width: 96, height: 96, borderRadius: '50%', background: '#6366f1', border: '4px solid white', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', boxShadow: '0 4px 16px rgba(99,102,241,0.3)' }}>
+              {avatar ? <img src={avatar} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: 'white', fontSize: 36, fontWeight: 800 }}>{form.name.charAt(0)}</span>}
             </div>
             {isEditing && (
-              <button onClick={() => fileRef.current.click()} style={{ position: 'absolute', bottom: 2, right: 2, width: 28, height: 28, borderRadius: '50%', background: '#6366f1', border: '2px solid white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                <Camera size={13} color="white" />
+              <button onClick={() => fileRef.current.click()} style={{ position: 'absolute', bottom: 2, right: 2, width: 32, height: 32, borderRadius: '50%', background: '#6366f1', border: '2px solid white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                <Camera size={14} color="white" />
               </button>
             )}
             <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { if (e.target.files[0]) setAvatar(URL.createObjectURL(e.target.files[0])); }} />
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 14, flexWrap: 'wrap', gap: '12px' }}>
             <div>
-              <h2 style={{ margin: 0, color: '#111827', fontSize: 22 }}>{form.name}</h2>
-              <p style={{ margin: '4px 0 0', color: '#6b7280', fontSize: 14 }}>{form.role} · {form.department}</p>
+              <h2 style={{ margin: 0, color: '#0F172A', fontSize: 24, fontWeight: '800' }}>{form.name}</h2>
+              <p style={{ margin: '4px 0 0', color: '#64748B', fontSize: 14, fontWeight: '600' }}>{form.role} · {form.department}</p>
             </div>
             {canEdit && !isEditing ? (
               <button
                 onClick={handleEdit}
                 id="edit-profile-btn"
-                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: '#6366f1', color: 'white', border: 'none', borderRadius: 10, fontWeight: 600, fontSize: 14, cursor: 'pointer', boxShadow: '0 2px 8px rgba(99,102,241,0.35)', transition: 'all 0.2s' }}
-                onMouseEnter={e => e.currentTarget.style.background = '#4f46e5'}
-                onMouseLeave={e => e.currentTarget.style.background = '#6366f1'}
+                className="btn btn-primary"
               >
-                <Pencil size={16} /> Edit Profile
+                <Pencil size={16} /> Edit Profile Details
               </button>
             ) : isEditing ? (
               <div style={{ display: 'flex', gap: 10 }}>
-                <button onClick={handleCancel} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', background: '#f3f4f6', color: '#374151', border: '1px solid #e5e7eb', borderRadius: 10, fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
+                <button onClick={handleCancel} className="btn btn-secondary">
                   <X size={15} /> Cancel
                 </button>
-                <button form="profile-form" type="submit" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', background: '#10b981', color: 'white', border: 'none', borderRadius: 10, fontWeight: 600, fontSize: 14, cursor: 'pointer', boxShadow: '0 2px 8px rgba(16,185,129,0.3)' }}>
+                <button form="profile-form" type="submit" className="btn btn-success">
                   <CheckCircle size={15} /> Save Changes
                 </button>
               </div>
@@ -435,8 +522,8 @@ const ProfilePage = () => {
               <input type="email" value={isEditing ? draft.email : form.email} onChange={e => setDraft({ ...draft, email: e.target.value })} readOnly={!isEditing} style={inputStyle(isEditing)} />
             </div>
             <div>
-              <label style={{ display: 'block', marginBottom: 6, fontSize: 13, fontWeight: 600, color: '#374151' }}>Phone Number</label>
-              <input value={isEditing ? draft.phone : form.phone} onChange={e => setDraft({ ...draft, phone: e.target.value })} readOnly={!isEditing} style={inputStyle(isEditing)} />
+              <label style={{ display: 'block', marginBottom: 6, fontSize: 13, fontWeight: 600, color: '#374151' }}>Phone Number (10 digits only)</label>
+              <input type="tel" maxLength={10} value={isEditing ? draft.phone : form.phone} onChange={e => setDraft({ ...draft, phone: e.target.value.replace(/[^0-9]/g, '').slice(0, 10) })} readOnly={!isEditing} style={inputStyle(isEditing)} />
             </div>
             <div>
               <label style={{ display: 'block', marginBottom: 6, fontSize: 13, fontWeight: 600, color: '#374151' }}>Location</label>
@@ -461,6 +548,36 @@ const ProfilePage = () => {
   );
 };
 
+const MobileBottomNav = () => {
+  const location = useLocation();
+  const isActive = (path) => location.pathname === path ? 'active' : '';
+
+  return (
+    <nav className="mobile-bottom-nav">
+      <Link to="/" className={`mobile-bottom-item ${isActive('/')}`}>
+        <LayoutDashboard size={20} />
+        <span>Home</span>
+      </Link>
+      <Link to="/leads" className={`mobile-bottom-item ${isActive('/leads')}`}>
+        <UserPlus size={20} />
+        <span>Leads</span>
+      </Link>
+      <Link to="/appointments" className={`mobile-bottom-item ${isActive('/appointments')}`}>
+        <Calendar size={20} />
+        <span>Appts</span>
+      </Link>
+      <Link to="/call-later" className={`mobile-bottom-item ${isActive('/call-later')}`}>
+        <Clock size={20} />
+        <span>Callbacks</span>
+      </Link>
+      <Link to="/profile" className={`mobile-bottom-item ${isActive('/profile')}`}>
+        <User size={20} />
+        <span>Profile</span>
+      </Link>
+    </nav>
+  );
+};
+
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -476,9 +593,7 @@ function App() {
     const token = localStorage.getItem('token');
     if (token) {
       setIsAuthenticated(true);
-      // Refresh permissions from server every time the app loads
-      // This ensures admin's permission changes apply immediately
-      fetch('https://aruvixlabs.onrender.com/api/auth/me', {
+      fetch(`${API}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` }
       })
         .then(res => res.ok ? res.json() : null)
@@ -497,7 +612,7 @@ function App() {
             }));
           }
         })
-        .catch(() => { }); // silently fail if offline
+        .catch(() => { });
     }
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
@@ -517,6 +632,7 @@ function App() {
   return (
     <Router>
       <div className="app-container">
+        <Toaster position="top-center" reverseOrder={false} />
         <Sidebar isSidebarOpen={isSidebarOpen} setSidebarOpen={setSidebarOpen} />
         <main className="main-content">
           <Header setSidebarOpen={setSidebarOpen} />
@@ -535,6 +651,7 @@ function App() {
               <Route path="/completed-work" element={<ProtectedRoute module="completed_work"><CompletedWork /></ProtectedRoute>} />
             </Routes>
           </div>
+          <MobileBottomNav />
         </main>
       </div>
     </Router>

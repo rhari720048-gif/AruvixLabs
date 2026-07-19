@@ -296,12 +296,14 @@ const SettingsPage = () => {
   const [deleteUserId, setDeleteUserId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
+  const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
+
   const fetchUsersAndRoles = async () => {
     try {
       const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
       const [usersRes, rolesRes] = await Promise.all([
-        fetch('https://aruvixlabs.onrender.com/api/users', { headers }),
-        fetch('https://aruvixlabs.onrender.com/api/roles', { headers }),
+        fetch(`${API}/users`, { headers }),
+        fetch(`${API}/roles`, { headers }),
       ]);
       if (usersRes.ok) setUsers(await usersRes.json());
       if (rolesRes.ok) setRoles(await rolesRes.json());
@@ -355,7 +357,7 @@ const SettingsPage = () => {
     }
 
     try {
-      const res = await fetch(`https://aruvixlabs.onrender.com/api/roles/${selectedRole.id}`, {
+      const res = await fetch(`${API}/roles/${selectedRole.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -378,7 +380,7 @@ const SettingsPage = () => {
     e.preventDefault();
     if (!newRoleName.trim()) return;
     try {
-      const res = await fetch('https://aruvixlabs.onrender.com/api/roles', {
+      const res = await fetch(`${API}/roles`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -408,7 +410,7 @@ const SettingsPage = () => {
     e.preventDefault();
     if (!editingUser) return;
     try {
-      const res = await fetch(`https://aruvixlabs.onrender.com/api/users/${editingUser.id}`, {
+      const res = await fetch(`${API}/users/${editingUser.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -440,7 +442,7 @@ const SettingsPage = () => {
   const handleAddUserSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('https://aruvixlabs.onrender.com/api/users', {
+      const res = await fetch(`${API}/users`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -472,7 +474,7 @@ const SettingsPage = () => {
   const handleUserDelete = async () => {
     if (!deleteUserId) return;
     try {
-      const res = await fetch(`https://aruvixlabs.onrender.com/api/users/${deleteUserId}`, {
+      const res = await fetch(`${API}/users/${deleteUserId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
@@ -489,19 +491,50 @@ const SettingsPage = () => {
   };
 
   return (
-    <div className="settings-page">
-      <div style={{ display: 'flex', gap: '15px', borderBottom: '2px solid #e5e7eb', paddingBottom: '10px', marginBottom: '25px' }}>
+    <div className="page-settings" style={{ animation: 'fadeIn 0.3s ease-out' }}>
+      <div className="crm-page-header">
+        <div className="crm-page-title-group">
+          <h1>
+            <SettingsIcon size={28} color="var(--primary)" />
+            System Configurations & Permissions
+          </h1>
+          <p>Company branding details, global access roles, and granular security policies</p>
+        </div>
+      </div>
+
+      {/* Dashboard-Style KPI Cards */}
+      <div className="modern-stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+        <div className="modern-stat-card grad-converted">
+          <div className="modern-stat-header">
+            <span>System Status</span>
+            <CheckCircle size={20} />
+          </div>
+          <div className="modern-stat-value" style={{ fontSize: '28px' }}>Online</div>
+          <CheckCircle size={90} className="bg-icon" />
+        </div>
+
+        <div className="modern-stat-card grad-total">
+          <div className="modern-stat-header">
+            <span>Company Branding</span>
+            <Building size={20} />
+          </div>
+          <div className="modern-stat-value" style={{ fontSize: '28px' }}>Active</div>
+          <Building size={90} className="bg-icon" />
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
         <button 
           onClick={() => setActiveTab('company')}
-          style={{ padding: '12px 24px', background: activeTab === 'company' ? 'var(--primary)' : 'transparent', color: activeTab === 'company' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
+          className={`btn ${activeTab === 'company' ? 'btn-primary' : 'btn-secondary'}`}
         >
           <Building size={18} /> Company Details
         </button>
         <button 
           onClick={() => setActiveTab('permissions')}
-          style={{ padding: '12px 24px', background: activeTab === 'permissions' ? 'var(--primary)' : 'transparent', color: activeTab === 'permissions' ? 'white' : '#4b5563', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
+          className={`btn ${activeTab === 'permissions' ? 'btn-primary' : 'btn-secondary'}`}
         >
-          <Shield size={18} /> User Permissions
+          <Shield size={18} /> User Permissions Matrix
         </button>
       </div>
 

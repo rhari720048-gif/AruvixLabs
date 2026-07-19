@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, PhoneCall, Calendar, MapPin, Car, CheckCircle, RefreshCw, User, Users, PlusCircle, Edit3, Phone, PhoneOff } from 'lucide-react';
 import ActionButtons from './ActionButtons';
+import toast from 'react-hot-toast';
 import ViewModal from './ViewModal';
 import EditLeadModal from './EditLeadModal';
+import ModernDateTimePicker from './ModernDateTimePicker';
+import SearchableSelect from './SearchableSelect';
 
 const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
 
@@ -11,7 +14,6 @@ const CallLater = () => {
   const [leads, setLeads] = useState([]);
   const [selectedLead, setSelectedLead] = useState(null);
   const [feedback, setFeedback] = useState({ status: 'Call Later', notes: '', callback_time: '' });
-  const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(true);
   
   // Call State
@@ -129,9 +131,13 @@ const CallLater = () => {
       if (res.ok) {
         if (selectedLead?.id === id) setSelectedLead(null);
         fetchLeads(activeTab);
+        toast.success("Lead deleted successfully!");
+      } else {
+        toast.error("Failed to delete lead.");
       }
     } catch (e) {
       console.error(e);
+      toast.error("An error occurred while deleting.");
     }
   };
 
@@ -151,20 +157,22 @@ const CallLater = () => {
         })
       });
       if (res.ok) {
-        setSuccessMsg('Feedback submitted successfully!');
+        toast.success("Feedback submitted successfully!");
         setSelectedLead(null);
         resetCallState();
         fetchLeads(activeTab);
-        setTimeout(() => setSuccessMsg(''), 3000);
+      } else {
+        toast.error("Failed to submit feedback.");
       }
     } catch (e) {
       console.error(e);
+      toast.error("An error occurred while submitting feedback.");
     }
   };
 
   const handleManualSubmit = async (e) => {
     e.preventDefault();
-    if (!manualForm.name || !manualForm.phone) return alert("Name and Phone are required!");
+    if (!manualForm.name || !manualForm.phone) return toast.error("Name and Phone are required!");
     setIsSubmitting(true);
     try {
         const res = await fetch(`${API}/telecalling/manual-entry`, {
@@ -176,50 +184,54 @@ const CallLater = () => {
             body: JSON.stringify({ ...manualForm, status: 'Call Later', duration: 0 })
         });
         if (res.ok) {
-            setSuccessMsg('Manual Call Later lead added successfully!');
+            toast.success('Manual Call Later lead added successfully!');
             setManualForm({ name: '', phone: '', location: '', car_name: '', notes: '' });
-            setTimeout(() => setSuccessMsg(''), 3000);
         } else {
             const err = await res.json();
-            alert(err.error || "Failed to save lead");
+            toast.error(err.error || "Failed to save lead");
         }
     } catch (e) {
         console.error(e);
-        alert("An error occurred");
+        toast.error("An error occurred");
     } finally {
         setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="page-container" style={{ display: 'flex', flexDirection: 'column', gap: '20px', height: 'calc(100vh - 100px)' }}>
-      {/* 3-Section Navigation Bar */}
-      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', background: 'white', padding: '15px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-          <button 
-              onClick={() => setActiveTab('my')}
-              style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: activeTab === 'my' ? 'var(--primary)' : '#e5e7eb', color: activeTab === 'my' ? 'white' : '#374151', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', transition: '0.3s', fontWeight: '500' }}
-          >
-              <User size={18} /> My Call Later
-          </button>
-          <button 
-              onClick={() => setActiveTab('all')}
-              style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: activeTab === 'all' ? 'var(--primary)' : '#e5e7eb', color: activeTab === 'all' ? 'white' : '#374151', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', transition: '0.3s', fontWeight: '500' }}
-          >
-              <Users size={18} /> All Call Later
-          </button>
-          <button 
-              onClick={() => setActiveTab('manual')}
-              style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: activeTab === 'manual' ? 'var(--primary)' : '#e5e7eb', color: activeTab === 'manual' ? 'white' : '#374151', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', transition: '0.3s', fontWeight: '500' }}
-          >
-              <PlusCircle size={18} /> Manual Entry
-          </button>
+    <div className="page-call-later" style={{ animation: 'fadeIn 0.3s ease-out' }}>
+      <div className="crm-page-header">
+        <div className="crm-page-title-group">
+          <h1>
+            <Clock size={28} color="var(--primary)" />
+            Call Later & Callbacks Queue
+          </h1>
+          <p>Time-sensitive client follow-up calls, reminder schedules, and disposition tracking</p>
+        </div>
       </div>
 
-      {successMsg && (
-          <div style={{ background: '#d1fae5', color: '#065f46', padding: '12px 20px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '500' }}>
-              <CheckCircle size={18} /> {successMsg}
-          </div>
-      )}
+
+
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
+        <button 
+          onClick={() => setActiveTab('my')}
+          className={`btn ${activeTab === 'my' ? 'btn-primary' : 'btn-secondary'}`}
+        >
+          <User size={18} /> My Call Later ({leads.length})
+        </button>
+        <button 
+          onClick={() => setActiveTab('all')}
+          className={`btn ${activeTab === 'all' ? 'btn-primary' : 'btn-secondary'}`}
+        >
+          <Users size={18} /> All Call Later
+        </button>
+        <button 
+          onClick={() => setActiveTab('manual')}
+          className={`btn ${activeTab === 'manual' ? 'btn-primary' : 'btn-secondary'}`}
+        >
+          <PlusCircle size={18} /> Add Manual Entry
+        </button>
+      </div>
 
       {activeTab === 'manual' ? (
           <div style={{ background: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', padding: '30px', overflowY: 'auto' }}>
@@ -232,8 +244,8 @@ const CallLater = () => {
                       <input type="text" value={manualForm.name} onChange={e => setManualForm({...manualForm, name: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="Enter name" required />
                   </div>
                   <div>
-                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Phone Number *</label>
-                      <input type="tel" value={manualForm.phone} onChange={e => setManualForm({...manualForm, phone: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="Enter phone" required />
+                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#374151' }}>Phone Number (10 digits only) *</label>
+                      <input type="tel" maxLength={10} value={manualForm.phone} onChange={e => setManualForm({...manualForm, phone: e.target.value.replace(/[^0-9]/g, '').slice(0, 10)})} style={{ width: '100%' }} placeholder="Enter 10 digit mobile number" required />
                   </div>
                   <div>
                       <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Location</label>
@@ -255,93 +267,83 @@ const CallLater = () => {
               </form>
           </div>
       ) : (
-        <div style={{ display: 'flex', gap: '20px', flex: 1, overflow: 'hidden' }}>
-          {/* Sidebar List of Leads */}
-          <div style={{ flex: '0 0 320px', background: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <div style={{ padding: '15px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white' }}>
-              <h3 style={{ margin: 0 }}>
-                {activeTab === 'my' ? 'My Call Later' : 'All Call Later'} ({leads.length})
-              </h3>
-              <button onClick={() => fetchLeads(activeTab)} style={{ padding: '6px 12px', background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <RefreshCw size={14} /> Refresh
-              </button>
-            </div>
-            
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, flex: 1, overflowY: 'auto' }}>
-              {loading ? (
-                <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>Loading...</div>
-              ) : leads.map(lead => (
-                <li 
-                  key={lead.id} 
-                  onClick={() => setSelectedLead(lead)}
-                  style={{ 
-                    padding: '15px 20px', 
-                    borderBottom: '1px solid #f3f4f6', 
-                    cursor: 'pointer',
-                    background: selectedLead?.id === lead.id ? '#eff6ff' : 'transparent',
-                    transition: '0.2s'
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div style={{ fontWeight: '600', color: '#1f2937' }}>{lead.name}</div>
-                    <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                      <a 
-                        href={`tel:${lead.phone}`}
-                        onClick={(e) => { e.stopPropagation(); startDialing(lead); }}
-                        title="Call Now"
-                        style={{
-                          background: '#d1fae5', color: '#10b981', border: 'none', borderRadius: '6px',
-                          width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          cursor: 'pointer', transition: '0.2s', textDecoration: 'none'
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.background = '#a7f3d0'}
-                        onMouseLeave={e => e.currentTarget.style.background = '#d1fae5'}
-                      >
-                        <Phone size={16} />
-                      </a>
-                      <ActionButtons 
-                        onView={() => setViewLead(lead)}
-                        onEdit={() => setEditLead(lead)}
-                        onDelete={() => handleDelete(lead.id)}
-                      />
-                    </div>
-                  </div>
-                  <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Car size={12} /> {lead.car_model || lead.car_name || 'No Car'} {lead.registration_number ? `(${lead.registration_number})` : ''}
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#f59e0b', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Clock size={12} /> {lead.callback_time ? `Callback: ${new Date(lead.callback_time).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}` : 'Needs Follow-up'}
-                  </div>
-                </li>
-              ))}
-              {!loading && leads.length === 0 && (
-                <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>No follow-ups scheduled.</div>
-              )}
-            </ul>
+      <div className={`split-view-container ${selectedLead ? 'has-selected' : 'no-selected'}`}>
+        {/* Sidebar Contacts List */}
+        <div className={`split-sidebar ${selectedLead ? 'mobile-hide' : ''}`}>
+          <div className="split-sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>Contacts Queue ({leads.length})</span>
+            <button onClick={() => fetchLeads(activeTab)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)' }} title="Refresh List">
+              <RefreshCw size={16} />
+            </button>
           </div>
+          
+          <ul className="split-sidebar-list" style={{ listStyle: 'none', padding: '16px', margin: 0 }}>
+            {leads.length === 0 ? (
+              <li style={{ textAlign: 'center', color: '#94a3b8', padding: '20px 0' }}>No leads in queue</li>
+            ) : (
+              leads.map(lead => (
+                <li 
+                  key={lead.id}
+                  onClick={() => setSelectedLead(lead)}
+                  className={`contact-card ${selectedLead?.id === lead.id ? 'active' : ''}`}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                    <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: '700' }}>{lead.name}</h3>
+                    <ActionButtons 
+                      onView={() => setViewLead(lead)}
+                      onEdit={() => setEditLead(lead)}
+                      onDelete={() => handleDelete(lead.id)}
+                    />
+                  </div>
+                  
+                  <div style={{ fontSize: '13px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                    <Car size={14} /> {lead.car_model || lead.car_name || 'No Car Listed'}
+                  </div>
 
-          {/* Main Dialing/Feedback Area */}
-          <div style={{ flex: 1, background: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', padding: '24px', overflowY: 'auto' }}>
-            {selectedLead ? (
-              <div>
-                <div style={{ borderBottom: '2px solid #f3f4f6', paddingBottom: '20px', marginBottom: '20px' }}>
-                  <h2 style={{ margin: '0 0 15px', color: '#111827', fontSize: '24px' }}>{selectedLead.name}</h2>
-                  <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563' }}>
-                      <PhoneCall size={18} color="#6366f1" /> <strong>Phone:</strong> {selectedLead.phone}
+                  {lead.callback_time && (
+                    <div style={{ fontSize: '12px', color: '#d97706', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '6px' }}>
+                      <Clock size={13} /> Callback: {new Date(lead.callback_time).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563' }}>
-                      <MapPin size={18} color="#10b981" /> <strong>District:</strong> {selectedLead.district || '-'}
+                  )}
+                </li>
+              ))
+            )}
+          </ul>
+        </div>
+
+        {/* Main Dialing/Feedback Area */}
+        <div className={`split-main ${!selectedLead ? 'mobile-hide' : ''}`} style={{ display: 'flex', flexDirection: 'column' }}>
+          {selectedLead ? (
+            <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+              <div className="split-main-header">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <button 
+                    type="button"
+                    onClick={() => setSelectedLead(null)}
+                    className="btn btn-secondary mobile-back-btn"
+                    style={{ padding: '6px 12px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    ← Back to List
+                  </button>
+                  <h2 style={{ margin: 0, color: '#111827', fontSize: '20px' }}>{selectedLead.name}</h2>
+                </div>
+              </div>
+                <div className="split-main-content">
+                  <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#4b5563', padding: '16px', background: '#f8fafc', borderRadius: '12px' }}>
+                      <PhoneCall size={20} color="#6366f1" /> <strong>Phone:</strong> {selectedLead.phone}
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563' }}>
-                      <Car size={18} color="#f59e0b" /> <strong>Vehicle:</strong> {selectedLead.car_model || selectedLead.car_name || '-'} {selectedLead.registration_number ? `(${selectedLead.registration_number})` : ''}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#4b5563', padding: '16px', background: '#f8fafc', borderRadius: '12px' }}>
+                      <MapPin size={20} color="#10b981" /> <strong>District:</strong> {selectedLead.district || '-'}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#4b5563', padding: '16px', background: '#f8fafc', borderRadius: '12px' }}>
+                      <Car size={20} color="#f59e0b" /> <strong>Vehicle:</strong> {selectedLead.car_model || selectedLead.car_name || '-'} {selectedLead.registration_number ? `(${selectedLead.registration_number})` : ''}
                     </div>
                     {selectedLead.callback_time && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#f59e0b', gridColumn: '1 / -1' }}>
-                        <Clock size={18} color="#f59e0b" /> <strong>Callback Scheduled:</strong> {new Date(selectedLead.callback_time).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#f59e0b', padding: '16px', background: '#fffbeb', borderRadius: '12px', gridColumn: '1 / -1' }}>
+                        <Clock size={20} color="#f59e0b" /> <strong>Callback Scheduled:</strong> {new Date(selectedLead.callback_time).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
                       </div>
                     )}
-                  </div>
                   </div>
                   
                   {selectedLead.last_note && (
@@ -370,45 +372,44 @@ const CallLater = () => {
                           <PhoneCall size={24} /> Dial Now
                         </a>
                         
-                        <div style={{ textAlign: 'left', marginTop: '20px' }}>
-                            <form onSubmit={handleFeedbackSubmit} style={{ background: '#f8fafc', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                              <h3 style={{ margin: '0 0 15px', color: '#1e293b' }}>Update Status (Manual)</h3>
-                              <div style={{ marginBottom: '15px' }}>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Status</label>
-                                <select 
+                        <div style={{ textAlign: 'left', marginTop: '30px' }}>
+                            <form onSubmit={handleFeedbackSubmit} style={{ background: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
+                              <h3 style={{ margin: '0 0 20px', color: '#0f172a', fontWeight: '800' }}>Update Status (Manual)</h3>
+                              <div style={{ marginBottom: '20px' }}>
+                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#475569', fontSize: '13px' }}>Status</label>
+                                <SearchableSelect 
+                                  options={[
+                                    { label: 'Not Interested (NI)', value: 'Not Interested' },
+                                    { label: 'Call Later', value: 'Call Later' },
+                                    { label: 'Appointment', value: 'Appointment' }
+                                  ]}
                                   value={feedback.status} 
-                                  onChange={e => setFeedback({...feedback, status: e.target.value})}
-                                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                                >
-                                  <option value="Not Interested">Not Interested (NI)</option>
-                                  <option value="Call Later">Call Later</option>
-                                  <option value="Appointment">Appointment</option>
-                                </select>
+                                  onChange={val => setFeedback({...feedback, status: val})}
+                                  placeholder="Select status..."
+                                />
                               </div>
 
                               {['Call Later', 'Appointment'].includes(feedback.status) && (
-                                <div style={{ marginBottom: '15px' }}>
-                                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>New Date & Time</label>
-                                  <input 
-                                    type="datetime-local" 
-                                    value={feedback.callback_time} 
-                                    onChange={e => setFeedback({...feedback, callback_time: e.target.value})}
-                                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                                    required
+                                <div style={{ marginBottom: '20px' }}>
+                                  <ModernDateTimePicker 
+                                    label="New Date & Time"
+                                    value={feedback.callback_time}
+                                    onChange={val => setFeedback({...feedback, callback_time: val})}
+                                    required={true}
                                   />
                                 </div>
                               )}
-                              <div style={{ marginBottom: '15px' }}>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Notes</label>
+                              <div style={{ marginBottom: '20px' }}>
+                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#475569', fontSize: '13px' }}>Notes</label>
                                 <textarea 
                                   value={feedback.notes} 
                                   onChange={e => setFeedback({...feedback, notes: e.target.value})}
-                                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', minHeight: '80px' }}
+                                  style={{ width: '100%', minHeight: '80px', resize: 'vertical' }}
                                   required
                                 ></textarea>
                               </div>
                               
-                              <button type="submit" style={{ width: '100%', padding: '12px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}>
+                              <button type="submit" style={{ width: '100%', padding: '14px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
                                 Save Update
                               </button>
                             </form>
@@ -417,24 +418,24 @@ const CallLater = () => {
                     )}
 
                     {callPhase === 'dialing' && (
-                      <div style={{ padding: '20px', animation: 'pulse 1.5s infinite' }}>
-                        <PhoneCall size={48} color="#10b981" style={{ marginBottom: '10px' }} />
-                        <h3 style={{ margin: 0, color: '#10b981' }}>Dialing...</h3>
+                      <div style={{ padding: '40px', animation: 'pulse 1.5s infinite', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <PhoneCall size={56} color="#10b981" style={{ marginBottom: '16px' }} />
+                        <h3 style={{ margin: 0, color: '#10b981', fontSize: '24px' }}>Dialing...</h3>
                       </div>
                     )}
 
                     {callPhase === 'active' && (
-                      <div style={{ background: '#f0fdf4', padding: '30px', borderRadius: '16px', border: '2px solid #86efac' }}>
-                        <div style={{ fontSize: '48px', fontWeight: 'bold', color: '#15803d', fontFamily: 'monospace', marginBottom: '20px' }}>
+                      <div style={{ background: '#f0fdf4', padding: '40px', borderRadius: '24px', border: '2px solid #86efac', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <div style={{ fontSize: '56px', fontWeight: '800', color: '#15803d', fontFamily: 'monospace', marginBottom: '32px', letterSpacing: '-0.02em' }}>
                           {formatTime(secondsElapsed)}
                         </div>
                         <button 
                           onClick={stopTimer}
                           style={{
                             display: 'inline-flex', alignItems: 'center', gap: '10px', cursor: 'pointer',
-                            background: '#ef4444', color: 'white', padding: '16px 40px', border: 'none',
+                            background: '#ef4444', color: 'white', padding: '18px 48px', border: 'none',
                             borderRadius: '50px', fontWeight: 'bold', fontSize: '18px',
-                            boxShadow: '0 4px 14px rgba(239, 68, 68, 0.4)'
+                            boxShadow: '0 8px 20px rgba(239, 68, 68, 0.4)'
                           }}
                         >
                           <PhoneOff size={24} /> End Call
@@ -444,17 +445,17 @@ const CallLater = () => {
 
                     {callPhase === 'feedback' && (
                         <div style={{ textAlign: 'left' }}>
-                            <form onSubmit={handleFeedbackSubmit} style={{ background: '#f8fafc', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                              <h3 style={{ margin: '0 0 15px', color: '#1e293b', textAlign: 'center' }}>How did the call go?</h3>
-                              <div style={{ textAlign: 'center', marginBottom: '20px', color: '#64748b', fontWeight: '500' }}>
-                                Call Duration: <span style={{ color: '#0f172a', fontWeight: 'bold' }}>{formatTime(secondsElapsed)}</span>
+                            <form onSubmit={handleFeedbackSubmit} style={{ background: 'white', padding: '32px', borderRadius: '24px', border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
+                              <h3 style={{ margin: '0 0 24px', color: '#0f172a', textAlign: 'center', fontWeight: '800', fontSize: '20px' }}>How did the call go?</h3>
+                              <div style={{ textAlign: 'center', marginBottom: '32px', color: '#64748b', fontSize: '15px' }}>
+                                Call Duration: <span style={{ color: '#0f172a', fontWeight: '800', fontSize: '18px', background: '#f1f5f9', padding: '6px 12px', borderRadius: '8px', marginLeft: '8px' }}>{formatTime(secondsElapsed)}</span>
                               </div>
-                              <div style={{ marginBottom: '15px' }}>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Status</label>
+                              <div style={{ marginBottom: '20px' }}>
+                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#475569', fontSize: '13px' }}>Status</label>
                                 <select 
                                   value={feedback.status} 
                                   onChange={e => setFeedback({...feedback, status: e.target.value})}
-                                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                                  style={{ width: '100%' }}
                                 >
                                   <option value="Not Interested">Not Interested (NI)</option>
                                   <option value="Call Later">Call Later</option>
@@ -469,7 +470,6 @@ const CallLater = () => {
                                     type="datetime-local" 
                                     value={feedback.callback_time} 
                                     onChange={e => setFeedback({...feedback, callback_time: e.target.value})}
-                                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                                     required
                                   />
                                 </div>
@@ -479,7 +479,6 @@ const CallLater = () => {
                                 <textarea 
                                   value={feedback.notes} 
                                   onChange={e => setFeedback({...feedback, notes: e.target.value})}
-                                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', minHeight: '80px' }}
                                   required
                                 ></textarea>
                               </div>
@@ -492,6 +491,7 @@ const CallLater = () => {
                     )}
                   </div>
               </div>
+            </div>
             ) : (
               <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', flexDirection: 'column' }}>
                 <Clock size={48} style={{ marginBottom: '15px', opacity: 0.5 }} />

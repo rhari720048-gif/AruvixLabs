@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, ChevronDown, Check } from 'lucide-react';
+import { Search, ChevronDown, Check, X } from 'lucide-react';
 
-const SearchableSelect = ({ options, value, onChange, placeholder = "Select an option...", isMulti = false }) => {
+const SearchableSelect = ({ options = [], value, onChange, placeholder = "Select an option...", isMulti = false, disabled = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
   const wrapperRef = useRef(null);
@@ -17,7 +17,7 @@ const SearchableSelect = ({ options, value, onChange, placeholder = "Select an o
   }, [wrapperRef]);
 
   const filteredOptions = options.filter(opt => 
-    opt.label.toLowerCase().includes(search.toLowerCase())
+    opt.label?.toLowerCase().includes(search.toLowerCase())
   );
 
   const getDisplayValue = () => {
@@ -59,82 +59,145 @@ const SearchableSelect = ({ options, value, onChange, placeholder = "Select an o
   return (
     <div ref={wrapperRef} style={{ position: 'relative', width: '100%' }}>
       <div 
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
         style={{ 
-          width: '100%', padding: '10px 12px', borderRadius: '6px', 
-          border: '1px solid #d1d5db', background: 'white', 
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          cursor: 'pointer', minHeight: '42px'
+          width: '100%', 
+          padding: '12px 18px', 
+          borderRadius: '16px', 
+          border: isOpen ? '1.5px solid #6366f1' : '1.5px solid #e2e8f0', 
+          background: disabled ? '#f1f5f9' : (isOpen ? '#ffffff' : '#f8fafc'), 
+          display: 'flex', 
+          justify: 'space-between', 
+          alignItems: 'center',
+          cursor: disabled ? 'not-allowed' : 'pointer', 
+          minHeight: '48px',
+          boxShadow: isOpen ? '0 0 0 4px rgba(99, 102, 241, 0.15)' : 'inset 0 1px 2px rgba(0, 0, 0, 0.02)',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          opacity: disabled ? 0.7 : 1
         }}
       >
-        <span style={{ color: hasSelection ? '#1f2937' : '#9ca3af', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: '8px' }}>
+        <span style={{ 
+          color: hasSelection ? '#0F172A' : '#94A3B8', 
+          overflow: 'hidden', 
+          textOverflow: 'ellipsis', 
+          whiteSpace: 'nowrap', 
+          paddingRight: '12px',
+          fontWeight: hasSelection ? '700' : '500',
+          fontSize: '14px'
+        }}>
           {getDisplayValue()}
         </span>
-        <ChevronDown size={16} color="#6b7280" style={{ flexShrink: 0 }} />
+        <ChevronDown 
+          size={18} 
+          color="#6366f1" 
+          style={{ 
+            flexShrink: 0, 
+            transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)'
+          }} 
+        />
       </div>
 
       {isOpen && (
         <div style={{ 
-          position: 'absolute', top: '100%', left: 0, right: 0, 
-          marginTop: '4px', background: 'white', border: '1px solid #d1d5db', 
-          borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', 
-          zIndex: 50, maxHeight: '250px', display: 'flex', flexDirection: 'column'
+          position: 'absolute', 
+          top: 'calc(100% + 6px)', 
+          left: 0, 
+          right: 0, 
+          background: 'rgba(255, 255, 255, 0.98)', 
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          border: '1px solid rgba(226, 232, 240, 0.95)', 
+          borderRadius: '20px', 
+          boxShadow: '0 20px 45px -10px rgba(15, 23, 42, 0.18)', 
+          zIndex: 100, 
+          maxHeight: '280px', 
+          display: 'flex', 
+          flexDirection: 'column',
+          overflow: 'hidden',
+          animation: 'dropdownFadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
         }}>
-          <div style={{ padding: '8px', borderBottom: '1px solid #e5e7eb', position: 'relative' }}>
-            <Search size={14} color="#9ca3af" style={{ position: 'absolute', left: '16px', top: '16px' }} />
+          <div style={{ padding: '12px', borderBottom: '1px solid #f1f5f9', position: 'relative', background: '#f8fafc' }}>
+            <Search size={16} color="#6366f1" style={{ position: 'absolute', left: '24px', top: '50%', transform: 'translateY(-50%)' }} />
             <input 
               type="text" 
               autoFocus
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Search..."
-              style={{ width: '100%', padding: '8px 8px 8px 30px', borderRadius: '4px', border: '1px solid #d1d5db', outline: 'none' }}
+              placeholder="Filter options..."
+              style={{ 
+                width: '100%', 
+                padding: '10px 14px 10px 38px', 
+                borderRadius: '12px', 
+                border: '1px solid #e2e8f0', 
+                outline: 'none',
+                fontSize: '13px',
+                fontWeight: '600',
+                background: 'white'
+              }}
             />
+            {search && (
+              <X 
+                size={14} 
+                color="#94a3b8" 
+                onClick={() => setSearch('')} 
+                style={{ position: 'absolute', right: '22px', top: '50%', transform: 'translateY(-50%)', cursor: 'pointer' }} 
+              />
+            )}
           </div>
-          <div style={{ overflowY: 'auto', padding: '4px' }}>
+
+          <div style={{ overflowY: 'auto', padding: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {!isMulti && (
               <div 
                 onClick={() => { onChange(''); setIsOpen(false); setSearch(''); }}
-                style={{ padding: '8px 12px', cursor: 'pointer', borderRadius: '4px', color: '#6b7280', fontSize: '14px' }}
-                onMouseOver={e => e.currentTarget.style.background = '#f3f4f6'}
+                style={{ 
+                  padding: '10px 14px', 
+                  cursor: 'pointer', 
+                  borderRadius: '10px', 
+                  color: '#64748b', 
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  transition: 'background 0.2s ease'
+                }}
+                onMouseOver={e => e.currentTarget.style.background = '#f1f5f9'}
                 onMouseOut={e => e.currentTarget.style.background = 'transparent'}
               >
-                -- Unassigned --
+                Clear Selection
               </div>
             )}
-            {isMulti && (
-              <div 
-                onClick={() => { onChange([]); }}
-                style={{ padding: '8px 12px', cursor: 'pointer', borderRadius: '4px', color: '#6b7280', fontSize: '14px' }}
-                onMouseOver={e => e.currentTarget.style.background = '#f3f4f6'}
-                onMouseOut={e => e.currentTarget.style.background = 'transparent'}
-              >
-                -- Clear Selection --
-              </div>
-            )}
+
             {filteredOptions.length === 0 ? (
-              <div style={{ padding: '8px 12px', color: '#9ca3af', fontSize: '14px', textAlign: 'center' }}>No options found</div>
+              <div style={{ padding: '16px', textAlign: 'center', color: '#94a3b8', fontSize: '13px', fontWeight: '500' }}>
+                No options match your search.
+              </div>
             ) : (
-              filteredOptions.map(opt => (
-                <div 
-                  key={opt.value}
-                  onClick={() => handleSelect(opt.value)}
-                  style={{ 
-                    padding: '8px 12px', cursor: 'pointer', borderRadius: '4px',
-                    background: isSelected(opt.value) ? '#eff6ff' : 'transparent',
-                    color: isSelected(opt.value) ? '#2563eb' : '#374151',
-                    fontSize: '14px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between'
-                  }}
-                  onMouseOver={e => { if(!isSelected(opt.value)) e.currentTarget.style.background = '#f9fafb' }}
-                  onMouseOut={e => { if(!isSelected(opt.value)) e.currentTarget.style.background = 'transparent' }}
-                >
-                  {opt.label}
-                  {isSelected(opt.value) && isMulti && <Check size={16} />}
-                </div>
-              ))
+              filteredOptions.map(opt => {
+                const selected = isSelected(opt.value);
+                return (
+                  <div 
+                    key={opt.value}
+                    onClick={() => handleSelect(opt.value)}
+                    style={{ 
+                      padding: '12px 14px', 
+                      cursor: 'pointer', 
+                      borderRadius: '12px', 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center',
+                      background: selected ? 'rgba(79, 70, 229, 0.08)' : 'transparent',
+                      color: selected ? '#4F46E5' : '#0F172A',
+                      fontWeight: selected ? '700' : '600',
+                      fontSize: '14px',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseOver={e => { if (!selected) e.currentTarget.style.background = '#f8fafc'; }}
+                    onMouseOut={e => { if (!selected) e.currentTarget.style.background = 'transparent'; }}
+                  >
+                    <span>{opt.label}</span>
+                    {selected && <Check size={16} color="#4F46E5" />}
+                  </div>
+                );
+              })
             )}
           </div>
         </div>
