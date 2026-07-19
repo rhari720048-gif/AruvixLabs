@@ -244,7 +244,7 @@ const SettingsPage = () => {
       modules: [
         { key: 'leads',           label: 'Leads'            },
         { key: 'clients',         label: 'Clients'          },
-        { key: 'telecalling',     label: 'Start Dial / Callbacks' },
+        { key: 'telecalling',     label: 'Callbacks'          },
         { key: 'appointments',    label: 'Appointments'     },
         { key: 'call_later',      label: 'Call Later'       },
         { key: 'ni_box',          label: 'NI Box'           },
