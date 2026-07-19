@@ -178,16 +178,23 @@ app.put('/api/customers/:id', authenticate, async (req, res) => {
             // Full update
             const parsed = parseAssignedTo(assigned_to);
             const assignedToStr = JSON.stringify(parsed);
-            
-            const query = callback_time !== undefined
-                ? 'UPDATE customers SET name=?, phone=?, district=?, source=?, notes=?, status=?, assigned_to=?, car_model=?, registration_number=?, callback_time=? WHERE id=?'
-                : 'UPDATE customers SET name=?, phone=?, district=?, source=?, notes=?, status=?, assigned_to=?, car_model=?, registration_number=? WHERE id=?';
+            const query = 'UPDATE customers SET name=?, phone=?, district=?, source=?, notes=?, status=?, assigned_to=?, car_model=?, registration_number=? WHERE id=?';
                 
-            const params = callback_time !== undefined
-                ? [name, phone, district, source, notes, status, assignedToStr, car_model || '', registration_number || '', callback_time || null, req.params.id]
-                : [name, phone, district, source, notes, status, assignedToStr, car_model || '', registration_number || '', req.params.id];
+            const params = [name, phone, district, source, notes, status, assignedToStr, car_model || '', registration_number || '', req.params.id];
                 
             await pool.query(query, params);
+            
+            // If callback_time is provided, update the latest call_log for this customer
+            if (callback_time !== undefined) {
+                // Find latest call log
+                const [logs] = await pool.query('SELECT id FROM call_logs WHERE customer_id = ? ORDER BY id DESC LIMIT 1', [req.params.id]);
+                if (logs.length > 0) {
+                    await pool.query('UPDATE call_logs SET callback_time = ? WHERE id = ?', [callback_time || null, logs[0].id]);
+                } else {
+                    // If no call log exists, create a dummy one just to store the callback time
+                    await pool.query('INSERT INTO call_logs (customer_id, status, notes, callback_time) VALUES (?, ?, ?, ?)', [req.params.id, status, notes, callback_time || null]);
+                }
+            }
         } else {
             // Partial update (just status/notes)
             await pool.query('UPDATE customers SET status = ?, notes = ? WHERE id = ?', [status, notes, req.params.id]);
