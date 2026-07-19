@@ -5,7 +5,7 @@ import MyLeadsGrid from './MyLeadsGrid';
 import { UserPlus, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getPerms } from './permissions';
-const API = 'https://aruvixlabs.onrender.com/api';
+const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
 
 const AdminLeads = () => {
   const navigate = useNavigate();
@@ -26,10 +26,14 @@ const AdminLeads = () => {
   const [leads, setLeads] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [currentUser, setCurrentUser] = useState('');
+  const [currentUserId, setCurrentUserId] = useState(null);
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user'));
-    if (user) setCurrentUser(user.name);
+    if (user) {
+      setCurrentUser(user.name);
+      setCurrentUserId(user.id);
+    }
     fetchLeads();
     fetchEmployees();
   }, []);
@@ -305,10 +309,26 @@ const AdminLeads = () => {
             handleBulkDelete={canDelete ? handleBulkDelete : undefined}
             handleBulkAssign={handleBulkAssign}
             handleEdit={canEdit ? handleEdit : undefined}
+            refreshLeads={fetchLeads}
           />
         ) : activePage === 'mine' && hasMineTab ? (
           <MyLeadsGrid 
-            leads={leads.filter(l => l.assignedTo === currentUser)} 
+            leads={leads.filter(l => {
+              let ids = [];
+              if (Array.isArray(l.assignedToId)) {
+                ids = l.assignedToId;
+              } else if (typeof l.assignedToId === 'string') {
+                try {
+                  ids = JSON.parse(l.assignedToId || '[]');
+                } catch (e) {
+                  ids = [l.assignedToId];
+                }
+              } else if (l.assignedToId) {
+                ids = [l.assignedToId];
+              }
+              const idList = Array.isArray(ids) ? ids.map(id => parseInt(id, 10)) : [parseInt(ids, 10)];
+              return idList.includes(parseInt(currentUserId, 10));
+            })} 
             employees={employees}
             handleEdit={canEdit ? handleEdit : null}
             handleDelete={canDelete ? handleDelete : null}

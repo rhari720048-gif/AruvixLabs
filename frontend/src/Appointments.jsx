@@ -5,7 +5,7 @@ import ActionButtons from './ActionButtons';
 import ViewModal from './ViewModal';
 import EditLeadModal from './EditLeadModal';
 
-const API = 'https://aruvixlabs.onrender.com/api';
+const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
 
 const Appointments = () => {
   const [activeTab, setActiveTab] = useState('my'); // 'my', 'all', 'manual'
@@ -36,7 +36,7 @@ const Appointments = () => {
   const [successMsg, setSuccessMsg] = useState('');
   
   // Manual form state
-  const [manualForm, setManualForm] = useState({ name: '', phone: '', location: '', car_name: '', car_number: '', requirements: '', assignedTo: [], callback_time: '', notes: '' });
+  const [manualForm, setManualForm] = useState({ name: '', phone: '', location: '', car_name: '', callback_time: '', notes: '' });
   const [users, setUsers] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -123,7 +123,7 @@ const Appointments = () => {
       });
       if (res.ok) {
         setSuccessMsg('Manual appointment added successfully!');
-        setManualForm({ name: '', phone: '', location: '', car_name: '', car_number: '', requirements: '', assignedTo: [], callback_time: '', notes: '' });
+        setManualForm({ name: '', phone: '', location: '', car_name: '', callback_time: '', notes: '' });
         setTimeout(() => setSuccessMsg(''), 3000);
       } else {
         const err = await res.json();
@@ -186,16 +186,8 @@ const Appointments = () => {
               <input type="text" value={manualForm.location} onChange={e => setManualForm({...manualForm, location: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="Enter location" />
             </div>
             <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Car Name / Model</label>
-              <input type="text" value={manualForm.car_name} onChange={e => setManualForm({...manualForm, car_name: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="E.g., Honda City" />
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Car Registration Number</label>
-              <input type="text" value={manualForm.car_number} onChange={e => setManualForm({...manualForm, car_number: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="E.g., TN-01-AB-1234" />
-            </div>
-            <div style={{ gridColumn: '1 / -1' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Customer Requirements</label>
-              <input type="text" value={manualForm.requirements} onChange={e => setManualForm({...manualForm, requirements: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="Brief requirements..." />
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Car Name with Year</label>
+              <input type="text" value={manualForm.car_name} onChange={e => setManualForm({...manualForm, car_name: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="E.g., Honda City 2021" />
             </div>
             
             <div style={{ gridColumn: '1 / -1', borderTop: '1px solid #e5e7eb', paddingTop: '20px', marginTop: '10px' }}>
@@ -205,16 +197,6 @@ const Appointments = () => {
             <div>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Appointment Date & Time *</label>
               <input type="datetime-local" value={manualForm.callback_time} onChange={e => setManualForm({...manualForm, callback_time: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} required />
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Assign To (Optional, defaults to you)</label>
-              <SearchableSelect 
-                options={users.map(u => ({ value: u.id, label: `${u.name} (${u.role})` }))}
-                value={manualForm.assignedTo}
-                onChange={val => setManualForm({...manualForm, assignedTo: val})}
-                placeholder="-- Select Assignee --"
-                isMulti={true}
-              />
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Initial Meeting Notes / Feedback</label>

@@ -2,18 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { X, CheckCircle, Save, User, MapPin, PhoneCall, Car, FileText } from 'lucide-react';
 import SearchableSelect from './SearchableSelect';
 
-const API = 'https://aruvixlabs.onrender.com/api';
+const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
 
 const EditLeadModal = ({ isOpen, onClose, data, onSave }) => {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     district: '',
-    requirements: '', // mapping notes to requirements or saving to notes
     car_model: '',
-    registration_number: '',
     status: '',
-    assigned_to: [],
     source: ''
   });
   const [users, setUsers] = useState([]);
@@ -39,11 +36,8 @@ const EditLeadModal = ({ isOpen, onClose, data, onSave }) => {
           name: data.name || '',
           phone: data.phone || '',
           district: data.district || data.location || '',
-          requirements: data.requirements || data.notes || '',
           car_model: data.car_model || data.car_name || '',
-          registration_number: data.registration_number || '',
           status: data.status || 'Pending',
-          assigned_to: assignedTo,
           source: data.source || 'Manual'
         });
       }
@@ -74,11 +68,8 @@ const EditLeadModal = ({ isOpen, onClose, data, onSave }) => {
         name: formData.name,
         phone: formData.phone,
         district: formData.district,
-        notes: formData.requirements,
         car_model: formData.car_model,
-        registration_number: formData.registration_number,
         status: formData.status,
-        assigned_to: formData.assigned_to,
         source: formData.source
       };
 
@@ -164,46 +155,13 @@ const EditLeadModal = ({ isOpen, onClose, data, onSave }) => {
             />
           </div>
 
-          <div>
+          <div style={{ gridColumn: '1 / -1' }}>
             <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600', color: '#374151' }}>
-              <Car size={14} style={{ verticalAlign: 'middle', marginRight: '4px' }}/> Car Model
+              <Car size={14} style={{ verticalAlign: 'middle', marginRight: '4px' }}/> Car Name with Year
             </label>
             <input 
               type="text" value={formData.car_model} onChange={e => setFormData({...formData, car_model: e.target.value})} 
               style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} 
-            />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600', color: '#374151' }}>
-              <Car size={14} style={{ verticalAlign: 'middle', marginRight: '4px' }}/> Registration Number
-            </label>
-            <input 
-              type="text" value={formData.registration_number} onChange={e => setFormData({...formData, registration_number: e.target.value})} 
-              style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} 
-            />
-          </div>
-
-          <div style={{ gridColumn: '1 / -1' }}>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600', color: '#374151' }}>
-              <FileText size={14} style={{ verticalAlign: 'middle', marginRight: '4px' }}/> Notes / Requirements
-            </label>
-            <textarea 
-              value={formData.requirements} onChange={e => setFormData({...formData, requirements: e.target.value})} 
-              rows="3" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none', resize: 'vertical' }}
-            />
-          </div>
-
-          <div style={{ gridColumn: '1 / -1' }}>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600', color: '#374151' }}>
-              Assigned To
-            </label>
-            <SearchableSelect 
-              options={users.map(u => ({ value: String(u.id), label: `${u.name} (${u.role})` }))}
-              value={formData.assigned_to}
-              onChange={val => setFormData({...formData, assigned_to: val})}
-              placeholder="-- Unassigned --"
-              isMulti={true}
             />
           </div>
 

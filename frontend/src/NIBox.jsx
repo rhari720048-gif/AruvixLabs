@@ -1,21 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { Archive, RefreshCw, User, Users, PlusCircle, CheckCircle, Edit3 } from 'lucide-react';
+import { Archive, RefreshCw, User, Users, PlusCircle, CheckCircle, Edit3, PhoneCall, MapPin, Car, Clock } from 'lucide-react';
 import './index.css';
 import ViewModal from './ViewModal';
 import EditLeadModal from './EditLeadModal';
 import ActionButtons from './ActionButtons';
 
-const API = 'https://aruvixlabs.onrender.com/api';
+const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
 
 const NIBox = () => {
     const [activeTab, setActiveTab] = useState('my'); // 'my', 'all', 'manual'
     const [leads, setLeads] = useState([]);
+    const [selectedLead, setSelectedLead] = useState(null);
+    const [feedback, setFeedback] = useState({ status: 'Interested', notes: '', callback_time: '' });
     const [loading, setLoading] = useState(true);
     const [viewRecord, setViewRecord] = useState(null);
     const [editRecord, setEditRecord] = useState(null);
     
     // Manual form state
-    const [manualForm, setManualForm] = useState({ name: '', phone: '', location: '', car_name: '', car_number: '', requirements: '', assignedTo: [], notes: '' });
+    const [manualForm, setManualForm] = useState({ name: '', phone: '', location: '', car_name: '', notes: '' });
     const [users, setUsers] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [successMsg, setSuccessMsg] = useState('');
@@ -27,7 +29,10 @@ const NIBox = () => {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
             });
-            if (res.ok) fetchLeads(activeTab);
+            if (res.ok) {
+                if (selectedLead?.id === id) setSelectedLead(null);
+                fetchLeads(activeTab);
+            }
         } catch (e) { console.error(e); }
     };
 
@@ -72,6 +77,36 @@ const NIBox = () => {
         }
     }, [activeTab]);
 
+    const handleFeedbackSubmit = async (e) => {
+        e.preventDefault();
+        const finalStatus = feedback.status === 'Not Interested' ? 'NI' : feedback.status;
+        try {
+            const res = await fetch(`${API}/telecalling/feedback`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    status: finalStatus,
+                    notes: feedback.notes,
+                    callback_time: feedback.callback_time || null,
+                    customer_id: selectedLead.id,
+                    duration: 0
+                })
+            });
+            if (res.ok) {
+                setSuccessMsg('Feedback submitted successfully!');
+                setSelectedLead(null);
+                setFeedback({ status: 'Interested', notes: '', callback_time: '' });
+                fetchLeads(activeTab);
+                setTimeout(() => setSuccessMsg(''), 3000);
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
     const handleManualSubmit = async (e) => {
         e.preventDefault();
         if (!manualForm.name || !manualForm.phone) {
@@ -90,7 +125,7 @@ const NIBox = () => {
             });
             if (res.ok) {
                 setSuccessMsg('Manual NI lead added successfully!');
-                setManualForm({ name: '', phone: '', location: '', car_name: '', car_number: '', requirements: '', assignedTo: [], notes: '' });
+                setManualForm({ name: '', phone: '', location: '', car_name: '', notes: '' });
                 setTimeout(() => setSuccessMsg(''), 3000);
             } else {
                 const err = await res.json();
@@ -152,21 +187,8 @@ const NIBox = () => {
                             <input type="text" value={manualForm.location} onChange={e => setManualForm({...manualForm, location: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="Enter location" />
                         </div>
                         <div>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Car Name / Model</label>
-                            <input type="text" value={manualForm.car_name} onChange={e => setManualForm({...manualForm, car_name: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="E.g., Honda City" />
-                        </div>
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Car Number</label>
-                            <input type="text" value={manualForm.car_number} onChange={e => setManualForm({...manualForm, car_number: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="E.g., TN-01-AB-1234" />
-                        </div>
-                        <div style={{ gridColumn: '1 / -1' }}>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Assign To</label>
-                            <select multiple value={manualForm.assignedTo} onChange={e => setManualForm({...manualForm, assignedTo: Array.from(e.target.selectedOptions, option => option.value)})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none', height: '100px' }}>
-                                {users.map(u => (
-                                    <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
-                                ))}
-                            </select>
-                            <span style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px', display: 'block' }}>Hold Ctrl/Cmd to select multiple. Leave blank to assign to yourself.</span>
+                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Car Name with Year</label>
+                            <input type="text" value={manualForm.car_name} onChange={e => setManualForm({...manualForm, car_name: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="E.g., Honda City 2021" />
                         </div>
                         <div style={{ gridColumn: '1 / -1' }}>
                             <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Notes</label>
@@ -181,64 +203,128 @@ const NIBox = () => {
                 </div>
             ) : (
                 <div style={{ display: 'flex', gap: '20px', flex: 1, overflow: 'hidden' }}>
-                    <div style={{ background: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                        <div style={{ padding: '20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: 0, color: '#111827' }}>
-                                <Archive color="#6366f1" /> {activeTab === 'my' ? 'My NI Leads' : 'All NI Leads'}
-                            </h2>
-                            <button onClick={() => fetchLeads(activeTab)} style={{ padding: '8px 16px', background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <RefreshCw size={16} /> Refresh
+                    {/* Sidebar List of Leads */}
+                    <div style={{ flex: '0 0 300px', background: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ padding: '15px 20px', borderBottom: '1px solid #e5e7eb', margin: 0, position: 'sticky', top: 0, background: 'white', zIndex: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <h3 style={{ margin: 0 }}>
+                                {activeTab === 'my' ? 'My NI Leads' : 'All NI Leads'} ({leads.length})
+                            </h3>
+                            <button onClick={() => fetchLeads(activeTab)} style={{ padding: '4px 8px', background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px' }}>
+                                <RefreshCw size={12} />
                             </button>
                         </div>
-                        <div style={{ flex: 1, overflowY: 'auto' }}>
-                            {loading ? (
-                                <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>Loading NI Leads...</div>
-                            ) : leads.length === 0 ? (
-                                <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>No leads in the NI Box.</div>
-                            ) : (
-                                <div className="data-table-container">
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th>Name</th>
-                                                <th>Phone</th>
-                                                <th>Car Details</th>
-                                                <th>Location</th>
-                                                <th>Date</th>
-                                                <th style={{ textAlign: 'center' }}>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {leads.map(lead => (
-                                                <tr key={lead.id}>
-                                                    <td data-label="Name">{lead.name}</td>
-                                                    <td data-label="Phone">
-                                                        <a href={`tel:${lead.phone}`} style={{ color: '#6366f1', textDecoration: 'none' }}>
-                                                            {lead.phone}
-                                                        </a>
-                                                    </td>
-                                                    <td data-label="Car Details">
-                                                      {lead.car_model || lead.car_name || '-'}
-                                                      {lead.registration_number && <div style={{ fontSize: '12px', color: '#6b7280' }}>{lead.registration_number}</div>}
-                                                    </td>
-                                                    <td data-label="Location">{lead.district || lead.location || '-'}</td>
-                                                    <td data-label="Date">{lead.last_dial_date ? new Date(lead.last_dial_date).toLocaleString() : '-'}</td>
-                                                    <td data-label="Actions" style={{ textAlign: 'center' }}>
-                                                        <div style={{ display: 'inline-block' }}>
-                                                            <ActionButtons 
-                                                                onView={() => setViewRecord(lead)}
-                                                                onEdit={() => setEditRecord(lead)}
-                                                                onDelete={() => handleDelete(lead.id)}
-                                                            />
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
+                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, flex: 1 }}>
+                            {leads.map(lead => (
+                                <li 
+                                    key={lead.id} 
+                                    onClick={() => setSelectedLead(lead)}
+                                    style={{ 
+                                        padding: '15px 20px', 
+                                        borderBottom: '1px solid #f3f4f6', 
+                                        cursor: 'pointer',
+                                        background: selectedLead?.id === lead.id ? '#eff6ff' : 'transparent',
+                                        transition: '0.2s'
+                                    }}
+                                >
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                        <div style={{ fontWeight: '600', color: '#1f2937' }}>{lead.name}</div>
+                                        <ActionButtons 
+                                            onView={() => setViewRecord(lead)}
+                                            onEdit={() => setEditRecord(lead)}
+                                            onDelete={() => handleDelete(lead.id)}
+                                        />
+                                    </div>
+                                    <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <Car size={12} /> {lead.car_model || lead.car_name || 'No Car'} {lead.registration_number ? `(${lead.registration_number})` : ''}
+                                    </div>
+                                    <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <Archive size={12} /> Not Interested
+                                    </div>
+                                </li>
+                            ))}
+                            {!loading && leads.length === 0 && (
+                                <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>No leads in the NI Box.</div>
                             )}
-                        </div>
+                        </ul>
+                    </div>
+
+                    {/* Main Dialing/Feedback Area */}
+                    <div style={{ flex: 1, background: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', padding: '24px', overflowY: 'auto' }}>
+                        {selectedLead ? (
+                            <div>
+                                <div style={{ borderBottom: '2px solid #f3f4f6', paddingBottom: '20px', marginBottom: '20px' }}>
+                                    <h2 style={{ margin: '0 0 15px', color: '#111827', fontSize: '24px' }}>{selectedLead.name}</h2>
+                                    <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563' }}>
+                                            <PhoneCall size={18} color="#6366f1" /> <strong>Phone:</strong> {selectedLead.phone}
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563' }}>
+                                            <MapPin size={18} color="#10b981" /> <strong>District:</strong> {selectedLead.district || '-'}
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563' }}>
+                                            <Car size={18} color="#f59e0b" /> <strong>Vehicle:</strong> {selectedLead.car_model || selectedLead.car_name || '-'} {selectedLead.registration_number ? `(${selectedLead.registration_number})` : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                {selectedLead.last_note && (
+                                    <div style={{ marginTop: '15px', padding: '15px', background: '#f8fafc', borderRadius: '8px', borderLeft: '4px solid #6366f1' }}>
+                                        <strong style={{ color: '#374151', display: 'block', marginBottom: '5px' }}>Previous Notes / Feedback:</strong>
+                                        <span style={{ color: '#4b5563', whiteSpace: 'pre-wrap' }}>{selectedLead.last_note}</span>
+                                    </div>
+                                )}
+
+                                <form onSubmit={handleFeedbackSubmit} style={{ background: '#f8fafc', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0', marginTop: '20px' }}>
+                                    <h3 style={{ margin: '0 0 15px', color: '#1e293b' }}>Update Status</h3>
+                                    <div style={{ marginBottom: '15px' }}>
+                                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Status</label>
+                                        <select 
+                                            value={feedback.status} 
+                                            onChange={e => setFeedback({...feedback, status: e.target.value})}
+                                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                                        >
+                                            <option value="Interested">Interested / Follow-up</option>
+                                            <option value="Not Interested">Not Interested (NI)</option>
+                                            <option value="Call Later">Call Later</option>
+                                            <option value="Appointment">Appointment</option>
+                                            <option value="Converted">Converted (Deal Closed)</option>
+                                        </select>
+                                    </div>
+
+                                    {['Call Later', 'Appointment'].includes(feedback.status) && (
+                                        <div style={{ marginBottom: '15px' }}>
+                                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>New Date & Time</label>
+                                            <input 
+                                                type="datetime-local" 
+                                                value={feedback.callback_time} 
+                                                onChange={e => setFeedback({...feedback, callback_time: e.target.value})}
+                                                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                                                required
+                                            />
+                                        </div>
+                                    )}
+
+                                    <div style={{ marginBottom: '15px' }}>
+                                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Notes</label>
+                                        <textarea 
+                                            value={feedback.notes} 
+                                            onChange={e => setFeedback({...feedback, notes: e.target.value})}
+                                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', minHeight: '80px', resize: 'vertical' }}
+                                            required
+                                        ></textarea>
+                                    </div>
+                                    
+                                    <button type="submit" style={{ width: '100%', padding: '12px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                        <CheckCircle size={18} /> Save Update
+                                    </button>
+                                </form>
+                            </div>
+                        ) : (
+                            <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', flexDirection: 'column' }}>
+                                <Archive size={48} style={{ marginBottom: '15px', opacity: 0.5 }} />
+                                <p>Select a lead from the list to view details.</p>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
@@ -256,7 +342,11 @@ const NIBox = () => {
                 isOpen={!!editRecord} 
                 onClose={() => setEditRecord(null)} 
                 data={editRecord} 
-                onSave={() => { fetchLeads(activeTab); setEditRecord(null); }} 
+                onSave={(updated) => { 
+                    fetchLeads(activeTab); 
+                    if (selectedLead?.id === updated.id) setSelectedLead(updated);
+                    setEditRecord(null); 
+                }} 
             />
         </div>
     );

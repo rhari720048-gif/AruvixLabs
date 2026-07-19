@@ -20,6 +20,25 @@ initDB()
     .then(() => setPool(pool))
     .catch(console.error);
 
+const parseAssignedTo = (val) => {
+    let arr = [];
+    if (Array.isArray(val)) {
+        arr = val;
+    } else if (typeof val === 'string') {
+        try {
+            const parsed = JSON.parse(val);
+            arr = Array.isArray(parsed) ? parsed : [parsed];
+        } catch (e) {
+            arr = [val];
+        }
+    } else if (val != null) {
+        arr = [val];
+    }
+    return arr
+        .map(id => parseInt(id, 10))
+        .filter(id => id != null && !isNaN(id));
+};
+
 const authenticate = async (req, res, next) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     if (!token) return res.status(401).json({ error: 'Access denied' });
@@ -121,15 +140,6 @@ app.get('/api/customers', authenticate, async (req, res) => {
     try {
         let query = 'SELECT c.* FROM customers c ORDER BY c.created_at DESC';
         let params = [];
-        if (req.user.role !== 'admin') {
-            query = `
-                SELECT c.* 
-                FROM customers c 
-                WHERE JSON_CONTAINS(c.assigned_to, CAST(? AS JSON), '$')
-                ORDER BY c.created_at DESC
-            `;
-            params = [req.user.id];
-        }
         const [rows] = await pool.query(query, params);
 
         const [users] = await pool.query('SELECT id, name FROM users');
@@ -165,12 +175,8 @@ app.put('/api/customers/:id', authenticate, async (req, res) => {
     try {
         if (name) {
             // Full update
-            let assignedToStr = '[]';
-            if (Array.isArray(assigned_to)) {
-                assignedToStr = JSON.stringify(assigned_to.map(id => parseInt(id, 10)).filter(id => !isNaN(id)));
-            } else if (assigned_to) {
-                assignedToStr = JSON.stringify([parseInt(assigned_to, 10)]);
-            }
+            const parsed = parseAssignedTo(assigned_to);
+            const assignedToStr = JSON.stringify(parsed);
             await pool.query(
                 'UPDATE customers SET name=?, phone=?, district=?, source=?, notes=?, status=?, assigned_to=?, car_model=?, registration_number=? WHERE id=?',
                 [name, phone, district, source, notes, status, assignedToStr, car_model || '', registration_number || '', req.params.id]
@@ -209,12 +215,8 @@ app.post('/api/customers/bulk-delete', authenticate, async (req, res) => {
 
 app.post('/api/customers', authenticate, async (req, res) => {
     const { customer_id, name, phone, district, source, notes, assigned_to, car_model, registration_number } = req.body;
-    let assignedToStr = '[]';
-    if (Array.isArray(assigned_to)) {
-        assignedToStr = JSON.stringify(assigned_to.map(id => parseInt(id, 10)).filter(id => !isNaN(id)));
-    } else if (assigned_to) {
-        assignedToStr = JSON.stringify([parseInt(assigned_to, 10)]);
-    }
+    const parsed = parseAssignedTo(assigned_to);
+    const assignedToStr = JSON.stringify(parsed);
     
     try {
         await pool.query(
@@ -1205,10 +1207,10 @@ app.get('/api/telecalling/assigned', authenticate, async (req, res) => {
     try {
         const query = `
             SELECT * FROM customers 
-            WHERE JSON_CONTAINS(assigned_to, CAST(? AS JSON), '$') AND status NOT IN ('Converted', 'Not Interested', 'NI', 'Appointment', 'Callback') 
+            WHERE status NOT IN ('Converted', 'Not Interested', 'NI', 'Appointment', 'Callback') 
             ORDER BY last_dial_date ASC, created_at DESC
         `;
-        const [rows] = await pool.query(query, [req.user.id]);
+        const [rows] = await pool.query(query);
         res.json(rows);
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
@@ -1219,12 +1221,8 @@ app.put('/api/telecalling/bulk-assign', authenticate, async (req, res) => {
         const { lead_ids, employee_id } = req.body;
         if (!lead_ids || !lead_ids.length || !employee_id) return res.status(400).json({ error: 'Missing parameters' });
         
-        let assignedToStr = '[]';
-        if (Array.isArray(employee_id)) {
-            assignedToStr = JSON.stringify(employee_id.map(id => parseInt(id, 10)).filter(id => !isNaN(id)));
-        } else {
-            assignedToStr = JSON.stringify([parseInt(employee_id, 10)]);
-        }
+        const parsed = parseAssignedTo(employee_id);
+        const assignedToStr = JSON.stringify(parsed);
         await pool.query(
             'UPDATE customers SET assigned_to = ? WHERE id IN (?)',
             [assignedToStr, lead_ids]
@@ -1236,15 +1234,25 @@ app.put('/api/telecalling/bulk-assign', authenticate, async (req, res) => {
 app.post('/api/telecalling/feedback', authenticate, async (req, res) => {
     try {
         const { customer_id, status, notes, callback_time, duration } = req.body;
+        console.log('POST /api/telecalling/feedback: body =', req.body, 'user =', req.user);
         
         await pool.query(
             'INSERT INTO call_logs (customer_id, employee_id, status, notes, callback_time, duration) VALUES (?, ?, ?, ?, ?, ?)',
             [customer_id, req.user.id, status, notes, callback_time || null, duration || 0]
         );
         
+        // Retrieve existing assigned_to to append user id
+        const [custRows] = await pool.query('SELECT assigned_to FROM customers WHERE id = ?', [customer_id]);
+        const assignedArr = custRows.length > 0 ? parseAssignedTo(custRows[0].assigned_to) : [];
+        
+        const userId = parseInt(req.user.id, 10);
+        if (!isNaN(userId) && !assignedArr.includes(userId)) {
+            assignedArr.push(userId);
+        }
+
         await pool.query(
-            'UPDATE customers SET status = ?, last_dial_date = NOW() WHERE id = ?',
-            [status, customer_id]
+            'UPDATE customers SET status = ?, last_dial_date = NOW(), assigned_to = ? WHERE id = ?',
+            [status, JSON.stringify(assignedArr), customer_id]
         );
         
         res.json({ success: true });
@@ -1270,6 +1278,7 @@ app.get('/api/telecalling/reports', authenticate, async (req, res) => {
 app.get('/api/telecalling/callbacks', authenticate, async (req, res) => {
     try {
         const { type } = req.query; // 'my' or 'all'
+        console.log('GET /api/telecalling/callbacks: type =', type, 'user =', req.user);
         let query = `
             SELECT c.*, l.notes as last_note, l.callback_time 
             FROM customers c
@@ -1282,8 +1291,8 @@ app.get('/api/telecalling/callbacks', authenticate, async (req, res) => {
             WHERE c.status = 'Call Later'
         `;
         let params = [];
-        if (req.user.role !== 'admin' || type === 'my') {
-            query += ` AND JSON_CONTAINS(c.assigned_to, CAST(? AS JSON), '$') `;
+        if (type === 'my') {
+            query += ` AND l.employee_id = ?`;
             params = [req.user.id];
         }
         query += ` ORDER BY l.callback_time ASC`;
@@ -1296,6 +1305,7 @@ app.get('/api/telecalling/callbacks', authenticate, async (req, res) => {
 app.get('/api/telecalling/appointments', authenticate, async (req, res) => {
     try {
         const { type } = req.query; // 'my' or 'all'
+        console.log('GET /api/telecalling/appointments: type =', type, 'user =', req.user);
         
         let query = `
             SELECT c.*, l.notes as last_note, l.callback_time 
@@ -1310,14 +1320,10 @@ app.get('/api/telecalling/appointments', authenticate, async (req, res) => {
         `;
         
         let params = [];
-        
-        // If they explicitly want 'my' appointments, or if they are not an admin and didn't ask for 'all'
-        // (Wait, the user wants everyone to see 'all' if they click the tab. So we filter only if type === 'my')
         if (type === 'my') {
-            query += ` AND JSON_CONTAINS(c.assigned_to, CAST(? AS JSON), '$')`;
+            query += ` AND l.employee_id = ?`;
             params.push(req.user.id);
         }
-        
         query += ` ORDER BY l.callback_time ASC`;
         
         const [rows] = await pool.query(query, params);
@@ -1328,14 +1334,11 @@ app.get('/api/telecalling/appointments', authenticate, async (req, res) => {
 app.post('/api/telecalling/manual-appointment', authenticate, async (req, res) => {
     const { name, phone, location, car_name, car_number, requirements, callback_time, notes, assignedTo } = req.body;
     
-    let assignedToStr = '[]';
-    if (Array.isArray(assignedTo)) {
-        assignedToStr = JSON.stringify(assignedTo.map(id => parseInt(id, 10)).filter(id => !isNaN(id)));
-    } else if (assignedTo) {
-        assignedToStr = JSON.stringify([parseInt(assignedTo, 10)]);
-    } else {
-        assignedToStr = JSON.stringify([req.user.id]);
+    let parsed = parseAssignedTo(assignedTo);
+    if (parsed.length === 0) {
+        parsed = [req.user.id];
     }
+    let assignedToStr = JSON.stringify(parsed);
 
     try {
         // Generate a random customer_id similar to other places (e.g. L- timestamp)
@@ -1363,14 +1366,11 @@ app.post('/api/telecalling/manual-appointment', authenticate, async (req, res) =
 
 app.post('/api/telecalling/manual-ni', authenticate, async (req, res) => {
     const { name, phone, location, car_name, car_number, requirements, notes, assignedTo } = req.body;
-    let assignedToStr = '[]';
-    if (Array.isArray(assignedTo)) {
-        assignedToStr = JSON.stringify(assignedTo.map(id => parseInt(id, 10)).filter(id => !isNaN(id)));
-    } else if (assignedTo) {
-        assignedToStr = JSON.stringify([parseInt(assignedTo, 10)]);
-    } else {
-        assignedToStr = JSON.stringify([req.user.id]);
+    let parsed = parseAssignedTo(assignedTo);
+    if (parsed.length === 0) {
+        parsed = [req.user.id];
     }
+    let assignedToStr = JSON.stringify(parsed);
     try {
         const customer_id = 'M-' + Date.now() + Math.floor(Math.random() * 1000);
         const [result] = await pool.query(
@@ -1390,14 +1390,11 @@ app.post('/api/telecalling/manual-ni', authenticate, async (req, res) => {
 
 app.post('/api/telecalling/manual-entry', authenticate, async (req, res) => {
     const { name, phone, location, car_name, car_number, requirements, notes, assignedTo, status, duration } = req.body;
-    let assignedToStr = '[]';
-    if (Array.isArray(assignedTo)) {
-        assignedToStr = JSON.stringify(assignedTo.map(id => parseInt(id, 10)).filter(id => !isNaN(id)));
-    } else if (assignedTo) {
-        assignedToStr = JSON.stringify([parseInt(assignedTo, 10)]);
-    } else {
-        assignedToStr = JSON.stringify([req.user.id]);
+    let parsed = parseAssignedTo(assignedTo);
+    if (parsed.length === 0) {
+        parsed = [req.user.id];
     }
+    let assignedToStr = JSON.stringify(parsed);
     try {
         const customer_id = 'M-' + Date.now() + Math.floor(Math.random() * 1000);
         const [result] = await pool.query(
@@ -1418,16 +1415,24 @@ app.post('/api/telecalling/manual-entry', authenticate, async (req, res) => {
 app.get('/api/telecalling/nibox', authenticate, async (req, res) => {
     try {
         const { type } = req.query; // 'my' or 'all'
+        console.log('GET /api/telecalling/nibox: type =', type, 'user =', req.user);
         let query = `
-            SELECT * FROM customers 
-            WHERE status IN ('Not Interested', 'NI')
+            SELECT c.*, l.notes as last_note
+            FROM customers c
+            LEFT JOIN (
+                SELECT customer_id, MAX(id) as max_id
+                FROM call_logs
+                GROUP BY customer_id
+            ) l_max ON c.id = l_max.customer_id
+            LEFT JOIN call_logs l ON l_max.max_id = l.id
+            WHERE c.status IN ('Not Interested', 'NI')
         `;
         let params = [];
         if (type === 'my') {
-            query += ` AND JSON_CONTAINS(assigned_to, CAST(? AS JSON), '$')`;
+            query += ` AND l.employee_id = ?`;
             params = [req.user.id];
         }
-        query += ` ORDER BY last_dial_date DESC`;
+        query += ` ORDER BY c.last_dial_date DESC`;
         const [rows] = await pool.query(query, params);
         res.json(rows);
     } catch (error) { res.status(500).json({ error: error.message }); }

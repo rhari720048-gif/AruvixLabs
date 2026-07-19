@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { X, Clock } from 'lucide-react';
 
-const API = 'https://aruvixlabs.onrender.com/api';
+const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
+
+const formatTime = (totalSeconds) => {
+  if (totalSeconds == null) return '00:00';
+  const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+  const s = (totalSeconds % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+};
 
 const ViewModal = ({ isOpen, onClose, title, data }) => {
   const [history, setHistory] = useState([]);
@@ -76,11 +83,14 @@ const ViewModal = ({ isOpen, onClose, title, data }) => {
             </div>
           )}
           {Object.entries(data).map(([key, value]) => {
-            // Skip the ID field in the view modal if we passed the whole object
-            if (key === 'id' || key === 'previewUrl') return null;
+            const allowedKeys = ['name', 'phone', 'location', 'district', 'car_name', 'car_model'];
+            if (!allowedKeys.includes(key)) return null;
             
-            // Format camelCase keys into Title Case
-            const formattedKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+            let formattedKey = key;
+            if (key === 'name') formattedKey = 'Name';
+            else if (key === 'phone') formattedKey = 'Phone Number';
+            else if (key === 'location' || key === 'district') formattedKey = 'Location';
+            else if (key === 'car_name' || key === 'car_model') formattedKey = 'Car Name with Year';
             
             return (
               <div key={key}>
@@ -113,10 +123,15 @@ const ViewModal = ({ isOpen, onClose, title, data }) => {
               {history.map(log => (
                 <div key={log.id} style={{ background: 'white', padding: '10px', borderRadius: '6px', border: '1px solid #e5e7eb', fontSize: '13px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                    <span style={{ fontWeight: 'bold', color: log.status === 'Interested' || log.status === 'Appointment' ? '#10b981' : log.status === 'Not Interested' ? '#ef4444' : '#f59e0b' }}>
+                    <span style={{ fontWeight: 'bold', color: log.status === 'Interested' || log.status === 'Appointment' ? '#10b981' : log.status === 'Not Interested' || log.status === 'NI' ? '#ef4444' : '#f59e0b' }}>
                       {log.status}
                     </span>
-                    <span style={{ color: '#6b7280', fontSize: '11px' }}>
+                    <span style={{ color: '#6b7280', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {log.duration > 0 && (
+                        <span style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontWeight: '500' }}>
+                          ⏱ {formatTime(log.duration)}
+                        </span>
+                      )}
                       {new Date(log.created_at || log.call_date).toLocaleString()}
                     </span>
                   </div>

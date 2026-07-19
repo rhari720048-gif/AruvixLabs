@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Clock, Phone, FileText, Search, User, Users, PlusCircle, CheckCircle, Edit3, Trash2 } from 'lucide-react';
 import { getPerms } from './permissions';
 
-const API = 'https://aruvixlabs.onrender.com/api';
+const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
 
 const CallHistory = () => {
   const { canDelete } = getPerms('call_history');

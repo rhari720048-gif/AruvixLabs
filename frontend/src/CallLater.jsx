@@ -4,7 +4,7 @@ import ActionButtons from './ActionButtons';
 import ViewModal from './ViewModal';
 import EditLeadModal from './EditLeadModal';
 
-const API = 'https://aruvixlabs.onrender.com/api';
+const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
 
 const CallLater = () => {
   const [activeTab, setActiveTab] = useState('my'); // 'my', 'all', 'manual'
@@ -18,7 +18,7 @@ const CallLater = () => {
   const [editLead, setEditLead] = useState(null);
 
   // Manual form state
-  const [manualForm, setManualForm] = useState({ name: '', phone: '', location: '', car_name: '', car_number: '', requirements: '', assignedTo: [], notes: '' });
+  const [manualForm, setManualForm] = useState({ name: '', phone: '', location: '', car_name: '', notes: '' });
   const [users, setUsers] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -121,7 +121,7 @@ const CallLater = () => {
         });
         if (res.ok) {
             setSuccessMsg('Manual Call Later lead added successfully!');
-            setManualForm({ name: '', phone: '', location: '', car_name: '', car_number: '', requirements: '', assignedTo: [], notes: '' });
+            setManualForm({ name: '', phone: '', location: '', car_name: '', notes: '' });
             setTimeout(() => setSuccessMsg(''), 3000);
         } else {
             const err = await res.json();
@@ -184,21 +184,8 @@ const CallLater = () => {
                       <input type="text" value={manualForm.location} onChange={e => setManualForm({...manualForm, location: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="Enter location" />
                   </div>
                   <div>
-                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Car Name / Model</label>
-                      <input type="text" value={manualForm.car_name} onChange={e => setManualForm({...manualForm, car_name: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="E.g., Honda City" />
-                  </div>
-                  <div>
-                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Car Number</label>
-                      <input type="text" value={manualForm.car_number} onChange={e => setManualForm({...manualForm, car_number: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="E.g., TN-01-AB-1234" />
-                  </div>
-                  <div style={{ gridColumn: '1 / -1' }}>
-                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Assign To</label>
-                      <select multiple value={manualForm.assignedTo} onChange={e => setManualForm({...manualForm, assignedTo: Array.from(e.target.selectedOptions, option => option.value)})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none', height: '100px' }}>
-                          {users.map(u => (
-                              <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
-                          ))}
-                      </select>
-                      <span style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px', display: 'block' }}>Hold Ctrl/Cmd to select multiple. Leave blank to assign to yourself.</span>
+                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Car Name with Year</label>
+                      <input type="text" value={manualForm.car_name} onChange={e => setManualForm({...manualForm, car_name: e.target.value})} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }} placeholder="E.g., Honda City 2021" />
                   </div>
                   <div style={{ gridColumn: '1 / -1' }}>
                       <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>Notes</label>

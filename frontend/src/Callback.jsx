@@ -4,7 +4,7 @@ import ActionButtons from './ActionButtons';
 import ViewModal from './ViewModal';
 import EditLeadModal from './EditLeadModal';
 
-const API = 'https://aruvixlabs.onrender.com/api';
+const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
 
 const Callback = () => {
   const [leads, setLeads] = useState([]);

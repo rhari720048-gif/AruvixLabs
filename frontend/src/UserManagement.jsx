@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { getPerms } from './permissions';
 
-const API = 'https://aruvixlabs.onrender.com/api';
+const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
 const token = () => localStorage.getItem('token');
 
 const ROLES = ['admin', 'employee', 'manager']; // Fallback

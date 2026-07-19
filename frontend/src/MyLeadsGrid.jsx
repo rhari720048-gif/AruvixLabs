@@ -3,7 +3,7 @@ import { PhoneCall, CheckCircle, ThumbsUp, ThumbsDown, X, Edit2, Trash2, MapPin,
 import ActionButtons from './ActionButtons';
 import EditLeadModal from './EditLeadModal';
 
-const API = 'https://aruvixlabs.onrender.com/api';
+const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
 
 const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdate }) => {
   const [selectedLead, setSelectedLead] = useState(null);

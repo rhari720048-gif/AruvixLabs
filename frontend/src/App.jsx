@@ -12,7 +12,6 @@ import ViewModal from './ViewModal';
 import { getPerms } from './permissions';
 import './index.css';
 
-import StartDial from './StartDial';
 import Callback from './Callback';
 import Appointments from './Appointments';
 import CallLater from './CallLater';
@@ -68,7 +67,6 @@ const Sidebar = ({ isSidebarOpen, setSidebarOpen }) => {
         {hasPerm('dashboard') && <li><Link onClick={() => setSidebarOpen(false)} to="/" className={`nav-link ${isActive('/')}`}><LayoutDashboard size={20} /> Dashboard</Link></li>}
         {hasPerm('profile') && <li><Link onClick={() => setSidebarOpen(false)} to="/profile" className={`nav-link ${isActive('/profile')}`}><User size={20} /> My Profile</Link></li>}
         
-        {hasPerm('telecalling') && <li><Link onClick={() => setSidebarOpen(false)} to="/dial" className={`nav-link ${isActive('/dial')}`}><PhoneCall size={20} /> Start Dial</Link></li>}
         {hasPerm('telecalling') && <li><Link onClick={() => setSidebarOpen(false)} to="/callback" className={`nav-link ${isActive('/callback')}`}><Clock size={20} /> Callbacks</Link></li>}
 
         {hasPerm('leads') && <li><Link onClick={() => setSidebarOpen(false)} to="/leads" className={`nav-link ${isActive('/leads')}`}><UserPlus size={20} /> Leads</Link></li>}
@@ -532,7 +530,6 @@ function App() {
               <Route path="/clients" element={<ProtectedRoute module="clients"><Clients /></ProtectedRoute>} />
               <Route path="/user-management" element={<ProtectedRoute module="user_management"><UserManagement /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute module="settings"><SettingsPage /></ProtectedRoute>} />
-              <Route path="/dial" element={<ProtectedRoute module="telecalling"><StartDial /></ProtectedRoute>} />
               <Route path="/callback" element={<ProtectedRoute module="telecalling"><Callback /></ProtectedRoute>} />
               <Route path="/appointments" element={<ProtectedRoute module="appointments"><Appointments /></ProtectedRoute>} />
               <Route path="/call-later" element={<ProtectedRoute module="call_later"><CallLater /></ProtectedRoute>} />
