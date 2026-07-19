@@ -70,9 +70,11 @@ const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdat
     }
   };
 
-  const startDialing = () => {
+  const startDialing = (leadToDial) => {
+    const target = leadToDial || selectedLead;
+    if (!target) return;
     setCallPhase('dialing');
-    window.location.href = `tel:${selectedLead.phone}`; // Trigger the native dialer
+    window.location.href = `tel:${target.phone}`; // Trigger the native dialer
     
     // Start 2 second delay before timer begins
     setTimeout(() => {
@@ -240,7 +242,18 @@ const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdat
             </div>
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6b7280', fontSize: '14px' }}>
-              <PhoneCall size={14} /> {lead.phone}
+              {lead.phone}
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedLead(lead);
+                  startDialing(lead);
+                }} 
+                style={{ padding: '4px', background: '#10b981', color: 'white', border: 'none', borderRadius: '50%', display: 'inline-flex', cursor: 'pointer' }} 
+                title="Call Now"
+              >
+                <PhoneCall size={12} />
+              </button>
             </div>
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6b7280', fontSize: '14px' }}>
