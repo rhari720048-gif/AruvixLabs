@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, CheckCircle, Save, User, MapPin, PhoneCall, Car, FileText } from 'lucide-react';
+import { X, CheckCircle, Save, User, MapPin, PhoneCall, Car, FileText, Edit3 } from 'lucide-react';
 import SearchableSelect from './SearchableSelect';
 
 const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
