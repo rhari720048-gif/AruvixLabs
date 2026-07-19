@@ -287,6 +287,16 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
                 <td data-label="Mobile No" style={{ padding: '14px 16px', color: '#4b5563' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     {lead.phone}
+                    <button 
+                      onClick={() => {
+                        setSelectedLead(lead);
+                        startDialing(lead);
+                      }} 
+                      style={{ padding: '4px', background: '#10b981', color: 'white', border: 'none', borderRadius: '50%', display: 'inline-flex', cursor: 'pointer' }} 
+                      title="Call"
+                    >
+                      <PhoneCall size={12} />
+                    </button>
                   </div>
                 </td>
                 <td data-label="Location" style={{ padding: '14px 16px', color: '#4b5563' }}>{lead.location}</td>
