@@ -102,7 +102,9 @@ const NIBox = () => {
         if (selectedLead?.id !== leadToCall.id) setSelectedLead(leadToCall);
         resetCallState();
         setCallPhase('dialing');
-        window.location.href = `tel:${leadToCall.phone}`;
+        const a = document.createElement('a');
+        a.href = `tel:${leadToCall.phone}`;
+        a.click();
         
         setTimeout(() => {
             setCallPhase('active');

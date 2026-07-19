@@ -73,7 +73,9 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
     const target = leadToDial || selectedLead;
     if (!target) return;
     setCallPhase('dialing');
-    window.location.href = `tel:${target.phone}`;
+    const a = document.createElement('a');
+    a.href = `tel:${target.phone}`;
+    a.click();
     
     setTimeout(() => {
       setCallPhase('active');
