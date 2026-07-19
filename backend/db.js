@@ -141,7 +141,6 @@ async function initDB() {
                 quotes: { view: true, create: true, edit: true, delete: true },
                 leads: { view: true, create: true, edit: true, delete: true },
                 clients: { view: true, create: true, edit: true, delete: true },
-                telecalling: { view: true, create: true, edit: true, delete: true },
                 appointments: { view: true, create: true, edit: true, delete: true },
                 call_later: { view: true, create: true, edit: true, delete: true },
                 ni_box: { view: true, create: true, edit: true, delete: true },
@@ -165,7 +164,6 @@ async function initDB() {
                 team_chat: { view: true, create: true },
                 leads: { view: true, create: true, edit: true, delete: false },
                 clients: { view: true, create: true, edit: true, delete: false },
-                telecalling: { view: true, create: true, edit: true, delete: false },
                 appointments: { view: true, create: true, edit: true, delete: false },
                 call_later: { view: true, create: true, edit: true, delete: false },
                 ni_box: { view: true, create: true, edit: true, delete: false },
@@ -195,7 +193,7 @@ async function initDB() {
             const [existingAdmin] = await pool.query("SELECT id, permissions FROM roles WHERE name = 'Admin'");
             if (existingAdmin.length > 0) {
                 let currentPerms = typeof existingAdmin[0].permissions === 'string' ? JSON.parse(existingAdmin[0].permissions) : existingAdmin[0].permissions;
-                const keysToAdd = ['telecalling', 'appointments', 'call_later', 'ni_box', 'call_history'];
+                const keysToAdd = ['appointments', 'call_later', 'ni_box', 'call_history'];
                 let modified = false;
                 keysToAdd.forEach(k => {
                     if (!currentPerms[k]) {
@@ -215,7 +213,6 @@ async function initDB() {
                 const empDefaultKeys = {
                     leads: { view: true, create: true, edit: true, delete: false },
                     clients: { view: true, create: true, edit: true, delete: false },
-                    telecalling: { view: true, create: true, edit: true, delete: false },
                     appointments: { view: true, create: true, edit: true, delete: false },
                     call_later: { view: true, create: true, edit: true, delete: false },
                     ni_box: { view: true, create: true, edit: true, delete: false },
