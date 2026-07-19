@@ -289,11 +289,21 @@ const CallLater = () => {
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                     <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: '700' }}>{lead.name}</h3>
-                    <ActionButtons 
-                      onView={() => setViewLead(lead)}
-                      onEdit={() => setEditLead(lead)}
-                      onDelete={() => handleDelete(lead.id)}
-                    />
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <a 
+                        href={`tel:${lead.phone}`}
+                        onClick={(e) => { e.stopPropagation(); startDialing(lead); }}
+                        title="Call Now"
+                        style={{ padding: '8px', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white', border: 'none', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35)' }}
+                      >
+                        <Phone size={15} />
+                      </a>
+                      <ActionButtons 
+                        onView={() => setViewLead(lead)}
+                        onEdit={() => setEditLead(lead)}
+                        onDelete={() => handleDelete(lead.id)}
+                      />
+                    </div>
                   </div>
                   
                   <div style={{ fontSize: '13px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
