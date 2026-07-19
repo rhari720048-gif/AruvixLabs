@@ -101,11 +101,6 @@ const Appointments = () => {
     setTimeout(() => {
         resetCallState();
         setCallPhase('dialing');
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = `tel:${leadToCall.phone}`;
-        document.body.appendChild(iframe);
-        setTimeout(() => document.body.removeChild(iframe), 1000);
         
         setTimeout(() => {
           setCallPhase('active');
@@ -323,7 +318,13 @@ const Appointments = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div style={{ fontWeight: '600', color: '#1f2937' }}>{lead.name}</div>
                     <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-
+                      <a 
+                        href={`tel:${lead.phone}`}
+                        onClick={(e) => { e.stopPropagation(); startDialing(lead); }} 
+                        style={{ padding: '6px', background: '#10b981', color: 'white', border: 'none', borderRadius: '50%', cursor: 'pointer', display: 'flex', textDecoration: 'none' }} title="Call Now"
+                      >
+                        <PhoneCall size={14} />
+                      </a>
                       <button 
                         onClick={(e) => { e.stopPropagation(); handleConvert(lead.id); }}
                         title="Convert to Client"

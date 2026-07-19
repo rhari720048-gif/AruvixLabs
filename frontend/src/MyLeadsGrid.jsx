@@ -81,11 +81,6 @@ const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdat
     setTimeout(() => {
         resetCallState();
         setCallPhase('dialing');
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = `tel:${target.phone}`;
-        document.body.appendChild(iframe);
-        setTimeout(() => document.body.removeChild(iframe), 1000);
         
         setTimeout(() => {
             setCallPhase('active');
@@ -254,17 +249,18 @@ const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdat
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6b7280', fontSize: '14px' }}>
               {lead.phone}
-              <button 
+              <a 
+                href={`tel:${lead.phone}`}
                 onClick={(e) => {
                   e.stopPropagation();
                   setSelectedLead(lead);
                   startDialing(lead);
                 }} 
-                style={{ padding: '4px', background: '#10b981', color: 'white', border: 'none', borderRadius: '50%', display: 'inline-flex', cursor: 'pointer' }} 
+                style={{ padding: '4px', background: '#10b981', color: 'white', border: 'none', borderRadius: '50%', display: 'inline-flex', cursor: 'pointer', textDecoration: 'none' }} 
                 title="Call Now"
               >
                 <PhoneCall size={12} />
-              </button>
+              </a>
             </div>
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6b7280', fontSize: '14px' }}>
@@ -429,8 +425,9 @@ const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdat
                 {callPhase === 'idle' && (
                   <div>
                     <h3 style={{ margin: '0 0 15px', color: '#374151' }}>Ready to call this lead?</h3>
-                    <button 
-                      onClick={startDialing}
+                    <a 
+                      href={`tel:${selectedLead?.phone}`}
+                      onClick={() => startDialing(selectedLead)}
                       style={{
                         display: 'inline-flex', alignItems: 'center', gap: '10px', cursor: 'pointer',
                         background: '#10b981', color: 'white', padding: '16px 32px', border: 'none',
@@ -442,7 +439,7 @@ const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdat
                       onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                     >
                       <PhoneCall size={24} /> Dial Now
-                    </button>
+                    </a>
                   </div>
                 )}
 

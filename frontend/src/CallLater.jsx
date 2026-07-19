@@ -59,11 +59,6 @@ const CallLater = () => {
     setTimeout(() => {
         resetCallState();
         setCallPhase('dialing');
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = `tel:${leadToCall.phone}`;
-        document.body.appendChild(iframe);
-        setTimeout(() => document.body.removeChild(iframe), 1000);
         
         setTimeout(() => {
           setCallPhase('active');
@@ -290,19 +285,20 @@ const CallLater = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div style={{ fontWeight: '600', color: '#1f2937' }}>{lead.name}</div>
                     <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                      <button 
+                      <a 
+                        href={`tel:${lead.phone}`}
                         onClick={(e) => { e.stopPropagation(); startDialing(lead); }}
                         title="Call Now"
                         style={{
                           background: '#d1fae5', color: '#10b981', border: 'none', borderRadius: '6px',
                           width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          cursor: 'pointer', transition: '0.2s'
+                          cursor: 'pointer', transition: '0.2s', textDecoration: 'none'
                         }}
                         onMouseEnter={e => e.currentTarget.style.background = '#a7f3d0'}
                         onMouseLeave={e => e.currentTarget.style.background = '#d1fae5'}
                       >
                         <Phone size={16} />
-                      </button>
+                      </a>
                       <ActionButtons 
                         onView={() => setViewLead(lead)}
                         onEdit={() => setEditLead(lead)}
@@ -358,19 +354,23 @@ const CallLater = () => {
                   <div style={{ borderTop: '2px dashed #e5e7eb', paddingTop: '24px', marginTop: '24px', textAlign: 'center' }}>
                     {callPhase === 'idle' && (
                       <div>
-                        <button 
+                        <a 
+                          href={`tel:${selectedLead?.phone}`}
                           onClick={() => startDialing(selectedLead)}
                           style={{
                             display: 'inline-flex', alignItems: 'center', gap: '10px', cursor: 'pointer',
-                            background: '#10b981', color: 'white', padding: '12px 32px', border: 'none',
-                            borderRadius: '50px', fontWeight: 'bold', fontSize: '16px',
-                            boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)', marginBottom: '20px'
+                            background: '#10b981', color: 'white', padding: '16px 32px', border: 'none',
+                            borderRadius: '50px', textDecoration: 'none', fontWeight: 'bold',
+                            fontSize: '18px', boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)',
+                            transition: 'transform 0.2s'
                           }}
+                          onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                          onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                         >
-                          <PhoneCall size={20} /> Dial Now
-                        </button>
+                          <PhoneCall size={24} /> Dial Now
+                        </a>
                         
-                        <div style={{ textAlign: 'left' }}>
+                        <div style={{ textAlign: 'left', marginTop: '20px' }}>
                             <form onSubmit={handleFeedbackSubmit} style={{ background: '#f8fafc', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                               <h3 style={{ margin: '0 0 15px', color: '#1e293b' }}>Update Status (Manual)</h3>
                               <div style={{ marginBottom: '15px' }}>

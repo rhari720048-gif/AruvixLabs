@@ -80,11 +80,6 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
     setTimeout(() => {
         resetCallState();
         setCallPhase('dialing');
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = `tel:${target.phone}`;
-        document.body.appendChild(iframe);
-        setTimeout(() => document.body.removeChild(iframe), 1000);
         
         setTimeout(() => {
             setCallPhase('active');
@@ -299,16 +294,16 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
                 <td data-label="Mobile No" style={{ padding: '14px 16px', color: '#4b5563' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     {lead.phone}
-                    <button 
-                      onClick={() => {
+                    <a 
+                      href={`tel:${lead.phone}`}
+                      onClick={(e) => {
                         setSelectedLead(lead);
                         startDialing(lead);
                       }} 
-                      style={{ padding: '4px', background: '#10b981', color: 'white', border: 'none', borderRadius: '50%', display: 'inline-flex', cursor: 'pointer' }} 
-                      title="Call"
+                      style={{ padding: '6px', background: '#10b981', color: 'white', border: 'none', borderRadius: '50%', cursor: 'pointer', display: 'flex', textDecoration: 'none' }} title="Call Now"
                     >
-                      <PhoneCall size={12} />
-                    </button>
+                      <PhoneCall size={14} />
+                    </a>
                   </div>
                 </td>
                 <td data-label="Location" style={{ padding: '14px 16px', color: '#4b5563' }}>{lead.location}</td>
@@ -461,8 +456,9 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
                 {callPhase === 'idle' && (
                   <div>
                     <h3 style={{ margin: '0 0 15px', color: '#374151' }}>Ready to call this lead?</h3>
-                    <button 
-                      onClick={() => startDialing()}
+                    <a 
+                      href={`tel:${selectedLead?.phone}`}
+                      onClick={() => startDialing(selectedLead)}
                       style={{
                         display: 'inline-flex', alignItems: 'center', gap: '10px', cursor: 'pointer',
                         background: '#10b981', color: 'white', padding: '16px 32px', border: 'none',
@@ -474,7 +470,7 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
                       onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                     >
                       <PhoneCall size={24} /> Dial Now
-                    </button>
+                    </a>
                   </div>
                 )}
 
