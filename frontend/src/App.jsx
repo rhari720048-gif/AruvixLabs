@@ -134,12 +134,13 @@ const Dashboard = () => {
   const role = (localStorage.getItem('role') || 'employee').toLowerCase();
   
   // Use telecalling reports if admin, otherwise local data fallback
-  const total = reports?.totalLeads ?? data.length;
-  const dialing = reports?.totalCalls ?? 0;
-  const pending = data.filter(c => c.status === 'Pending').length;
-  const interested = data.filter(c => c.status === 'Interested').length;
+  const total = data.length;
+  const pending = data.filter(c => !['Converted', 'Completed Work', 'Appointment', 'Call Later', 'NI', 'Not Interested'].includes(c.status)).length;
+  const apts = data.filter(c => c.status === 'Appointment').length;
+  const callLater = data.filter(c => c.status === 'Call Later').length;
+  const ni = data.filter(c => c.status === 'NI' || c.status === 'Not Interested').length;
   const converted = data.filter(c => c.status === 'Converted').length;
-  const apts = reports?.appointments ?? data.filter(c => c.status === 'Appointment').length;
+  const completed = data.filter(c => c.status === 'Completed Work').length;
 
   return (
     <div>
@@ -148,32 +149,29 @@ const Dashboard = () => {
           <span className="stat-label">Total Leads</span>
           <span className="stat-value">{total}</span>
         </div>
-        {role === 'admin' ? (
-          <>
-            <div className="stat-card">
-              <span className="stat-label">Total Dialing</span>
-              <span className="stat-value">{dialing}</span>
-            </div>
-            <div className="stat-card">
-              <span className="stat-label">Appointments</span>
-              <span className="stat-value">{apts}</span>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="stat-card">
-              <span className="stat-label">Pending Leads</span>
-              <span className="stat-value">{pending}</span>
-            </div>
-            <div className="stat-card">
-              <span className="stat-label">Interested</span>
-              <span className="stat-value">{interested}</span>
-            </div>
-          </>
-        )}
-        <div className="stat-card">
-          <span className="stat-label">Converted</span>
-          <span className="stat-value">{converted}</span>
+        <div className="stat-card" style={{ borderLeft: '4px solid #3b82f6' }}>
+          <span className="stat-label">Uncalled / Pending</span>
+          <span className="stat-value" style={{ color: '#3b82f6' }}>{pending}</span>
+        </div>
+        <div className="stat-card" style={{ borderLeft: '4px solid #8b5cf6' }}>
+          <span className="stat-label">Appointments</span>
+          <span className="stat-value" style={{ color: '#8b5cf6' }}>{apts}</span>
+        </div>
+        <div className="stat-card" style={{ borderLeft: '4px solid #f59e0b' }}>
+          <span className="stat-label">Call Later</span>
+          <span className="stat-value" style={{ color: '#f59e0b' }}>{callLater}</span>
+        </div>
+        <div className="stat-card" style={{ borderLeft: '4px solid #ef4444' }}>
+          <span className="stat-label">Not Interested (NI)</span>
+          <span className="stat-value" style={{ color: '#ef4444' }}>{ni}</span>
+        </div>
+        <div className="stat-card" style={{ borderLeft: '4px solid #10b981' }}>
+          <span className="stat-label">Clients (Converted)</span>
+          <span className="stat-value" style={{ color: '#10b981' }}>{converted}</span>
+        </div>
+        <div className="stat-card" style={{ borderLeft: '4px solid #059669' }}>
+          <span className="stat-label">Completed Work</span>
+          <span className="stat-value" style={{ color: '#059669' }}>{completed}</span>
         </div>
       </div>
 

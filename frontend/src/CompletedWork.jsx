@@ -175,7 +175,7 @@ const CompletedWork = () => {
       </div>
 
       {viewClient && (
-        <ViewModal lead={viewClient} onClose={() => setViewClient(null)} />
+        <ViewModal isOpen={true} data={viewClient} title="Client Details" onClose={() => setViewClient(null)} />
       )}
     </div>
   );

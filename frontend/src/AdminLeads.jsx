@@ -73,8 +73,8 @@ const AdminLeads = () => {
             assignedToId: c.assigned_to || ''
           };
         });
-        // Filter out converted clients
-        setLeads(formattedLeads.filter(c => c.status !== 'Converted'));
+        // Filter out processed clients from leads view
+        setLeads(formattedLeads.filter(c => !['Converted', 'Completed Work', 'Appointment', 'Call Later', 'NI', 'Not Interested'].includes(c.status)));
       }
     } catch (e) {
       console.error(e);
