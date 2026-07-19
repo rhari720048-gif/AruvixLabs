@@ -81,7 +81,11 @@ const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdat
     setTimeout(() => {
         resetCallState();
         setCallPhase('dialing');
-        window.location.href = `tel:${target.phone}`;
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = `tel:${target.phone}`;
+        document.body.appendChild(iframe);
+        setTimeout(() => document.body.removeChild(iframe), 1000);
         
         setTimeout(() => {
             setCallPhase('active');

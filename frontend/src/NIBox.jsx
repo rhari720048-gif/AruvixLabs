@@ -106,7 +106,11 @@ const NIBox = () => {
         setTimeout(() => {
             resetCallState();
             setCallPhase('dialing');
-            window.location.href = `tel:${leadToCall.phone}`;
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = `tel:${leadToCall.phone}`;
+            document.body.appendChild(iframe);
+            setTimeout(() => document.body.removeChild(iframe), 1000);
             
             setTimeout(() => {
                 setCallPhase('active');
