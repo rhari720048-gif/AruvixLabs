@@ -315,17 +315,17 @@ const Appointments = () => {
                     <div style={{ fontWeight: '600', color: '#1f2937' }}>{lead.name}</div>
                     <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                       <button 
-                        onClick={(e) => { e.stopPropagation(); startDialing(lead); }}
-                        title="Call Now"
+                        onClick={(e) => { e.stopPropagation(); setViewLead(lead); }}
+                        title="View Details"
                         style={{
-                          background: '#d1fae5', color: '#10b981', border: 'none', borderRadius: '6px',
+                          background: '#e0e7ff', color: '#4f46e5', border: 'none', borderRadius: '6px',
                           width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center',
                           cursor: 'pointer', transition: '0.2s'
                         }}
-                        onMouseEnter={e => e.currentTarget.style.background = '#a7f3d0'}
-                        onMouseLeave={e => e.currentTarget.style.background = '#d1fae5'}
+                        onMouseEnter={e => e.currentTarget.style.background = '#c7d2fe'}
+                        onMouseLeave={e => e.currentTarget.style.background = '#e0e7ff'}
                       >
-                        <Phone size={16} />
+                        <Eye size={16} />
                       </button>
                       <button 
                         onClick={(e) => { e.stopPropagation(); handleConvert(lead.id); }}
@@ -415,150 +415,53 @@ const Appointments = () => {
                     </div>
                   )}
 
-                  <div style={{ borderTop: '2px dashed #e5e7eb', paddingTop: '24px', marginTop: '24px', textAlign: 'center' }}>
-                    {callPhase === 'idle' && (
-                      <div>
-                        <button 
-                          onClick={() => startDialing(selectedLead)}
-                          style={{
-                            display: 'inline-flex', alignItems: 'center', gap: '10px', cursor: 'pointer',
-                            background: '#10b981', color: 'white', padding: '12px 32px', border: 'none',
-                            borderRadius: '50px', fontWeight: 'bold', fontSize: '16px',
-                            boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)', marginBottom: '20px'
-                          }}
-                        >
-                          <PhoneCall size={20} /> Dial Now
-                        </button>
+                  <div style={{ borderTop: '2px dashed #e5e7eb', paddingTop: '24px', marginTop: '24px', textAlign: 'left' }}>
+                      <form onSubmit={handleFeedbackSubmit} style={{ background: '#f8fafc', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                        <h3 style={{ marginBottom: '15px' }}>Update Status (Manual)</h3>
                         
-                        <div style={{ textAlign: 'left' }}>
-                            <form onSubmit={handleFeedbackSubmit} style={{ background: '#f8fafc', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                              <h3 style={{ marginBottom: '15px' }}>Update Status (Manual)</h3>
-                              
-                              <div style={{ marginBottom: '15px' }}>
-                                <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#374151' }}>Call Status</label>
-                                <select 
-                                  value={feedback.status} 
-                                  onChange={e => setFeedback({...feedback, status: e.target.value})}
-                                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }}
-                                  required
-                                >
-                                  <option value="Not Interested">Not Interested (NI)</option>
-                                  <option value="Call Later">Call Later</option>
-                                  <option value="Appointment">Appointment</option>
-                                </select>
-                              </div>
-
-                              {['Call Later', 'Appointment'].includes(feedback.status) && (
-                                <div style={{ marginBottom: '15px' }}>
-                                  <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#374151' }}>New Date & Time</label>
-                                  <input 
-                                    type="datetime-local" 
-                                    value={feedback.callback_time} 
-                                    onChange={e => setFeedback({...feedback, callback_time: e.target.value})}
-                                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }}
-                                    required
-                                  />
-                                </div>
-                              )}
-
-                              <div style={{ marginBottom: '20px' }}>
-                                <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#374151' }}>Meeting Notes</label>
-                                <textarea 
-                                  value={feedback.notes} 
-                                  onChange={e => setFeedback({...feedback, notes: e.target.value})}
-                                  rows="4"
-                                  placeholder="Enter details of the meeting..."
-                                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none', resize: 'vertical' }}
-                                  required
-                                ></textarea>
-                              </div>
-
-                              <button type="submit" style={{ padding: '12px 24px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <CheckCircle size={18} /> Submit Update
-                              </button>
-                            </form>
+                        <div style={{ marginBottom: '15px' }}>
+                          <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#374151' }}>Call Status</label>
+                          <select 
+                            value={feedback.status} 
+                            onChange={e => setFeedback({...feedback, status: e.target.value})}
+                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }}
+                            required
+                          >
+                            <option value="Not Interested">Not Interested (NI)</option>
+                            <option value="Call Later">Call Later</option>
+                            <option value="Appointment">Appointment</option>
+                          </select>
                         </div>
-                      </div>
-                    )}
 
-                    {callPhase === 'dialing' && (
-                      <div style={{ padding: '20px', animation: 'pulse 1.5s infinite' }}>
-                        <PhoneCall size={48} color="#10b981" style={{ marginBottom: '10px' }} />
-                        <h3 style={{ margin: 0, color: '#10b981' }}>Dialing...</h3>
-                      </div>
-                    )}
+                        {['Call Later', 'Appointment'].includes(feedback.status) && (
+                          <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#374151' }}>New Date & Time</label>
+                            <input 
+                              type="datetime-local" 
+                              value={feedback.callback_time} 
+                              onChange={e => setFeedback({...feedback, callback_time: e.target.value})}
+                              style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }}
+                              required
+                            />
+                          </div>
+                        )}
 
-                    {callPhase === 'active' && (
-                      <div style={{ background: '#f0fdf4', padding: '30px', borderRadius: '16px', border: '2px solid #86efac' }}>
-                        <div style={{ fontSize: '48px', fontWeight: 'bold', color: '#15803d', fontFamily: 'monospace', marginBottom: '20px' }}>
-                          {formatTime(secondsElapsed)}
+                        <div style={{ marginBottom: '20px' }}>
+                          <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#374151' }}>Meeting Notes</label>
+                          <textarea 
+                            value={feedback.notes} 
+                            onChange={e => setFeedback({...feedback, notes: e.target.value})}
+                            rows="4"
+                            placeholder="Enter details of the meeting..."
+                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none', resize: 'vertical' }}
+                            required
+                          ></textarea>
                         </div>
-                        <button 
-                          onClick={stopTimer}
-                          style={{
-                            display: 'inline-flex', alignItems: 'center', gap: '10px', cursor: 'pointer',
-                            background: '#ef4444', color: 'white', padding: '16px 40px', border: 'none',
-                            borderRadius: '50px', fontWeight: 'bold', fontSize: '18px',
-                            boxShadow: '0 4px 14px rgba(239, 68, 68, 0.4)'
-                          }}
-                        >
-                          <PhoneOff size={24} /> End Call
+
+                        <button type="submit" style={{ padding: '12px 24px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <CheckCircle size={18} /> Submit Update
                         </button>
-                      </div>
-                    )}
-
-                    {callPhase === 'feedback' && (
-                        <div style={{ textAlign: 'left' }}>
-                            <form onSubmit={handleFeedbackSubmit} style={{ background: '#f8fafc', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                              <h3 style={{ margin: '0 0 15px', color: '#1e293b', textAlign: 'center' }}>How did the call go?</h3>
-                              <div style={{ textAlign: 'center', marginBottom: '20px', color: '#64748b', fontWeight: '500' }}>
-                                Call Duration: <span style={{ color: '#0f172a', fontWeight: 'bold' }}>{formatTime(secondsElapsed)}</span>
-                              </div>
-                              <div style={{ marginBottom: '15px' }}>
-                                <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#374151' }}>Call Status</label>
-                                <select 
-                                  value={feedback.status} 
-                                  onChange={e => setFeedback({...feedback, status: e.target.value})}
-                                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }}
-                                  required
-                                >
-                                  <option value="Not Interested">Not Interested (NI)</option>
-                                  <option value="Call Later">Call Later</option>
-                                  <option value="Appointment">Appointment</option>
-                                </select>
-                              </div>
-
-                              {['Call Later', 'Appointment'].includes(feedback.status) && (
-                                <div style={{ marginBottom: '15px' }}>
-                                  <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#374151' }}>New Date & Time</label>
-                                  <input 
-                                    type="datetime-local" 
-                                    value={feedback.callback_time} 
-                                    onChange={e => setFeedback({...feedback, callback_time: e.target.value})}
-                                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none' }}
-                                    required
-                                  />
-                                </div>
-                              )}
-
-                              <div style={{ marginBottom: '20px' }}>
-                                <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#374151' }}>Meeting Notes</label>
-                                <textarea 
-                                  value={feedback.notes} 
-                                  onChange={e => setFeedback({...feedback, notes: e.target.value})}
-                                  rows="4"
-                                  placeholder="Enter details of the meeting..."
-                                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', outline: 'none', resize: 'vertical' }}
-                                  required
-                                ></textarea>
-                              </div>
-
-                              <button type="submit" style={{ padding: '12px 24px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px', width: '100%', justifyContent: 'center' }}>
-                                <CheckCircle size={18} /> Submit Feedback
-                              </button>
-                            </form>
-                        </div>
-                    )}
+                      </form>
                   </div>
               </div>
             ) : (

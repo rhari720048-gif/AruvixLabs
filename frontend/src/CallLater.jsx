@@ -305,7 +305,7 @@ const CallLater = () => {
                     <Car size={12} /> {lead.car_model || lead.car_name || 'No Car'} {lead.registration_number ? `(${lead.registration_number})` : ''}
                   </div>
                   <div style={{ fontSize: '12px', color: '#f59e0b', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Clock size={12} /> Needs Follow-up
+                    <Clock size={12} /> {lead.callback_time ? `Callback: ${new Date(lead.callback_time).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}` : 'Needs Follow-up'}
                   </div>
                 </li>
               ))}
@@ -331,6 +331,11 @@ const CallLater = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#4b5563' }}>
                       <Car size={18} color="#f59e0b" /> <strong>Vehicle:</strong> {selectedLead.car_model || selectedLead.car_name || '-'} {selectedLead.registration_number ? `(${selectedLead.registration_number})` : ''}
                     </div>
+                    {selectedLead.callback_time && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#f59e0b', gridColumn: '1 / -1' }}>
+                        <Clock size={18} color="#f59e0b" /> <strong>Callback Scheduled:</strong> {new Date(selectedLead.callback_time).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+                      </div>
+                    )}
                   </div>
                   </div>
                   
