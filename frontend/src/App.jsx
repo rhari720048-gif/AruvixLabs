@@ -651,7 +651,6 @@ function App() {
               <Route path="/completed-work" element={<ProtectedRoute module="completed_work"><CompletedWork /></ProtectedRoute>} />
             </Routes>
           </div>
-          <MobileBottomNav />
         </main>
       </div>
     </Router>

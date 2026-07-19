@@ -85,30 +85,32 @@ const Login = ({ setAuth }) => {
           </div>
         )}
 
-        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '13.5px', fontWeight: '700', color: '#475569' }}>Email Address</label>
             <div style={{ position: 'relative' }}>
-              <Mail size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+              <Mail size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#6366f1', zIndex: 2 }} />
               <input 
                 type="email" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                style={{ width: '100%', padding: '14px 14px 14px 44px', border: '1px solid #e2e8f0', borderRadius: '10px', fontSize: '15px', outline: 'none', transition: 'border-color 0.2s', boxSizing: 'border-box' }}
-                placeholder="Email Address"
+                style={{ width: '100%', paddingLeft: '46px', height: '48px', border: '1.5px solid #e2e8f0', borderRadius: '14px', fontSize: '14.5px', outline: 'none', background: '#f8fafc', fontWeight: '600', color: '#0f172a' }}
+                placeholder="Enter email address"
               />
             </div>
           </div>
           <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '13.5px', fontWeight: '700', color: '#475569' }}>Password</label>
             <div style={{ position: 'relative' }}>
-              <Lock size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+              <Lock size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#6366f1', zIndex: 2 }} />
               <input 
                 type="password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                style={{ width: '100%', padding: '14px 14px 14px 44px', border: '1px solid #e2e8f0', borderRadius: '10px', fontSize: '15px', outline: 'none', transition: 'border-color 0.2s', boxSizing: 'border-box' }}
-                placeholder="Password"
+                style={{ width: '100%', paddingLeft: '46px', height: '48px', border: '1.5px solid #e2e8f0', borderRadius: '14px', fontSize: '14.5px', outline: 'none', background: '#f8fafc', fontWeight: '600', color: '#0f172a' }}
+                placeholder="Enter password"
               />
             </div>
           </div>

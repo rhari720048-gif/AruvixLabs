@@ -770,7 +770,7 @@ input[type="checkbox"]:checked::after {
   
   .content-area {
     padding: 12px 14px;
-    padding-bottom: 90px !important;
+    padding-bottom: 24px !important;
   }
 
   /* Stat KPI Cards - 100% full width stack */
