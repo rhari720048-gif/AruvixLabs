@@ -1,6 +1,6 @@
 const mysql = require('mysql2/promise');
 const dotenv = require('dotenv');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 dotenv.config();
 const pool = mysql.createPool({
     host: process.env.DB_HOST,
@@ -47,7 +47,7 @@ async function initDB() {
             email VARCHAR(255) UNIQUE NOT NULL,
             password VARCHAR(255) NOT NULL,
             phone VARCHAR(20),
-            role ENUM('admin', 'manager', 'employee') DEFAULT 'employee',
+            role VARCHAR(100) DEFAULT 'employee',
             role_id INT,
             permissions JSON,
             status VARCHAR(20) DEFAULT 'Active',
@@ -80,6 +80,7 @@ async function initDB() {
             status VARCHAR(100),
             notes TEXT,
             callback_time DATETIME,
+            duration INT DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
             FOREIGN KEY (employee_id) REFERENCES users(id) ON DELETE CASCADE
@@ -92,12 +93,15 @@ async function initDB() {
         await pool.query(customersTable);
         await pool.query(callLogsTable);
 
-        // Custom roles & user profile migrations
         try {
-            await pool.query("ALTER TABLE users MODIFY COLUMN role VARCHAR(255) DEFAULT 'employee'");
-        } catch (e) {
-            console.log("Migration users.role alteration failed/skipped:", e.message);
-        }
+            await pool.query("ALTER TABLE users MODIFY COLUMN role VARCHAR(100) DEFAULT 'employee'");
+        } catch (e) { }
+        try {
+            await pool.query("ALTER TABLE users ADD COLUMN phone VARCHAR(20)");
+        } catch (e) { }
+        try {
+            await pool.query("ALTER TABLE users ADD COLUMN status VARCHAR(20) DEFAULT 'Active'");
+        } catch (e) { }
         try {
             await pool.query("ALTER TABLE users ADD COLUMN bio TEXT");
         } catch (e) { }
