@@ -104,11 +104,11 @@ export default function Header({ setSidebarOpen }) {
 
         {/* Live Clock & Date Widget (Pearl White Pill) */}
         <div className="header-clock-widget">
-          <div className="clock-item clock-date">
+          <div className="clock-item clock-date clock-date-desktop">
             <Calendar size={14} color="#4f46e5" />
             <span>{formattedDate}</span>
           </div>
-          <div className="clock-divider">|</div>
+          <div className="clock-divider clock-date-desktop">|</div>
           <div className="clock-item clock-time">
             <Clock size={14} color="#4f46e5" />
             <span>{formattedTime}</span>

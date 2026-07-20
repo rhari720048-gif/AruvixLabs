@@ -1876,10 +1876,13 @@ input:-webkit-autofill:active {
   /* 2. Top Header & Clock Widget */
   .crm-header-split {
     flex-direction: column !important;
-    gap: 10px !important;
-    padding: 12px 14px !important;
-    border-radius: 16px !important;
-    margin-bottom: 16px !important;
+    gap: 8px !important;
+    padding: 10px 12px !important;
+    border-radius: 14px !important;
+    margin-bottom: 12px !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
   }
 
   .header-row-primary {
@@ -1904,27 +1907,39 @@ input:-webkit-autofill:active {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    gap: 8px !important;
+    gap: 6px !important;
+    overflow: hidden !important;
   }
 
   .header-mobile-greeting {
     display: flex !important;
     align-items: center !important;
-    gap: 6px !important;
-    font-size: 12px !important;
+    gap: 5px !important;
+    font-size: 11.5px !important;
     background: #e0e7ff !important;
     color: #3730a3 !important;
-    padding: 6px 12px !important;
+    padding: 4px 10px !important;
     border-radius: 20px !important;
     font-weight: 700 !important;
+    max-width: 58% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .header-mobile-greeting span {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
   }
 
   .header-clock-widget {
     margin-left: auto !important;
-    font-size: 11px !important;
-    padding: 4px 10px !important;
-    border-radius: 14px !important;
-    gap: 6px !important;
+    font-size: 10.5px !important;
+    padding: 4px 8px !important;
+    border-radius: 12px !important;
+    gap: 4px !important;
+    flex-shrink: 0 !important;
   }
 
   .clock-divider {
@@ -1935,74 +1950,81 @@ input:-webkit-autofill:active {
   .crm-page-header {
     flex-direction: column !important;
     align-items: stretch !important;
-    gap: 12px !important;
-    margin-bottom: 16px !important;
+    gap: 10px !important;
+    margin-bottom: 12px !important;
   }
 
   .crm-page-title-group h1 {
-    font-size: 20px !important;
+    font-size: 18px !important;
   }
 
   .crm-page-title-group p {
-    font-size: 12.5px !important;
+    font-size: 11.5px !important;
   }
 
   .crm-page-actions {
     width: 100% !important;
     display: flex !important;
     flex-wrap: wrap !important;
-    gap: 8px !important;
+    gap: 6px !important;
   }
 
-  .crm-page-actions button, .crm-page-actions a {
+  .crm-page-actions button, .crm-page-actions a, .btn {
     flex: 1 1 calc(50% - 4px) !important;
-    min-height: 42px !important;
+    min-height: 38px !important;
     justify-content: center !important;
-    font-size: 13px !important;
+    font-size: 12px !important;
+    padding: 6px 10px !important;
+    border-radius: 10px !important;
   }
 
-  /* 4. Dashboard KPI Cards */
+  /* 4. Dashboard KPI Cards (Compact & Neat) */
   .modern-stats-grid, .stats-grid, .kpi-grid {
     grid-template-columns: repeat(2, 1fr) !important;
-    gap: 10px !important;
-    margin-bottom: 16px !important;
+    gap: 8px !important;
+    margin-bottom: 12px !important;
   }
 
-  .modern-stat-card {
-    padding: 16px 14px !important;
-    border-radius: 16px !important;
+  .modern-stat-card, .stat-card, .crm-card {
+    padding: 12px 10px !important;
+    border-radius: 14px !important;
   }
 
   .modern-stat-header {
-    font-size: 11.5px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
   }
 
   .modern-stat-value {
-    font-size: 22px !important;
-    margin-top: 4px !important;
+    font-size: 18px !important;
+    margin-top: 2px !important;
+    font-weight: 800 !important;
   }
 
   .bg-icon {
-    width: 60px !important;
-    height: 60px !important;
-    opacity: 0.1 !important;
+    width: 40px !important;
+    height: 40px !important;
+    opacity: 0.08 !important;
   }
 
   /* 5. Search Bars & Filters */
   .search-filter-container {
     flex-direction: column !important;
-    padding: 14px !important;
-    gap: 10px !important;
-    border-radius: 14px !important;
+    padding: 10px !important;
+    gap: 8px !important;
+    border-radius: 12px !important;
   }
 
   .search-filter-container > div {
     width: 100% !important;
   }
 
-  .search-filter-container input, .searchable-select, select {
+  .search-filter-container input, .searchable-select, select, input, textarea {
     width: 100% !important;
-    font-size: 14px !important;
+    font-size: 13px !important;
+    height: 38px !important;
+    padding: 6px 10px !important;
+    border-radius: 10px !important;
   }
 
   /* Filter buttons horizontal scroll */
@@ -2011,33 +2033,34 @@ input:-webkit-autofill:active {
     width: 100% !important;
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
-    padding-bottom: 6px !important;
-    gap: 6px !important;
+    padding-bottom: 4px !important;
+    gap: 4px !important;
   }
 
   .filter-buttons-scroll button, .leads-header-tabs button {
     flex-shrink: 0 !important;
     white-space: nowrap !important;
-    padding: 7px 14px !important;
-    font-size: 12px !important;
+    padding: 6px 10px !important;
+    font-size: 11.5px !important;
+    border-radius: 8px !important;
   }
 
-  /* 6. Tables - Smooth Horizontal Scroll */
-  .table-container, div[style*="overflow: hidden"] {
+  /* 6. Tables - Smooth Compact View */
+  .table-container, div[style*="overflow: hidden"], div[style*="overflow-x: auto"] {
     width: 100% !important;
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
-    border-radius: 14px !important;
+    border-radius: 12px !important;
   }
 
   table {
-    min-width: 650px !important; /* Forces scrollable view without squishing headers */
+    min-width: 600px !important; /* Forces scrollable view without squishing headers */
     width: 100% !important;
   }
 
   th, td {
-    padding: 10px 12px !important;
-    font-size: 13px !important;
+    padding: 8px 10px !important;
+    font-size: 12px !important;
     white-space: nowrap !important;
   }
 
@@ -2052,8 +2075,8 @@ input:-webkit-autofill:active {
     max-width: 100% !important;
     max-height: 85vh !important;
     overflow-y: auto !important;
-    border-radius: 24px 24px 0 0 !important;
-    padding: 24px 18px 32px !important;
+    border-radius: 20px 20px 0 0 !important;
+    padding: 18px 14px 24px !important;
     margin: 0 !important;
     box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.25) !important;
     animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
@@ -2061,23 +2084,25 @@ input:-webkit-autofill:active {
 
   .responsive-grid, div[style*="display: grid"] {
     grid-template-columns: 1fr !important;
-    gap: 12px !important;
-  }
-
-  /* Prevent iOS zoom on input focus */
-  input, select, textarea {
-    font-size: 16px !important;
+    gap: 10px !important;
   }
 
   /* Modal Action buttons stacked */
   div[style*="display: flex"][style*="gap: 10"] {
     flex-direction: column !important;
-    gap: 8px !important;
+    gap: 6px !important;
   }
 
   div[style*="display: flex"][style*="gap: 10"] button {
     width: 100% !important;
-    min-height: 44px !important;
+    min-height: 40px !important;
+  }
+}
+
+@media (max-width: 580px) {
+  /* Hide date string on small mobile screens to keep clock widget tight */
+  .clock-date-desktop {
+    display: none !important;
   }
 }
 
@@ -2085,22 +2110,6 @@ input:-webkit-autofill:active {
   /* Single column metric cards on very small phones */
   .modern-stats-grid, .stats-grid, .kpi-grid {
     grid-template-columns: 1fr !important;
-  }
-
-  .login-split-page {
-    padding: 16px 12px !important;
-  }
-
-  .curved-banner-header {
-    padding: 24px 16px 32px !important;
-  }
-
-  .curved-banner-title {
-    font-size: 22px !important;
-  }
-
-  .curved-card-body {
-    padding: 20px 16px 24px !important;
   }
 
   .crm-page-actions button, .crm-page-actions a {
