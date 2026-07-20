@@ -20,9 +20,11 @@ export default function Header({ setSidebarOpen }) {
   try { storedUser = JSON.parse(localStorage.getItem('user') || '{}'); } catch(e){}
   
   const user = {
-    name: storedUser.name || localStorage.getItem('user_name') || 'ARUVIXLABS',
+    name: storedUser.name || localStorage.getItem('user_name') || 'Admin',
     role: (tokenUser.role || storedUser.role || 'employee').toLowerCase()
   };
+
+  const displayName = user.role === 'admin' ? 'Admin' : (storedUser.name || localStorage.getItem('user_name') || 'User');
 
   const roleLabel = ROLE_LABELS[user.role] || user.role;
 
@@ -85,7 +87,7 @@ export default function Header({ setSidebarOpen }) {
           <div className="header-greeting-card">
             <div className="header-greeting-title">
               {greeting.icon}
-              <span>{greeting.text}, <strong>{user.name}</strong></span>
+              <span>{greeting.text}, <strong>{displayName}</strong></span>
             </div>
             <span className="header-role-badge-indigo">
               <ShieldCheck size={12} /> {roleLabel}
@@ -99,7 +101,7 @@ export default function Header({ setSidebarOpen }) {
         {/* Mobile View Indigo Greeting Pill */}
         <div className="header-mobile-greeting">
           {greeting.icon}
-          <span>{greeting.text}, <strong>{user.name}</strong></span>
+          <span>{greeting.text}, <strong>{displayName}</strong></span>
         </div>
 
         {/* Live Clock & Date Widget (Pearl White Pill) */}

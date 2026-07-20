@@ -1873,16 +1873,30 @@ input:-webkit-autofill:active {
     width: 100% !important;
   }
 
-  /* 2. Top Header & Clock Widget */
+  /* Sidebar Overlay & Drawer Higher Z-Index Fix */
+  .sidebar-overlay {
+    z-index: 9998 !important;
+  }
+
+  .sidebar {
+    z-index: 9999 !important;
+  }
+
+  /* 2. Top Header & Clock Widget (Fixed Clean Bar, No Floating Gaps) */
   .crm-header-split {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 99 !important;
     flex-direction: column !important;
     gap: 8px !important;
-    padding: 10px 12px !important;
-    border-radius: 14px !important;
-    margin-bottom: 12px !important;
+    padding: 10px 14px !important;
+    border-radius: 0 0 16px 16px !important;
+    margin: 0 0 12px 0 !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
     overflow: hidden !important;
+    background: #ffffff !important;
+    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.06) !important;
   }
 
   .header-row-primary {
@@ -1916,18 +1930,20 @@ input:-webkit-autofill:active {
     align-items: center !important;
     gap: 5px !important;
     font-size: 11.5px !important;
-    background: #e0e7ff !important;
-    color: #3730a3 !important;
-    padding: 4px 10px !important;
+    background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%) !important;
+    color: #ffffff !important;
+    padding: 5px 12px !important;
     border-radius: 20px !important;
     font-weight: 700 !important;
-    max-width: 58% !important;
+    max-width: 60% !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25) !important;
   }
 
-  .header-mobile-greeting span {
+  .header-mobile-greeting span, .header-mobile-greeting strong {
+    color: #ffffff !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
