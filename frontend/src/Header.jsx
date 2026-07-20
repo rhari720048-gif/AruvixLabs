@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, Clock, Calendar, ShieldCheck, Sun, Moon, Sunrise } from 'lucide-react';
+import { Menu, Clock, Calendar, ShieldCheck, Sun, Moon, Sunrise, LogOut } from 'lucide-react';
 
 const decodeToken = (token) => {
   try { return JSON.parse(atob(token.split('.')[1])); }
@@ -53,16 +53,19 @@ export default function Header({ setSidebarOpen }) {
   const formattedDate = now.toLocaleDateString('en-IN', {
     weekday: 'short',
     day: '2-digit',
-    month: 'short',
-    year: 'numeric'
+    month: 'short'
   });
 
   const formattedTime = now.toLocaleTimeString('en-US', {
     hour: '2-digit',
     minute: '2-digit',
-    second: '2-digit',
     hour12: true
   });
+
+  const handleLogout = () => {
+    localStorage.clear();
+    window.location.href = '/login';
+  };
 
   return (
     <header className="crm-header-split">
@@ -94,6 +97,16 @@ export default function Header({ setSidebarOpen }) {
             </span>
           </div>
         </div>
+
+        {/* Mobile View Top Right Logout Button */}
+        <button 
+          className="header-logout-btn mobile-header-logout-btn"
+          onClick={handleLogout}
+          title="Logout"
+        >
+          <LogOut size={16} />
+          <span>Logout</span>
+        </button>
       </div>
 
       {/* ── Desktop Right / Mobile Row 2 ───────────────────────────── */}
@@ -106,16 +119,26 @@ export default function Header({ setSidebarOpen }) {
 
         {/* Live Clock & Date Widget (Pearl White Pill) */}
         <div className="header-clock-widget">
-          <div className="clock-item clock-date clock-date-desktop">
-            <Calendar size={14} color="#4f46e5" />
+          <div className="clock-item clock-date">
+            <Calendar size={13} color="#4f46e5" />
             <span>{formattedDate}</span>
           </div>
-          <div className="clock-divider clock-date-desktop">|</div>
+          <div className="clock-divider">|</div>
           <div className="clock-item clock-time">
-            <Clock size={14} color="#4f46e5" />
+            <Clock size={13} color="#4f46e5" />
             <span>{formattedTime}</span>
           </div>
         </div>
+
+        {/* Desktop View Header Logout Button */}
+        <button 
+          className="header-logout-btn desktop-header-logout-btn"
+          onClick={handleLogout}
+          title="Logout"
+        >
+          <LogOut size={16} />
+          <span>Logout</span>
+        </button>
       </div>
     </header>
   );

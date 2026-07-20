@@ -101,31 +101,6 @@ const Sidebar = ({ isSidebarOpen, setSidebarOpen }) => {
         {hasPerm('user_management') && <li><Link onClick={() => setSidebarOpen(false)} to="/user-management" className={`nav-link ${isActive('/user-management')}`}><Users size={20} /> Staff Management</Link></li>}
         {hasPerm('settings') && <li style={{ marginTop: '14px' }}><Link onClick={() => setSidebarOpen(false)} to="/settings" className={`nav-link ${isActive('/settings')}`}><Settings size={20} /> Settings</Link></li>}
       </ul>
-
-      {/* User Profile & Logout section below Settings */}
-      <div style={{ marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid rgba(226, 232, 240, 0.8)', paddingBottom: '16px', paddingLeft: '16px', paddingRight: '16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', background: '#f8fafc', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
-            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '15px', flexShrink: 0 }}>
-              {userName.charAt(0).toUpperCase()}
-            </div>
-            <div style={{ overflow: 'hidden' }}>
-              <div style={{ fontWeight: '700', fontSize: '13.5px', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{userName}</div>
-              <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'capitalize' }}>{role}</div>
-            </div>
-          </div>
-          <button 
-            onClick={() => {
-              localStorage.clear();
-              window.location.href = '/login';
-            }}
-            title="Logout"
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34, borderRadius: 10, background: '#fee2e2', color: '#dc2626', border: 'none', cursor: 'pointer', flexShrink: 0 }}
-          >
-            <LogOut size={16} />
-          </button>
-        </div>
-      </div>
     </aside>
     </>
   );
