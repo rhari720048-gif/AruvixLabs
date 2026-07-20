@@ -1896,81 +1896,107 @@ input:-webkit-autofill:active {
     box-sizing: border-box !important;
     overflow: hidden !important;
     background: #ffffff !important;
-    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.06) !important;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08) !important;
+    border: none !important;
+    border-bottom: 1px solid #e2e8f0 !important;
   }
 
-  .header-row-primary {
-    width: 100% !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-  }
-
-  /* Header Logout Button Styling for Desktop & Mobile */
-  .header-logout-btn {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-    background: #fef2f2 !important;
-    color: #dc2626 !important;
-    border: 1px solid #fecaca !important;
-    padding: 6px 14px !important;
-    border-radius: 12px !important;
-    font-size: 12.5px !important;
-    font-weight: 700 !important;
-    cursor: pointer !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  }
-
-  .header-logout-btn:hover {
-    background: #fee2e2 !important;
-    color: #b91c1c !important;
-    border-color: #fca5a5 !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15) !important;
-  }
-
-  .mobile-header-logout-btn {
-    display: flex !important;
-    padding: 5px 10px !important;
-    font-size: 11.5px !important;
-    border-radius: 10px !important;
-  }
-
-  .desktop-header-logout-btn {
+  .desktop-header-container {
     display: none !important;
   }
 
-  .header-mobile-brand {
+  .mobile-header-bar {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+  }
+
+  .mobile-header-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+
+  .mobile-header-brand {
     display: flex !important;
     align-items: center !important;
     gap: 8px !important;
   }
 
-  .header-row-secondary {
-    width: 100% !important;
+  .mobile-header-right {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+
+  .mobile-header-clock {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    background: #f1f5f9 !important;
+    color: #334155 !important;
+    font-size: 11.5px !important;
+    font-weight: 700 !important;
+    padding: 5px 10px !important;
+    border-radius: 12px !important;
+  }
+
+  .mobile-greeting-strip {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    gap: 6px !important;
-    overflow: hidden !important;
+    width: 100% !important;
+    gap: 8px !important;
   }
 
-  .header-mobile-greeting {
+  .mobile-greeting-pill {
     display: flex !important;
     align-items: center !important;
-    gap: 5px !important;
+    gap: 6px !important;
     font-size: 11.5px !important;
     background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%) !important;
     color: #ffffff !important;
     padding: 5px 12px !important;
     border-radius: 20px !important;
     font-weight: 700 !important;
-    max-width: 60% !important;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25) !important;
+    max-width: 70% !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25) !important;
+  }
+
+  .mobile-greeting-pill span, .mobile-greeting-pill strong {
+    color: #ffffff !important;
+  }
+
+  .mobile-role-tag {
+    background: rgba(255, 255, 255, 0.2) !important;
+    padding: 2px 8px !important;
+    border-radius: 10px !important;
+    font-size: 9.5px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+  }
+
+  .mobile-date-pill {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    background: #e0e7ff !important;
+    color: #3730a3 !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    padding: 5px 10px !important;
+    border-radius: 14px !important;
+    white-space: nowrap !important;
+  }
+
+  .header-logout-btn-red {
+    padding: 5px 10px !important;
+    font-size: 11.5px !important;
+    border-radius: 10px !important;
   }
 
   .header-mobile-greeting span, .header-mobile-greeting strong {

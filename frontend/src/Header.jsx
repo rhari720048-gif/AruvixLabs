@@ -25,10 +25,8 @@ export default function Header({ setSidebarOpen }) {
   };
 
   const displayName = user.role === 'admin' ? 'Admin' : (storedUser.name || localStorage.getItem('user_name') || 'User');
-
   const roleLabel = ROLE_LABELS[user.role] || user.role;
 
-  // Live real-time digital clock
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
@@ -36,15 +34,14 @@ export default function Header({ setSidebarOpen }) {
     return () => clearInterval(timer);
   }, []);
 
-  // Time-based smart greeting logic
   const getGreeting = () => {
     const hour = now.getHours();
     if (hour < 12) {
-      return { text: 'Good Morning', icon: <Sunrise size={20} color="#fbbf24" /> };
+      return { text: 'Good Morning', icon: <Sunrise size={18} color="#fbbf24" /> };
     } else if (hour < 17) {
-      return { text: 'Good Afternoon', icon: <Sun size={20} color="#fbbf24" /> };
+      return { text: 'Good Afternoon', icon: <Sun size={18} color="#fbbf24" /> };
     } else {
-      return { text: 'Good Evening', icon: <Moon size={20} color="#c084fc" /> };
+      return { text: 'Good Evening', icon: <Moon size={18} color="#c084fc" /> };
     }
   };
 
@@ -69,9 +66,9 @@ export default function Header({ setSidebarOpen }) {
 
   return (
     <header className="crm-header-split">
-      {/* ── Desktop Left / Mobile Row 1 ────────────────────────────── */}
-      <div className="header-row-primary">
-        <div className="header-left-group">
+      {/* ── MOBILE HEADER BAR (Clean Top Bar for Mobile View) ──────── */}
+      <div className="mobile-header-bar">
+        <div className="mobile-header-left">
           <button 
             className="mobile-menu-btn" 
             onClick={() => setSidebarOpen(true)}
@@ -79,66 +76,77 @@ export default function Header({ setSidebarOpen }) {
           >
             <Menu size={22} />
           </button>
-
-          {/* Mobile Only Branding */}
-          <div className="header-mobile-brand">
+          <div className="mobile-header-brand">
             <div className="mobile-logo-box">A</div>
             <span className="mobile-brand-title">AruvixLabs</span>
           </div>
-
-          {/* Desktop Indigo Card (Smart Greeting) */}
-          <div className="header-greeting-card">
-            <div className="header-greeting-title">
-              {greeting.icon}
-              <span>{greeting.text}, <strong>{displayName}</strong></span>
-            </div>
-            <span className="header-role-badge-indigo">
-              <ShieldCheck size={12} /> {roleLabel}
-            </span>
-          </div>
         </div>
 
-        {/* Mobile View Top Right Logout Button */}
-        <button 
-          className="header-logout-btn mobile-header-logout-btn"
-          onClick={handleLogout}
-          title="Logout"
-        >
-          <LogOut size={16} />
-          <span>Logout</span>
-        </button>
-      </div>
-
-      {/* ── Desktop Right / Mobile Row 2 ───────────────────────────── */}
-      <div className="header-row-secondary">
-        {/* Mobile View Indigo Greeting Pill */}
-        <div className="header-mobile-greeting">
-          {greeting.icon}
-          <span>{greeting.text}, <strong>{displayName}</strong></span>
-        </div>
-
-        {/* Live Clock & Date Widget (Pearl White Pill) */}
-        <div className="header-clock-widget">
-          <div className="clock-item clock-date">
-            <Calendar size={13} color="#4f46e5" />
-            <span>{formattedDate}</span>
-          </div>
-          <div className="clock-divider">|</div>
-          <div className="clock-item clock-time">
+        <div className="mobile-header-right">
+          <div className="mobile-header-clock">
             <Clock size={13} color="#4f46e5" />
             <span>{formattedTime}</span>
           </div>
+          <button 
+            className="header-logout-btn-red"
+            onClick={handleLogout}
+            title="Logout"
+          >
+            <LogOut size={16} />
+            <span className="logout-text-mobile">Logout</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ── MOBILE GREETING STRIP (Sub-header greeting strip) ──────── */}
+      <div className="mobile-greeting-strip">
+        <div className="mobile-greeting-pill">
+          {greeting.icon}
+          <span>{greeting.text}, <strong>{displayName}</strong></span>
+          <span className="mobile-role-tag">{roleLabel}</span>
+        </div>
+        <div className="mobile-date-pill">
+          <Calendar size={13} color="#4f46e5" />
+          <span>{formattedDate}</span>
+        </div>
+      </div>
+
+      {/* ── DESKTOP HEADER LAYOUT ──────────────────────────────────── */}
+      <div className="desktop-header-container">
+        {/* Desktop Left: Indigo Greeting Card */}
+        <div className="header-greeting-card">
+          <div className="header-greeting-title">
+            {greeting.icon}
+            <span>{greeting.text}, <strong>{displayName}</strong></span>
+          </div>
+          <span className="header-role-badge-indigo">
+            <ShieldCheck size={12} /> {roleLabel}
+          </span>
         </div>
 
-        {/* Desktop View Header Logout Button */}
-        <button 
-          className="header-logout-btn desktop-header-logout-btn"
-          onClick={handleLogout}
-          title="Logout"
-        >
-          <LogOut size={16} />
-          <span>Logout</span>
-        </button>
+        {/* Desktop Right: Live Clock & Red Logout Button */}
+        <div className="desktop-header-right">
+          <div className="header-clock-widget">
+            <div className="clock-item clock-date">
+              <Calendar size={14} color="#4f46e5" />
+              <span>{formattedDate}</span>
+            </div>
+            <div className="clock-divider">|</div>
+            <div className="clock-item clock-time">
+              <Clock size={14} color="#4f46e5" />
+              <span>{formattedTime}</span>
+            </div>
+          </div>
+
+          <button 
+            className="header-logout-btn-red"
+            onClick={handleLogout}
+            title="Logout"
+          >
+            <LogOut size={16} />
+            <span>Logout</span>
+          </button>
+        </div>
       </div>
     </header>
   );
