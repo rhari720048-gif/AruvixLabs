@@ -209,6 +209,15 @@ export default function UserManagement() {
         if (res.ok) {
           fetchUsersAndRoles();
           toast.success('User updated successfully!');
+          let currentLogged = {};
+          try { currentLogged = JSON.parse(localStorage.getItem('user') || '{}'); } catch(e){}
+          if (currentLogged.id === editUser.id) {
+            const updated = { ...currentLogged, name: form.name, role: form.role };
+            localStorage.setItem('role', form.role.toLowerCase());
+            localStorage.setItem('user_name', form.name);
+            localStorage.setItem('user', JSON.stringify(updated));
+            window.dispatchEvent(new Event('user-updated'));
+          }
         } else {
           const err = await res.json();
           toast.error(err.error || 'Failed to update user.');

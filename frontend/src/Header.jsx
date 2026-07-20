@@ -14,19 +14,35 @@ const ROLE_LABELS = {
 };
 
 export default function Header({ setSidebarOpen }) {
-  const token = localStorage.getItem('token');
-  const tokenUser = decodeToken(token) || { role: 'employee' };
-  
-  let storedUser = {};
-  try { storedUser = JSON.parse(localStorage.getItem('user') || '{}'); } catch(e){}
-  
-  const user = {
-    name: storedUser.name || localStorage.getItem('user_name') || 'Admin',
-    role: (tokenUser.role || storedUser.role || 'employee').toLowerCase()
-  };
+  const [userData, setUserData] = useState(() => {
+    let s = {};
+    try { s = JSON.parse(localStorage.getItem('user') || '{}'); } catch(e){}
+    return {
+      name: s.name || localStorage.getItem('user_name') || 'User',
+      role: (s.role || localStorage.getItem('role') || 'employee').toLowerCase()
+    };
+  });
 
-  const displayName = user.role === 'admin' ? 'Admin' : (storedUser.name || localStorage.getItem('user_name') || 'User');
-  const roleLabel = ROLE_LABELS[user.role] || user.role;
+  useEffect(() => {
+    const updateUser = () => {
+      let s = {};
+      try { s = JSON.parse(localStorage.getItem('user') || '{}'); } catch(e){}
+      setUserData({
+        name: s.name || localStorage.getItem('user_name') || 'User',
+        role: (s.role || localStorage.getItem('role') || 'employee').toLowerCase()
+      });
+    };
+
+    window.addEventListener('user-updated', updateUser);
+    window.addEventListener('storage', updateUser);
+    return () => {
+      window.removeEventListener('user-updated', updateUser);
+      window.removeEventListener('storage', updateUser);
+    };
+  }, []);
+
+  const displayName = userData.role === 'admin' ? 'Admin' : userData.name;
+  const roleLabel = ROLE_LABELS[userData.role] || (userData.role ? (userData.role.charAt(0).toUpperCase() + userData.role.slice(1)) : 'Employee');
 
   const [now, setNow] = useState(new Date());
 

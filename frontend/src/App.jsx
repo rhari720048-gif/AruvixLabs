@@ -663,6 +663,7 @@ function App() {
               role: userRole,
               permissions: userPerms,
             }));
+            window.dispatchEvent(new Event('user-updated'));
           }
         })
         .catch(() => { });
