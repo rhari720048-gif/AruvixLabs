@@ -266,7 +266,9 @@ app.put('/api/customers/:id', authenticate, async (req, res) => {
 
 app.delete('/api/customers/:id', authenticate, async (req, res) => {
     try {
-        await pool.query('DELETE FROM customers WHERE id = ?', [req.params.id]);
+        const customerId = req.params.id;
+        await pool.query('DELETE FROM call_logs WHERE customer_id = ?', [customerId]);
+        await pool.query('DELETE FROM customers WHERE id = ?', [customerId]);
         res.json({ success: true });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -277,8 +279,8 @@ app.post('/api/customers/bulk-delete', authenticate, async (req, res) => {
     const { ids } = req.body;
     try {
         if (!ids || ids.length === 0) return res.json({ success: true });
-        // Create placeholders ?,?,?
         const placeholders = ids.map(() => '?').join(',');
+        await pool.query(`DELETE FROM call_logs WHERE customer_id IN (${placeholders})`, ids);
         await pool.query(`DELETE FROM customers WHERE id IN (${placeholders})`, ids);
         res.json({ success: true });
     } catch (error) {
@@ -445,7 +447,9 @@ app.delete('/api/users/:id', authenticate, async (req, res) => {
     if (!canDelete) return res.status(403).json({ error: 'Access denied: You do not have delete permissions for user management.' });
     const userId = req.params.id;
     try {
-        // Set assigned_to to NULL in customers table first to avoid FK constraint failures
+        // Delete user's call logs & attendance records
+        await pool.query('DELETE FROM call_logs WHERE employee_id = ?', [userId]);
+        await pool.query('DELETE FROM attendance WHERE user_id = ?', [userId]);
         await pool.query('UPDATE customers SET assigned_to = NULL WHERE assigned_to = ?', [userId]);
         await pool.query('DELETE FROM users WHERE id = ?', [userId]);
         res.json({ success: true });
