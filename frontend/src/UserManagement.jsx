@@ -103,21 +103,18 @@ export default function UserManagement() {
   const safeUsers = Array.isArray(users) ? users : [];
   const safeRoles = Array.isArray(dbRoles) ? dbRoles : [];
 
-  // Combine roles from DB and assigned user roles
-  const userRoles = safeUsers.map(u => (u.role || 'employee').trim()).filter(Boolean);
-  const dbRoleNames = safeRoles.map(r => typeof r === 'string' ? r : r?.name).filter(Boolean);
-  const combinedRoles = [...dbRoleNames, ...userRoles];
-
+  // Only show role tabs for roles that actually have assigned users
   const roleTabsMap = new Map();
-  combinedRoles.forEach(r => {
+  safeUsers.forEach(u => {
+    const r = (u.role || 'employee').trim();
     if (r) {
-      const key = r.trim().toLowerCase();
+      const key = r.toLowerCase();
       if (!roleTabsMap.has(key)) {
-        roleTabsMap.set(key, r.trim());
+        roleTabsMap.set(key, r);
       }
     }
   });
-  const allRoleTabs = Array.from(roleTabsMap.values());
+  const activeRoleTabs = Array.from(roleTabsMap.values());
 
   const filtered = safeUsers.filter(u => {
     if (!u) return false;
@@ -389,9 +386,9 @@ export default function UserManagement() {
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <button onClick={() => setRoleFilter('all')}
             style={{ padding: '8px 16px', background: (roleFilter || '').trim().toLowerCase() === 'all' ? '#4f46e5' : '#f3f4f6', color: (roleFilter || '').trim().toLowerCase() === 'all' ? 'white' : '#6b7280', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: 'pointer', textTransform: 'capitalize', transition: '0.2s' }}>
-            All Roles ({safeUsers.length})
+            All Roles
           </button>
-          {allRoleTabs.map(rName => {
+          {activeRoleTabs.map(rName => {
             const count = safeUsers.filter(u => (u.role || '').trim().toLowerCase() === rName.trim().toLowerCase()).length;
             const isSel = (roleFilter || '').trim().toLowerCase() === rName.trim().toLowerCase();
             return (
