@@ -13,18 +13,16 @@ export function getPerms(module) {
   const isAdmin = role === 'admin';
   const mod = permissions[module];
 
+  if (isAdmin) {
+    return { canView: true, canCreate: true, canEdit: true, canDelete: true, isAdmin: true, role };
+  }
+
   let canView = true;
   let canCreate = true;
   let canEdit = true;
   let canDelete = true;
 
-  if (isAdmin) {
-    canView = true;
-    canCreate = true;
-    canEdit = true;
-    canDelete = true;
-  } else if (mod === undefined) {
-    // Default fallback: allow all operational pages except settings & user_management for non-admins
+  if (mod === undefined || mod === null) {
     const isRestrictedByDefault = module === 'settings' || module === 'user_management';
     canView = !isRestrictedByDefault;
     canCreate = !isRestrictedByDefault;
@@ -36,10 +34,10 @@ export function getPerms(module) {
     canEdit = mod;
     canDelete = mod;
   } else if (typeof mod === 'object' && mod !== null) {
-    canView = mod.view !== undefined ? !!mod.view : (mod.canView !== undefined ? !!mod.canView : true);
-    canCreate = mod.create !== undefined ? !!mod.create : (mod.canCreate !== undefined ? !!mod.canCreate : true);
-    canEdit = mod.edit !== undefined ? !!mod.edit : (mod.canEdit !== undefined ? !!mod.canEdit : true);
-    canDelete = mod.delete !== undefined ? !!mod.delete : (mod.canDelete !== undefined ? !!mod.canDelete : true);
+    canView   = mod.view !== undefined ? !!mod.view : (mod.canView !== undefined ? !!mod.canView : false);
+    canCreate = mod.create !== undefined ? !!mod.create : (mod.canCreate !== undefined ? !!mod.canCreate : false);
+    canEdit   = mod.edit !== undefined ? !!mod.edit : (mod.canEdit !== undefined ? !!mod.canEdit : false);
+    canDelete = mod.delete !== undefined ? !!mod.delete : (mod.canDelete !== undefined ? !!mod.canDelete : false);
   }
 
   return {
