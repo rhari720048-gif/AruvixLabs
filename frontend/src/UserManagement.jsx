@@ -103,6 +103,22 @@ export default function UserManagement() {
   const safeUsers = Array.isArray(users) ? users : [];
   const safeRoles = Array.isArray(dbRoles) ? dbRoles : [];
 
+  // Combine roles from DB and assigned user roles
+  const userRoles = safeUsers.map(u => (u.role || 'employee').trim()).filter(Boolean);
+  const dbRoleNames = safeRoles.map(r => typeof r === 'string' ? r : r?.name).filter(Boolean);
+  const combinedRoles = [...dbRoleNames, ...userRoles];
+
+  const roleTabsMap = new Map();
+  combinedRoles.forEach(r => {
+    if (r) {
+      const key = r.trim().toLowerCase();
+      if (!roleTabsMap.has(key)) {
+        roleTabsMap.set(key, r.trim());
+      }
+    }
+  });
+  const allRoleTabs = Array.from(roleTabsMap.values());
+
   const filtered = safeUsers.filter(u => {
     if (!u) return false;
     const q = (search || '').trim().toLowerCase();
@@ -209,6 +225,7 @@ export default function UserManagement() {
         if (res.ok) {
           fetchUsersAndRoles();
           toast.success('User updated successfully!');
+          if (form.role) setRoleFilter(form.role);
           let currentLogged = {};
           try { currentLogged = JSON.parse(localStorage.getItem('user') || '{}'); } catch(e){}
           if (currentLogged.id === editUser.id) {
@@ -232,6 +249,7 @@ export default function UserManagement() {
         if (res.ok) {
           fetchUsersAndRoles();
           toast.success('User added successfully!');
+          if (form.role) setRoleFilter(form.role);
         } else {
           const err = await res.json();
           toast.error(err.error || 'Failed to add user');
@@ -371,14 +389,15 @@ export default function UserManagement() {
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <button onClick={() => setRoleFilter('all')}
             style={{ padding: '8px 16px', background: (roleFilter || '').trim().toLowerCase() === 'all' ? '#4f46e5' : '#f3f4f6', color: (roleFilter || '').trim().toLowerCase() === 'all' ? 'white' : '#6b7280', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: 'pointer', textTransform: 'capitalize', transition: '0.2s' }}>
-            All Roles
+            All Roles ({safeUsers.length})
           </button>
-          {Array.from(new Set(safeUsers.map(u => (u.role || 'employee').trim()).filter(Boolean))).map(rName => {
+          {allRoleTabs.map(rName => {
+            const count = safeUsers.filter(u => (u.role || '').trim().toLowerCase() === rName.trim().toLowerCase()).length;
             const isSel = (roleFilter || '').trim().toLowerCase() === rName.trim().toLowerCase();
             return (
               <button key={rName} onClick={() => setRoleFilter(rName)}
                 style={{ padding: '8px 16px', background: isSel ? '#4f46e5' : '#f3f4f6', color: isSel ? 'white' : '#6b7280', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: 'pointer', textTransform: 'capitalize', transition: '0.2s' }}>
-                {rName}
+                {rName} ({count})
               </button>
             );
           })}
