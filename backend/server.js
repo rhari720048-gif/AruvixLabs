@@ -387,9 +387,11 @@ app.put('/api/users/:id', authenticate, async (req, res) => {
         const [existing] = await pool.query('SELECT role, permissions, name, email, phone, status FROM users WHERE id = ?', [req.params.id]);
         if (existing.length === 0) return res.status(404).json({ error: 'User not found' });
 
-        let finalPerms = existing[0].permissions;
-        if (permissions) {
+        let finalPerms = '{}';
+        if (permissions !== undefined && permissions !== null) {
             finalPerms = typeof permissions === 'string' ? permissions : JSON.stringify(permissions);
+        } else if (existing[0].permissions !== undefined && existing[0].permissions !== null) {
+            finalPerms = typeof existing[0].permissions === 'string' ? existing[0].permissions : JSON.stringify(existing[0].permissions);
         }
 
         const newName   = name !== undefined ? name : existing[0].name;
@@ -413,6 +415,7 @@ app.put('/api/users/:id', authenticate, async (req, res) => {
         await pool.query(queryStr, queryParams);
         res.json({ success: true });
     } catch (error) {
+        console.error('Error in PUT /api/users/:id:', error);
         res.status(500).json({ error: error.message });
     }
 });
