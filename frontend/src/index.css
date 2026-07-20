@@ -1697,8 +1697,71 @@ input:-webkit-autofill:active {
   to { transform: translateY(0); opacity: 1; }
 }
 
+/* ── BASE HEADER STYLES (Desktop >= 769px) ──────────────── */
+.crm-header-split {
+  min-height: 72px;
+  background: #ffffff !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 12px 24px !important;
+  margin-bottom: 18px !important;
+  border-radius: 20px !important;
+  z-index: 100 !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04) !important;
+}
+
+/* Hide Mobile Elements on Desktop View */
+.mobile-header-bar, .mobile-greeting-strip {
+  display: none !important;
+}
+
+/* Show Desktop Header Container */
+.desktop-header-container {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+}
+
+.desktop-header-right {
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+}
+
+/* Indigo Logout Button for Desktop & Mobile */
+.header-logout-btn-indigo {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  padding: 8px 18px !important;
+  border-radius: 12px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3) !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.header-logout-btn-indigo span, .header-logout-btn-indigo svg {
+  color: #ffffff !important;
+}
+
+.header-logout-btn-indigo:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.45) !important;
+  opacity: 0.95 !important;
+}
+
+/* ── Mobile Responsive Matrix & Rules (< 768px) ──────────────── */
 @media (max-width: 768px) {
-  /* 0. Pixel-Perfect Mobile Layout Matrix (Centered 510px block, 0 scrolling required) */
+  /* 0. Pixel-Perfect Mobile Layout Matrix */
   .login-split-page {
     min-height: 100vh !important;
     padding: 16px 14px !important;
@@ -1882,7 +1945,6 @@ input:-webkit-autofill:active {
     z-index: 9999 !important;
   }
 
-  /* 2. Top Header & Clock Widget (Fixed Clean Bar, No Floating Gaps) */
   .crm-header-split {
     position: sticky !important;
     top: 0 !important;
@@ -1892,9 +1954,6 @@ input:-webkit-autofill:active {
     padding: 10px 14px !important;
     border-radius: 0 0 16px 16px !important;
     margin: 0 0 12px 0 !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-    overflow: hidden !important;
     background: #ffffff !important;
     box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08) !important;
     border: none !important;
@@ -1930,18 +1989,6 @@ input:-webkit-autofill:active {
     gap: 8px !important;
   }
 
-  .mobile-header-clock {
-    display: flex !important;
-    align-items: center !important;
-    gap: 4px !important;
-    background: #f1f5f9 !important;
-    color: #334155 !important;
-    font-size: 11.5px !important;
-    font-weight: 700 !important;
-    padding: 5px 10px !important;
-    border-radius: 12px !important;
-  }
-
   .mobile-greeting-strip {
     display: flex !important;
     align-items: center !important;
@@ -1961,7 +2008,7 @@ input:-webkit-autofill:active {
     border-radius: 20px !important;
     font-weight: 700 !important;
     box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25) !important;
-    max-width: 70% !important;
+    max-width: 75% !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
@@ -1980,20 +2027,7 @@ input:-webkit-autofill:active {
     letter-spacing: 0.04em !important;
   }
 
-  .mobile-date-pill {
-    display: flex !important;
-    align-items: center !important;
-    gap: 4px !important;
-    background: #e0e7ff !important;
-    color: #3730a3 !important;
-    font-size: 11px !important;
-    font-weight: 700 !important;
-    padding: 5px 10px !important;
-    border-radius: 14px !important;
-    white-space: nowrap !important;
-  }
-
-  .header-logout-btn-red {
+  .header-logout-btn-indigo {
     padding: 5px 10px !important;
     font-size: 11.5px !important;
     border-radius: 10px !important;

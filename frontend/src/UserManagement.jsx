@@ -358,17 +358,14 @@ export default function UserManagement() {
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <button onClick={() => setRoleFilter('all')}
-            style={{ padding: '8px 16px', background: roleFilter === 'all' ? '#6366f1' : '#f3f4f6', color: roleFilter === 'all' ? 'white' : '#6b7280', border: 'none', borderRadius: 8, fontWeight: 600, fontSize: 13, cursor: 'pointer', textTransform: 'capitalize', transition: '0.2s' }}>
+            style={{ padding: '8px 16px', background: roleFilter === 'all' ? '#4f46e5' : '#f3f4f6', color: roleFilter === 'all' ? 'white' : '#6b7280', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: 'pointer', textTransform: 'capitalize', transition: '0.2s' }}>
             All Roles
           </button>
-          {dbRoles.filter(r => {
-            const rName = typeof r === 'string' ? r : (r.name || '');
-            return users.some(u => (u.role || '').toLowerCase() === rName.toLowerCase());
-          }).map(r => {
-            const rName = typeof r === 'string' ? r : r.name;
+          {Array.from(new Set(users.map(u => (u.role || 'employee').trim()).filter(Boolean))).map(rName => {
+            const isSel = roleFilter.toLowerCase() === rName.toLowerCase();
             return (
-              <button key={r.id || rName} onClick={() => setRoleFilter(rName)}
-                style={{ padding: '8px 16px', background: roleFilter === rName ? '#6366f1' : '#f3f4f6', color: roleFilter === rName ? 'white' : '#6b7280', border: 'none', borderRadius: 8, fontWeight: 600, fontSize: 13, cursor: 'pointer', textTransform: 'capitalize', transition: '0.2s' }}>
+              <button key={rName} onClick={() => setRoleFilter(rName)}
+                style={{ padding: '8px 16px', background: isSel ? '#4f46e5' : '#f3f4f6', color: isSel ? 'white' : '#6b7280', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: 'pointer', textTransform: 'capitalize', transition: '0.2s' }}>
                 {rName}
               </button>
             );

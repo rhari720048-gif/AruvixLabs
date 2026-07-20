@@ -30,12 +30,16 @@ const ProtectedRoute = ({ children, module, requireEmployee }) => {
 
   const hasPerm = (mod) => {
     if (role === 'admin') return true;
+    if (mod === 'settings' || mod === 'user_management') {
+      const p = permissions[mod];
+      if (p === undefined || p === null) return false;
+      if (typeof p === 'boolean') return p;
+      if (typeof p === 'object' && p !== null) return !!(p.view || p.canView);
+      return false;
+    }
     if (mod === 'dashboard' || mod === 'profile') return true;
     const p = permissions[mod];
-    if (p === undefined) {
-      // Default: allow all operational pages except settings & user_management for non-admins
-      return mod !== 'settings' && mod !== 'user_management';
-    }
+    if (p === undefined || p === null) return true;
     if (typeof p === 'boolean') return p;
     if (typeof p === 'object' && p !== null) {
       if (p.view !== undefined) return !!p.view;
@@ -61,12 +65,16 @@ const Sidebar = ({ isSidebarOpen, setSidebarOpen }) => {
 
   const hasPerm = (module) => {
     if (role === 'admin') return true; // Admin sees all
-    if (module === 'dashboard' || module === 'profile') return true; // Always allow Dashboard and My Profile
-    const p = permissions[module];
-    if (p === undefined) {
-      // Default: allow all operational pages except settings & user_management for non-admins
-      return module !== 'settings' && module !== 'user_management';
+    if (module === 'settings' || module === 'user_management') {
+      const p = permissions[module];
+      if (p === undefined || p === null) return false;
+      if (typeof p === 'boolean') return p;
+      if (typeof p === 'object' && p !== null) return !!(p.view || p.canView);
+      return false;
     }
+    if (module === 'dashboard' || module === 'profile') return true;
+    const p = permissions[module];
+    if (p === undefined || p === null) return true;
     if (typeof p === 'boolean') return p;
     if (typeof p === 'object' && p !== null) {
       if (p.view !== undefined) return !!p.view;
