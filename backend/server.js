@@ -108,16 +108,17 @@ const authenticate = async (req, res, next) => {
 
 // User Login
 app.post('/api/auth/login', async (req, res) => {
-    const { email, password } = req.body;
+    const cleanEmail = (req.body.email || '').trim().toLowerCase();
+    const cleanPassword = (req.body.password || '').trim();
     try {
         const [rows] = await pool.query(`
             SELECT u.*
             FROM users u 
-            WHERE u.email = ?
-        `, [email]);
+            WHERE LOWER(TRIM(u.email)) = ?
+        `, [cleanEmail]);
         const user = rows[0];
 
-        if (!user || !(await bcrypt.compare(password, user.password))) {
+        if (!user || !(await bcrypt.compare(cleanPassword, user.password))) {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 

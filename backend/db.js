@@ -534,30 +534,35 @@ async function initDB() {
 
         // Create default admin user
         const adminEmail = 'admin@aruvixcrm.com';
-        const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [adminEmail]);
-        if (rows.length === 0) {
-            const hashedPassword = await bcrypt.hash('admin@123', 10);
+        const [rows] = await pool.query('SELECT * FROM users WHERE LOWER(TRIM(email)) = ?', [adminEmail]);
+        const hashedPassword = await bcrypt.hash('admin@123', 10);
 
+        const allModules = [
+            'dashboard', 'profile', 'mail', 'projects', 'tasks', 'files', 'calendar', 'meetings', 
+            'accounting', 'invoices', 'quotes', 'leads', 'clients', 'appointments', 'call_later', 
+            'ni_box', 'call_history', 'completed_work', 'staff_attendance', 'my_attendance', 
+            'user_notes', 'user_management', 'leaves', 'client_reports', 'team_chat', 'support', 'settings'
+        ];
+        const adminPerms = {};
+        allModules.forEach(m => adminPerms[m] = { view: true, create: true, edit: true, delete: true });
+
+        if (rows.length === 0) {
             // Try to get admin role ID
             const [adminRole] = await pool.query("SELECT id FROM roles WHERE name = 'Admin'");
             const adminRoleId = adminRole.length > 0 ? adminRole[0].id : null;
 
-            // Full permissions for all modules
-            const allModules = ['dashboard', 'profile', 'mail', 'projects', 'tasks', 'files', 'calendar', 'meetings', 'accounting', 'invoices', 'quotes', 'leads', 'clients', 'staff_attendance', 'my_attendance', 'user_notes', 'user_management', 'leaves', 'client_reports', 'team_chat', 'support', 'settings'];
-            const adminPerms = {};
-            allModules.forEach(m => adminPerms[m] = { view: true, create: true, edit: true, delete: true });
-
-            await pool.query('INSERT INTO users (name, email, password, role, role_id, permissions) VALUES (?, ?, ?, ?, ?, ?)', ['Admin', adminEmail, hashedPassword, 'admin', adminRoleId, JSON.stringify(adminPerms)]);
+            await pool.query(
+                'INSERT INTO users (name, email, password, role, role_id, permissions, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                ['Admin', adminEmail, hashedPassword, 'admin', adminRoleId, JSON.stringify(adminPerms), 'Active']
+            );
             console.log("Default admin user created with full permissions");
         } else {
-            // Ensure existing admin user has full permissions and password is correct
-            const existing = rows[0];
-            const hashedPassword = await bcrypt.hash('admin@123', 10);
-            const allModules = ['dashboard', 'profile', 'mail', 'projects', 'tasks', 'files', 'calendar', 'meetings', 'accounting', 'invoices', 'quotes', 'leads', 'clients', 'staff_attendance', 'my_attendance', 'user_notes', 'user_management', 'leaves', 'client_reports', 'team_chat', 'support', 'settings'];
-            const adminPerms = {};
-            allModules.forEach(m => adminPerms[m] = { view: true, create: true, edit: true, delete: true });
-            await pool.query('UPDATE users SET permissions = ?, password = ? WHERE email = ?', [JSON.stringify(adminPerms), hashedPassword, adminEmail]);
-            console.log("Existing admin user permissions and password updated");
+            // Ensure existing admin user has full permissions, active status, admin role, and password is set to admin@123
+            await pool.query(
+                'UPDATE users SET permissions = ?, password = ?, role = "admin", status = "Active" WHERE LOWER(TRIM(email)) = ?',
+                [JSON.stringify(adminPerms), hashedPassword, adminEmail]
+            );
+            console.log("Existing admin user permissions and password updated to admin@123");
         }
 
     } catch (err) {
