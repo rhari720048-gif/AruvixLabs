@@ -436,11 +436,11 @@ export default function UserManagement() {
                 <div>
                   <label style={lbl}>Role *</label>
                   <SearchableSelect 
-                    options={dbRoles.map(r => {
-                      const name = typeof r === 'string' ? r : (r.name || String(r));
+                    options={(safeRoles && safeRoles.length > 0 ? safeRoles : [{ id: 1, name: 'employee' }]).map(r => {
+                      const name = typeof r === 'string' ? r : (r?.name || String(r || 'employee'));
                       return { label: name, value: name };
                     })}
-                    value={form.role}
+                    value={form.role || 'employee'}
                     onChange={val => setForm({ ...form, role: val })}
                     placeholder="Select Role..."
                   />

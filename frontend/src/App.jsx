@@ -604,8 +604,44 @@ const MobileBottomNav = () => {
   );
 };
 
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error("ErrorBoundary caught an error:", error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '40px 20px', textAlign: 'center', fontFamily: 'Outfit, sans-serif' }}>
+          <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '16px', padding: '30px', maxWidth: '500px', margin: '60px auto' }}>
+            <h2 style={{ color: '#dc2626', margin: '0 0 10px 0' }}>Something went wrong</h2>
+            <p style={{ color: '#4b5563', fontSize: '14px', marginBottom: '20px' }}>
+              {this.state.error?.message || 'An unexpected error occurred.'}
+            </p>
+            <button 
+              onClick={() => { this.setState({ hasError: false }); window.location.href = '/'; }}
+              style={{ padding: '10px 20px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer' }}
+            >
+              Return to Safety
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return !!localStorage.getItem('token');
+  });
   const [isSidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -645,41 +681,45 @@ function App() {
 
   if (!isAuthenticated) {
     return (
-      <Router>
-        <Routes>
-          <Route path="/" element={<Login setAuth={setIsAuthenticated} />} />
-          <Route path="/login" element={<Login setAuth={setIsAuthenticated} />} />
-          <Route path="*" element={<Login setAuth={setIsAuthenticated} />} />
-        </Routes>
-      </Router>
+      <ErrorBoundary>
+        <Router>
+          <Routes>
+            <Route path="/" element={<Login setAuth={setIsAuthenticated} />} />
+            <Route path="/login" element={<Login setAuth={setIsAuthenticated} />} />
+            <Route path="*" element={<Login setAuth={setIsAuthenticated} />} />
+          </Routes>
+        </Router>
+      </ErrorBoundary>
     );
   }
 
   return (
-    <Router>
-      <div className="app-container">
-        <Toaster position="top-center" reverseOrder={false} />
-        <Sidebar isSidebarOpen={isSidebarOpen} setSidebarOpen={setSidebarOpen} />
-        <main className="main-content">
-          <Header setSidebarOpen={setSidebarOpen} />
-          <div className="content-area">
-            <Routes>
-              <Route path="/" element={<ProtectedRoute module="dashboard"><Dashboard /></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute module="profile"><ProfilePage /></ProtectedRoute>} />
-              <Route path="/leads" element={<ProtectedRoute module="leads"><AdminLeads /></ProtectedRoute>} />
-              <Route path="/clients" element={<ProtectedRoute module="clients"><Clients /></ProtectedRoute>} />
-              <Route path="/user-management" element={<ProtectedRoute module="user_management"><UserManagement /></ProtectedRoute>} />
-              <Route path="/settings" element={<ProtectedRoute module="settings"><SettingsPage /></ProtectedRoute>} />
-              <Route path="/appointments" element={<ProtectedRoute module="appointments"><Appointments /></ProtectedRoute>} />
-              <Route path="/call-later" element={<ProtectedRoute module="call_later"><CallLater /></ProtectedRoute>} />
-              <Route path="/ni-box" element={<ProtectedRoute module="ni_box"><NIBox /></ProtectedRoute>} />
-              <Route path="/call-history" element={<ProtectedRoute module="call_history"><CallHistory /></ProtectedRoute>} />
-              <Route path="/completed-work" element={<ProtectedRoute module="completed_work"><CompletedWork /></ProtectedRoute>} />
-            </Routes>
-          </div>
-        </main>
-      </div>
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <div className="app-container">
+          <Toaster position="top-center" reverseOrder={false} />
+          <Sidebar isSidebarOpen={isSidebarOpen} setSidebarOpen={setSidebarOpen} />
+          <main className="main-content">
+            <Header setSidebarOpen={setSidebarOpen} />
+            <div className="content-area">
+              <Routes>
+                <Route path="/" element={<ProtectedRoute module="dashboard"><Dashboard /></ProtectedRoute>} />
+                <Route path="/profile" element={<ProtectedRoute module="profile"><ProfilePage /></ProtectedRoute>} />
+                <Route path="/leads" element={<ProtectedRoute module="leads"><AdminLeads /></ProtectedRoute>} />
+                <Route path="/clients" element={<ProtectedRoute module="clients"><Clients /></ProtectedRoute>} />
+                <Route path="/user-management" element={<ProtectedRoute module="user_management"><UserManagement /></ProtectedRoute>} />
+                <Route path="/settings" element={<ProtectedRoute module="settings"><SettingsPage /></ProtectedRoute>} />
+                <Route path="/appointments" element={<ProtectedRoute module="appointments"><Appointments /></ProtectedRoute>} />
+                <Route path="/call-later" element={<ProtectedRoute module="call_later"><CallLater /></ProtectedRoute>} />
+                <Route path="/ni-box" element={<ProtectedRoute module="ni_box"><NIBox /></ProtectedRoute>} />
+                <Route path="/call-history" element={<ProtectedRoute module="call_history"><CallHistory /></ProtectedRoute>} />
+                <Route path="/completed-work" element={<ProtectedRoute module="completed_work"><CompletedWork /></ProtectedRoute>} />
+              </Routes>
+            </div>
+          </main>
+        </div>
+      </Router>
+    </ErrorBoundary>
   );
 }
 
