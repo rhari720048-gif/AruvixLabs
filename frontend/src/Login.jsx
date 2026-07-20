@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { Lock, Mail, ShieldCheck, ArrowRight, Eye, EyeOff, KeyRound } from 'lucide-react';
 
 const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
@@ -41,8 +42,11 @@ const Login = ({ setAuth }) => {
           permissions: userPerms,
         }));
 
+        toast.success('Logged in successfully! Welcome back!');
         setAuth(true);
-        window.location.href = '/';
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 300);
       } else {
         setError(data.error || 'Invalid email or password');
       }

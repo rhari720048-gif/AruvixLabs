@@ -2155,20 +2155,75 @@ input:-webkit-autofill:active {
     animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   }
 
-  .responsive-grid, div[style*="display: grid"] {
-    grid-template-columns: 1fr !important;
-    gap: 10px !important;
-  }
-
   /* Modal Action buttons stacked */
-  div[style*="display: flex"][style*="gap: 10"] {
+  .modal-action-buttons-stack {
+    display: flex !important;
     flex-direction: column !important;
     gap: 6px !important;
   }
 
-  div[style*="display: flex"][style*="gap: 10"] button {
-    width: 100% !important;
-    min-height: 40px !important;
+  /* Indigo Logout Button Matching Good Morning Pill & White Text */
+  .header-logout-btn-indigo {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    padding: 6px 14px !important;
+    border-radius: 12px !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3) !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+
+  .header-logout-btn-indigo span, .header-logout-btn-indigo svg {
+    color: #ffffff !important;
+  }
+
+  .header-logout-btn-indigo:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 16px rgba(79, 70, 229, 0.45) !important;
+    opacity: 0.95 !important;
+  }
+
+  /* Mobile Header Stacked Clock Widget (Time on Top, Date Below) */
+  .mobile-header-clock-stacked {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    gap: 1px !important;
+    background: #f1f5f9 !important;
+    padding: 4px 8px !important;
+    border-radius: 10px !important;
+    border: 1px solid #e2e8f0 !important;
+  }
+
+  .clock-time-line {
+    display: flex !important;
+    align-items: center !important;
+    gap: 3px !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    color: #3730a3 !important;
+    line-height: 1.2 !important;
+  }
+
+  .clock-date-line {
+    display: flex !important;
+    align-items: center !important;
+    gap: 3px !important;
+    font-size: 9.5px !important;
+    font-weight: 700 !important;
+    color: #6366f1 !important;
+    line-height: 1.2 !important;
+  }
+
+  .perm-pills-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
   }
 }
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, Clock, Calendar, ShieldCheck, Sun, Moon, Sunrise, LogOut } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const decodeToken = (token) => {
   try { return JSON.parse(atob(token.split('.')[1])); }
@@ -60,8 +61,11 @@ export default function Header({ setSidebarOpen }) {
   });
 
   const handleLogout = () => {
+    toast.success('Logged out successfully!');
     localStorage.clear();
-    window.location.href = '/login';
+    setTimeout(() => {
+      window.location.href = '/login';
+    }, 300);
   };
 
   return (
@@ -83,16 +87,25 @@ export default function Header({ setSidebarOpen }) {
         </div>
 
         <div className="mobile-header-right">
-          <div className="mobile-header-clock">
-            <Clock size={13} color="#4f46e5" />
-            <span>{formattedTime}</span>
+          {/* Stacked Clock Widget: Time on Top, Date Below */}
+          <div className="mobile-header-clock-stacked">
+            <div className="clock-time-line">
+              <Clock size={11} color="#4f46e5" />
+              <span>{formattedTime}</span>
+            </div>
+            <div className="clock-date-line">
+              <Calendar size={10} color="#6366f1" />
+              <span>{formattedDate}</span>
+            </div>
           </div>
+
+          {/* Indigo Logout Button (Matching Good Morning Background & White Text) */}
           <button 
-            className="header-logout-btn-red"
+            className="header-logout-btn-indigo"
             onClick={handleLogout}
             title="Logout"
           >
-            <LogOut size={16} />
+            <LogOut size={15} color="#ffffff" />
             <span className="logout-text-mobile">Logout</span>
           </button>
         </div>
@@ -104,10 +117,6 @@ export default function Header({ setSidebarOpen }) {
           {greeting.icon}
           <span>{greeting.text}, <strong>{displayName}</strong></span>
           <span className="mobile-role-tag">{roleLabel}</span>
-        </div>
-        <div className="mobile-date-pill">
-          <Calendar size={13} color="#4f46e5" />
-          <span>{formattedDate}</span>
         </div>
       </div>
 
@@ -124,7 +133,7 @@ export default function Header({ setSidebarOpen }) {
           </span>
         </div>
 
-        {/* Desktop Right: Live Clock & Red Logout Button */}
+        {/* Desktop Right: Live Clock & Indigo Logout Button */}
         <div className="desktop-header-right">
           <div className="header-clock-widget">
             <div className="clock-item clock-date">
@@ -139,11 +148,11 @@ export default function Header({ setSidebarOpen }) {
           </div>
 
           <button 
-            className="header-logout-btn-red"
+            className="header-logout-btn-indigo"
             onClick={handleLogout}
             title="Logout"
           >
-            <LogOut size={16} />
+            <LogOut size={16} color="#ffffff" />
             <span>Logout</span>
           </button>
         </div>

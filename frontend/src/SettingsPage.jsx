@@ -947,19 +947,32 @@ const SettingsPage = () => {
                                           All
                                         </label>
                                       </div>
-                                      <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                                        {fields.map(p => (
-                                          <label key={p.key} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: perms[p.key] ? '#111827' : '#6b7280', cursor: 'pointer' }}>
-                                            <input
-                                              type="checkbox"
-                                              checked={!!perms[p.key]}
-                                              onChange={e => updatePerm(p.key, e.target.checked)}
-                                              style={{ cursor: 'pointer', accentColor: group.color }}
-                                            />
-                                            {p.lbl}
-                                          </label>
-                                        ))}
-                                      </div>
+                                      <div className="perm-pills-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+                                         {fields.map(p => (
+                                           <label key={p.key} style={{
+                                             display: 'inline-flex',
+                                             alignItems: 'center',
+                                             gap: '8px',
+                                             padding: '8px 12px',
+                                             borderRadius: '10px',
+                                             background: perms[p.key] ? '#e0e7ff' : '#f8fafc',
+                                             color: perms[p.key] ? '#3730a3' : '#64748b',
+                                             border: `1.5px solid ${perms[p.key] ? '#818cf8' : '#e2e8f0'}`,
+                                             fontSize: '13px',
+                                             fontWeight: '700',
+                                             cursor: 'pointer',
+                                             transition: 'all 0.15s ease'
+                                           }}>
+                                             <input
+                                               type="checkbox"
+                                               checked={!!perms[p.key]}
+                                               onChange={e => updatePerm(p.key, e.target.checked)}
+                                               style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: '#4f46e5' }}
+                                             />
+                                             <span style={{ fontSize: '13px', fontWeight: '700' }}>{p.lbl}</span>
+                                           </label>
+                                         ))}
+                                       </div>
                                     </div>
                                   );
                                 })}
