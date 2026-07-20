@@ -236,8 +236,8 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
           <p>Database of prospect leads, assigned contacts, and quick dial actions</p>
         </div>
         <div className="crm-page-actions">
-          <button onClick={downloadCSV} className="btn btn-secondary">
-            <Download size={16} /> Export CSV
+          <button onClick={downloadCSV} className="btn-export-csv">
+            <Download size={18} /> Export CSV
           </button>
         </div>
       </div>

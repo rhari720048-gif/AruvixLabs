@@ -1697,6 +1697,40 @@ input:-webkit-autofill:active {
   to { transform: translateY(0); opacity: 1; }
 }
 
+/* ── Global Export CSV Button Styling (Vibrant Emerald Gradient) ────────── */
+.btn-export-csv {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  padding: 8px 18px !important;
+  border-radius: 12px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3) !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  text-decoration: none !important;
+  white-space: nowrap !important;
+}
+
+.btn-export-csv span, .btn-export-csv svg {
+  color: #ffffff !important;
+}
+
+.btn-export-csv:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45) !important;
+  opacity: 0.95 !important;
+}
+
+.btn-export-csv:active {
+  transform: translateY(0) !important;
+}
+
 /* ── BASE HEADER STYLES (Desktop >= 769px) ──────────────── */
 .crm-header-split {
   min-height: 72px;

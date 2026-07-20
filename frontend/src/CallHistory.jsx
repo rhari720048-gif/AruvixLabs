@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Clock, Phone, FileText, Search, User, Users, Trash2, Calendar, PhoneCall, Filter } from 'lucide-react';
+import { Clock, Phone, FileText, Search, User, Users, Trash2, Calendar, PhoneCall, Filter, Download } from 'lucide-react';
 import { getPerms } from './permissions';
 import toast from 'react-hot-toast';
 
@@ -28,6 +28,34 @@ const CallHistory = () => {
       console.error(e);
       toast.error("Failed to load call history.");
     }
+  };
+
+  const handleExportCSV = () => {
+    if (filteredLogs.length === 0) return toast.error('No call activity logs to export.');
+    
+    const exportRows = filteredLogs.map(log => ({
+      'Caller Name': log.employee_name || 'Unknown',
+      'Customer Name': log.customer_name || 'N/A',
+      'Phone Number': log.phone || '',
+      'Outcome Status': log.status || '',
+      'Call Duration': formatTime(log.duration),
+      'Call Time': log.created_at ? new Date(log.created_at).toLocaleString() : '',
+      'Notes': log.notes || ''
+    }));
+
+    const headers = Object.keys(exportRows[0]);
+    const csvRows = [headers.join(',')];
+    for (const row of exportRows) {
+      const values = headers.map(h => `"${('' + (row[h] || '')).replace(/"/g, '""')}"`);
+      csvRows.push(values.join(','));
+    }
+    const blob = new Blob(['\uFEFF' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Call_Activity_Logs_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    toast.success('Call history exported to CSV!');
   };
 
   const handleDelete = async (id) => {
@@ -96,6 +124,9 @@ const CallHistory = () => {
           </h1>
           <p>Comprehensive audit history of completed calls, talk time, and outcome notes</p>
         </div>
+        <button onClick={handleExportCSV} className="btn-export-csv">
+          <Download size={18} /> Export CSV
+        </button>
       </div>
 
       <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>

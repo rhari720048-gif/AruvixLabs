@@ -308,7 +308,7 @@ const Clients = () => {
         {(activeTab === 'all' || activeTab === 'mine') && (
           <button 
             onClick={exportCSV}
-            className="btn btn-success" style={{ marginLeft: 'auto' }}
+            className="btn-export-csv" style={{ marginLeft: 'auto' }}
           >
             <Download size={18} /> Export CSV
           </button>

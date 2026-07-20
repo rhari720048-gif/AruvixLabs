@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { Clock, PhoneCall, Calendar, MapPin, Car, CheckCircle, RefreshCw, User, Users, PlusCircle, Edit3, Phone, PhoneOff } from 'lucide-react';
+import { Clock, PhoneCall, Calendar, MapPin, Car, CheckCircle, RefreshCw, User, Users, PlusCircle, Edit3, Phone, PhoneOff, Download } from 'lucide-react';
 import ActionButtons from './ActionButtons';
 import toast from 'react-hot-toast';
 import ViewModal from './ViewModal';
@@ -15,6 +14,34 @@ const CallLater = () => {
   const [selectedLead, setSelectedLead] = useState(null);
   const [feedback, setFeedback] = useState({ status: 'Call Later', notes: '', callback_time: '' });
   const [loading, setLoading] = useState(true);
+
+  const handleExportCSV = () => {
+    if (leads.length === 0) return toast.error('No call later queue data to export.');
+    
+    const exportRows = leads.map(l => ({
+      'Customer Name': l.name || '',
+      'Phone Number': l.phone || '',
+      'District / Location': l.district || l.location || '',
+      'Car Details': `${l.car_model || l.car_name || ''} ${l.registration_number ? '(' + l.registration_number + ')' : ''}`.trim(),
+      'Assigned To': l.assigned_to_names || l.assigned_to || '',
+      'Callback Schedule Time': l.callback_time ? new Date(l.callback_time).toLocaleString() : '',
+      'Notes': l.notes || ''
+    }));
+
+    const headers = Object.keys(exportRows[0]);
+    const csvRows = [headers.join(',')];
+    for (const row of exportRows) {
+      const values = headers.map(h => `"${('' + (row[h] || '')).replace(/"/g, '""')}"`);
+      csvRows.push(values.join(','));
+    }
+    const blob = new Blob(['\uFEFF' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Call_Later_Queue_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    toast.success('Call Later queue exported to CSV!');
+  };
   
   // Call State
   const [callPhase, setCallPhase] = useState('idle'); // 'idle', 'dialing', 'active', 'feedback'
@@ -208,6 +235,9 @@ const CallLater = () => {
           </h1>
           <p>Time-sensitive client follow-up calls, reminder schedules, and disposition tracking</p>
         </div>
+        <button onClick={handleExportCSV} className="btn-export-csv">
+          <Download size={18} /> Export CSV
+        </button>
       </div>
 
 

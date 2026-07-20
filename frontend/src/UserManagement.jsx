@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Users, UserPlus, Search, Pencil, Trash2, X,
-  ShieldCheck, User, Eye, EyeOff, RefreshCw, Mail, Phone, CheckCircle, Lock, LayoutDashboard, Calendar, Clock, Archive, PhoneCall, Settings, CheckSquare
+  ShieldCheck, User, Eye, EyeOff, RefreshCw, Mail, Phone, CheckCircle, Lock, LayoutDashboard, Calendar, Clock, Archive, PhoneCall, Settings, CheckSquare, Download
 } from 'lucide-react';
 import { getPerms } from './permissions';
 import SearchableSelect from './SearchableSelect';
@@ -38,7 +38,7 @@ const MODULE_LIST = [
   { key: 'clients',         label: 'Clients / Customers',   desc: 'Access customer directory' },
   { key: 'completed_work',  label: 'Completed Work',        desc: 'Access completed deals' },
   { key: 'user_management', label: 'Staff Management',      desc: 'Access staff management & team permissions' },
-  { key: 'settings',        label: 'Settings',              desc: 'Access system settings & portal configs' }
+  { key: 'settings',        label: 'Settings',              desc: 'Access global app & SMTP settings' }
 ];
 
 const defaultForm = { name: '', email: '', phone: '', role: 'employee', password: '', status: 'Active' };
@@ -62,6 +62,33 @@ export default function UserManagement() {
   const [showPermModal, setShowPermModal] = useState(false);
   const [userPermsState, setUserPermsState] = useState({});
   const [savingPerms, setSavingPerms]     = useState(false);
+
+  const handleExportCSV = () => {
+    if (filtered.length === 0) return toast.error('No staff members to export.');
+    
+    const exportRows = filtered.map(u => ({
+      'Staff Name': u.name || '',
+      'Email': u.email || '',
+      'Phone': u.phone || '',
+      'Role': u.role || 'employee',
+      'Account Status': u.status || 'Active',
+      'Created Date': u.created_at ? new Date(u.created_at).toLocaleDateString() : ''
+    }));
+
+    const headers = Object.keys(exportRows[0]);
+    const csvRows = [headers.join(',')];
+    for (const row of exportRows) {
+      const values = headers.map(h => `"${('' + (row[h] || '')).replace(/"/g, '""')}"`);
+      csvRows.push(values.join(','));
+    }
+    const blob = new Blob(['\uFEFF' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Staff_Team_Members_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    toast.success('Staff members exported to CSV!');
+  };
 
   // ── helpers ──────────────────────────────────────────────────────────
 
@@ -328,6 +355,9 @@ export default function UserManagement() {
           <p>Manage staff members, system access roles, and page permission levels</p>
         </div>
         <div className="crm-page-actions">
+          <button onClick={handleExportCSV} className="btn-export-csv">
+            <Download size={18} /> Export CSV
+          </button>
           <button onClick={fetchUsersAndRoles} className="btn btn-secondary">
             <RefreshCw size={15} /> Refresh
           </button>

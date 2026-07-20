@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, Eye, Trash2, Search, Award, Calendar, UserCheck, Sparkles } from 'lucide-react';
+import { CheckCircle, Eye, Trash2, Search, Award, Calendar, UserCheck, Sparkles, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ViewModal from './ViewModal';
 import { getPerms } from './permissions';
@@ -35,6 +35,34 @@ const CompletedWork = () => {
       console.error(e);
       toast.error('Failed to load completed work.');
     }
+  };
+
+  const handleExportCSV = () => {
+    if (filteredData.length === 0) return toast.error('No completed work data to export.');
+    
+    const exportRows = filteredData.map(c => ({
+      'Client Name': c.name || '',
+      'Phone': c.phone || '',
+      'District / Location': c.district || c.location || '',
+      'Car Details': `${c.car_model || ''} ${c.registration_number ? '(' + c.registration_number + ')' : ''}`.trim(),
+      'Source': c.source || '',
+      'Converted Date': c.converted_at ? new Date(c.converted_at).toLocaleDateString() : '',
+      'Completed Time': c.completed_at ? new Date(c.completed_at).toLocaleString() : ''
+    }));
+
+    const headers = Object.keys(exportRows[0]);
+    const csvRows = [headers.join(',')];
+    for (const row of exportRows) {
+      const values = headers.map(h => `"${('' + (row[h] || '')).replace(/"/g, '""')}"`);
+      csvRows.push(values.join(','));
+    }
+    const blob = new Blob(['\uFEFF' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Completed_Work_Deals_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    toast.success('Completed Work exported to CSV!');
   };
 
   const handleDelete = async (id) => {
@@ -88,6 +116,9 @@ const CompletedWork = () => {
           </h1>
           <p>Archive of fully serviced clients, successful deliveries, and milestone achievements</p>
         </div>
+        <button onClick={handleExportCSV} className="btn-export-csv">
+          <Download size={18} /> Export CSV
+        </button>
       </div>
 
       <div className="card-panel" style={{ padding: '16px 24px', marginBottom: '24px' }}>

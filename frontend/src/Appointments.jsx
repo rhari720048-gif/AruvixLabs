@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar, PhoneCall, Clock, MapPin, Car, CheckCircle, PlusCircle, Users, User, Edit3, UserCheck, Phone, PhoneOff, Eye } from 'lucide-react';
+import { Calendar, PhoneCall, Clock, MapPin, Car, CheckCircle, PlusCircle, Users, User, Edit3, UserCheck, Phone, PhoneOff, Eye, Download } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import SearchableSelect from './SearchableSelect';
 import ActionButtons from './ActionButtons';
 import ViewModal from './ViewModal';
 import EditLeadModal from './EditLeadModal';
 import ModernDateTimePicker from './ModernDateTimePicker';
+import toast from 'react-hot-toast';
 
 const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
 
@@ -14,6 +14,34 @@ const Appointments = () => {
   const [activeTab, setActiveTab] = useState('my'); // 'my', 'all', 'manual'
   const [leads, setLeads] = useState([]);
   const [selectedLead, setSelectedLead] = useState(null);
+
+  const handleExportCSV = () => {
+    if (leads.length === 0) return toast.error('No scheduled appointments to export.');
+    
+    const exportRows = leads.map(l => ({
+      'Customer Name': l.name || '',
+      'Phone Number': l.phone || '',
+      'District / Location': l.district || l.location || '',
+      'Car Details': `${l.car_model || l.car_name || ''} ${l.registration_number ? '(' + l.registration_number + ')' : ''}`.trim(),
+      'Assigned To': l.assigned_to_names || l.assigned_to || '',
+      'Appointment Date & Time': l.appointment_time || l.callback_time ? new Date(l.appointment_time || l.callback_time).toLocaleString() : '',
+      'Notes': l.notes || ''
+    }));
+
+    const headers = Object.keys(exportRows[0]);
+    const csvRows = [headers.join(',')];
+    for (const row of exportRows) {
+      const values = headers.map(h => `"${('' + (row[h] || '')).replace(/"/g, '""')}"`);
+      csvRows.push(values.join(','));
+    }
+    const blob = new Blob(['\uFEFF' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Scheduled_Appointments_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    toast.success('Appointments exported to CSV!');
+  };
   
   // Call State
   const [callPhase, setCallPhase] = useState('idle'); // 'idle', 'dialing', 'active', 'feedback'
@@ -228,6 +256,9 @@ const Appointments = () => {
           </h1>
           <p>Active calling workflow, scheduled client visits, and disposition logging</p>
         </div>
+        <button onClick={handleExportCSV} className="btn-export-csv">
+          <Download size={18} /> Export CSV
+        </button>
       </div>
 
 
