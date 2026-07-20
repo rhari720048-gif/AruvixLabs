@@ -1607,11 +1607,11 @@ input:-webkit-autofill:active {
 /* Mobile Responsiveness for 3D Dual Card & Split Layouts */
 @media (max-width: 992px) {
   .login-dual-page, .login-capsule-page, .login-split-page {
-    padding: 10px 14px 24px !important;
+    padding: 10px 14px 20px !important;
     flex-direction: column !important;
     justify-content: flex-start !important;
     align-items: center !important;
-    gap: 8px !important;
+    gap: 4px !important;
     min-height: 100vh !important;
   }
 
@@ -1625,11 +1625,11 @@ input:-webkit-autofill:active {
   }
 
   .login-hero-logo {
-    margin: 0 auto 8px !important;
+    margin: 0 auto 6px !important;
   }
 
   .login-hero-title {
-    margin-bottom: 6px !important;
+    margin-bottom: 4px !important;
   }
 
   .indigo-brand-text {
@@ -1637,11 +1637,11 @@ input:-webkit-autofill:active {
   }
 
   .login-hero-badge-pill {
-    margin: 4px auto 6px !important;
+    margin: 4px auto 4px !important;
   }
 
   .login-hero-footer {
-    margin-bottom: 6px !important;
+    margin-bottom: 2px !important;
   }
 
   .dual-cards-container {
@@ -1683,15 +1683,15 @@ input:-webkit-autofill:active {
 }
 
 @media (max-width: 768px) {
-  /* 0. Mobile Shift Login Box Way Upwards (Zero Empty Top Space) */
+  /* 0. Remove gap between branding text & login box on mobile */
   .login-split-page {
     min-height: 100vh !important;
-    padding: 6px 12px 24px !important;
+    padding: 6px 12px 20px !important;
     display: flex !important;
     flex-direction: column !important;
     justify-content: flex-start !important;
     align-items: center !important;
-    gap: 6px !important;
+    gap: 2px !important;
   }
 
   .login-split-left {
@@ -1703,11 +1703,11 @@ input:-webkit-autofill:active {
   }
 
   .login-hero-logo {
-    margin: 0 auto 6px !important;
+    margin: 0 auto 4px !important;
   }
 
   .login-hero-title {
-    margin-bottom: 6px !important;
+    margin-bottom: 4px !important;
   }
 
   .indigo-brand-text {
@@ -1715,12 +1715,12 @@ input:-webkit-autofill:active {
   }
 
   .login-hero-badge-pill {
-    margin: 4px auto 6px !important;
+    margin: 2px auto 4px !important;
   }
 
   .login-hero-footer {
     display: block !important;
-    margin-bottom: 4px !important;
+    margin-bottom: 2px !important;
   }
 
   .login-split-right {
