@@ -1698,17 +1698,17 @@ input:-webkit-autofill:active {
 }
 
 @media (max-width: 768px) {
-  /* 0. Perfect Mobile Fit: Centered Branding & Increased Height Login Portal */
+  /* 0. Pixel-Perfect Mobile Layout Matrix (Centered 510px block, 0 scrolling required) */
   .login-split-page {
     min-height: 100vh !important;
-    height: auto !important;
-    padding: 12px 14px 28px !important;
+    padding: 16px 14px !important;
     display: flex !important;
     flex-direction: column !important;
-    justify-content: flex-start !important;
+    justify-content: center !important;
     align-items: center !important;
     gap: 8px !important;
     box-sizing: border-box !important;
+    overflow-y: auto !important;
   }
 
   .login-split-left {
@@ -1734,116 +1734,120 @@ input:-webkit-autofill:active {
   }
 
   .login-hero-logo {
-    width: 50px !important;
-    height: 50px !important;
-    font-size: 26px !important;
-    border-radius: 16px !important;
-    margin: 0 auto 8px !important;
-    box-shadow: 0 8px 20px rgba(79, 70, 229, 0.35) !important;
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 22px !important;
+    border-radius: 14px !important;
+    margin: 0 auto 4px !important;
+    box-shadow: 0 6px 16px rgba(79, 70, 229, 0.3) !important;
   }
 
   .login-hero-title {
-    margin-bottom: 4px !important;
+    margin-bottom: 2px !important;
     line-height: 1.15 !important;
     text-align: center !important;
   }
 
   .hero-welcome-text {
-    font-size: 16px !important;
+    font-size: 14px !important;
     text-align: center !important;
   }
 
   .indigo-brand-text {
-    font-size: 24px !important;
+    font-size: 21px !important;
     display: block !important;
     text-align: center !important;
   }
 
   .login-hero-badge-pill {
-    padding: 4px 14px !important;
-    font-size: 11px !important;
-    margin: 4px auto 6px !important;
+    padding: 3px 12px !important;
+    font-size: 10.5px !important;
+    margin: 3px auto 4px !important;
     display: inline-flex !important;
     justify-content: center !important;
   }
 
   .login-hero-footer {
     display: block !important;
-    font-size: 11px !important;
+    font-size: 10px !important;
     margin-bottom: 6px !important;
     text-align: center !important;
+    opacity: 0.8 !important;
   }
 
   .login-split-right {
-    width: 92% !important;
-    max-width: 380px !important;
-    margin: 16px auto 0 !important; /* Lowers login box slightly downwards */
+    width: 100% !important;
+    max-width: 350px !important;
+    margin: 0 auto !important;
     flex: none !important;
   }
 
   .login-card-curved {
     width: 100% !important;
-    max-width: 380px !important;
-    border-radius: 24px !important;
-    box-shadow: 0 20px 45px rgba(79, 70, 229, 0.16) !important;
+    max-width: 350px !important;
+    border-radius: 22px !important;
+    box-shadow: 0 20px 45px rgba(79, 70, 229, 0.14), 0 10px 20px rgba(15, 23, 42, 0.06) !important;
   }
 
   .curved-banner-header {
-    padding: 24px 22px 28px !important; /* Increased Header Height */
+    padding: 18px 18px 22px !important;
     border-bottom-left-radius: 40% 16px !important;
     border-bottom-right-radius: 40% 16px !important;
   }
 
   .curved-top-badge {
-    padding: 3px 12px !important;
+    padding: 2.5px 10px !important;
     font-size: 10px !important;
-    margin-bottom: 6px !important;
-  }
-
-  .curved-banner-title {
-    font-size: 22px !important;
     margin-bottom: 4px !important;
   }
 
+  .curved-banner-title {
+    font-size: 20px !important;
+    margin-bottom: 2px !important;
+  }
+
   .curved-banner-subtitle {
-    font-size: 12.5px !important;
+    font-size: 12px !important;
+    opacity: 0.9 !important;
   }
 
   .curved-card-body {
-    padding: 24px 22px 26px !important; /* Increased Body Height */
+    padding: 20px 18px 22px !important;
   }
 
   .login-form-element {
-    gap: 16px !important;
+    gap: 12px !important;
   }
 
   .form-group-login {
-    gap: 5px !important;
+    gap: 4px !important;
   }
 
   .login-field-label {
-    font-size: 13px !important;
+    font-size: 12.5px !important;
+    font-weight: 700 !important;
   }
 
   .login-text-input, .login-input-wrapper input {
-    height: 46px !important; /* Increased Input Height */
-    font-size: 14px !important;
+    height: 44px !important;
+    font-size: 13.5px !important;
     border-radius: 14px !important;
-    padding-left: 52px !important;
+    padding-left: 48px !important;
   }
 
   .indigo-icon-badge {
-    width: 30px !important;
-    height: 30px !important;
-    border-radius: 10px !important;
-    left: 10px !important;
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 9px !important;
+    left: 9px !important;
   }
 
   .curved-submit-button {
-    height: 48px !important; /* Increased Submit Button Height */
-    font-size: 15px !important;
+    height: 46px !important;
+    font-size: 14.5px !important;
     border-radius: 14px !important;
     margin-top: 6px !important;
+    box-shadow: 0 8px 20px rgba(79, 70, 229, 0.35) !important;
   }
 
   /* 1. Global Layout & Spacing */
