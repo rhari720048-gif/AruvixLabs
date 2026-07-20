@@ -399,8 +399,24 @@ app.put('/api/users/:id', authenticate, async (req, res) => {
         const newName   = name !== undefined ? name : existing[0].name;
         const newEmail  = email !== undefined ? email : existing[0].email;
         const newPhone  = phone !== undefined ? phone : existing[0].phone;
-        const newRole   = role !== undefined ? role : existing[0].role;
+        const rawRole   = role !== undefined ? role : existing[0].role;
+        const newRole   = (rawRole || 'employee').trim().toLowerCase();
         const newStatus = status !== undefined ? status : existing[0].status;
+
+        if (newRole === 'admin') {
+            finalPerms = JSON.stringify({
+                dashboard:       { view: true, create: true, edit: true, delete: true },
+                leads:           { view: true, create: true, edit: true, delete: true },
+                appointments:    { view: true, create: true, edit: true, delete: true },
+                call_later:      { view: true, create: true, edit: true, delete: true },
+                ni_box:          { view: true, create: true, edit: true, delete: true },
+                call_history:    { view: true, create: true, edit: true, delete: true },
+                clients:         { view: true, create: true, edit: true, delete: true },
+                completed_work:  { view: true, create: true, edit: true, delete: true },
+                user_management: { view: true, create: true, edit: true, delete: true },
+                settings:        { view: true, create: true, edit: true, delete: true }
+            });
+        }
 
         const queryParams = [newName, newEmail, newPhone, newRole, newStatus, finalPerms];
         let queryStr = 'UPDATE users SET name=?, email=?, phone=?, role=?, status=?, permissions=?';
