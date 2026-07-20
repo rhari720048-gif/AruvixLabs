@@ -121,6 +121,12 @@ app.post('/api/auth/login', async (req, res) => {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
+        // Check if user status is inactive
+        const userStatus = (user.status || '').toLowerCase();
+        if (userStatus === 'inactive' || userStatus === 'in active') {
+            return res.status(403).json({ error: 'Your account is inactive. Please contact your administrator.' });
+        }
+
         let permissions = {};
         if (user.permissions) {
             try { permissions = typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions; } catch (e) { }

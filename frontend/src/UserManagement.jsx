@@ -523,15 +523,21 @@ export default function UserManagement() {
 
                 <div>
                   <label style={lbl}>Role *</label>
-                  <SearchableSelect 
-                    options={(safeRoles && safeRoles.length > 0 ? safeRoles : [{ id: 1, name: 'employee' }]).map(r => {
-                      const name = typeof r === 'string' ? r : (r?.name || String(r || 'employee'));
-                      return { label: name, value: name };
-                    })}
-                    value={form.role || 'employee'}
-                    onChange={val => setForm({ ...form, role: val })}
-                    placeholder="Select Role..."
-                  />
+                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%' }}>
+                    <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, pointerEvents: 'none', color: '#6b7280' }}>
+                      <ShieldCheck size={18} />
+                    </div>
+                    <input 
+                      required 
+                      className="has-icon-left" 
+                      type="text" 
+                      value={form.role} 
+                      onChange={e => setForm({ ...form, role: e.target.value })} 
+                      style={{ ...inp }} 
+                      placeholder="Enter role (e.g. Telecaller, Sales Manager)" 
+                      autoComplete="off" 
+                    />
+                  </div>
                 </div>
 
                 <div>
