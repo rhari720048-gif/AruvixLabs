@@ -346,6 +346,11 @@ const CallLater = () => {
                       <Clock size={13} /> Callback: {new Date(lead.callback_time).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
                     </div>
                   )}
+                  {activeTab === 'all' && (
+                    <div style={{ fontSize: '12px', color: '#6366f1', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}>
+                      <User size={12} /> Converted By: {lead.converter_name || lead.assignee_name || lead.assigned_to_names || 'System'}
+                    </div>
+                  )}
                 </li>
               ))
             )}
@@ -379,6 +384,9 @@ const CallLater = () => {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#4b5563', padding: '16px', background: '#f8fafc', borderRadius: '12px' }}>
                       <Car size={20} color="#f59e0b" /> <strong>Vehicle:</strong> {selectedLead.car_model || selectedLead.car_name || '-'} {selectedLead.registration_number ? `(${selectedLead.registration_number})` : ''}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#4b5563', padding: '16px', background: '#f8fafc', borderRadius: '12px' }}>
+                      <User size={20} color="#6366f1" /> <strong>Converted By:</strong> {selectedLead.converter_name || selectedLead.assignee_name || selectedLead.assigned_to_names || 'System'}
                     </div>
                     {selectedLead.callback_time && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#f59e0b', padding: '16px', background: '#fffbeb', borderRadius: '12px', gridColumn: '1 / -1' }}>

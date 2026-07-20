@@ -380,6 +380,11 @@ const Appointments = () => {
                   <div style={{ fontSize: '13px', color: '#10b981', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600' }}>
                     <Calendar size={14} /> {lead.callback_time ? new Date(lead.callback_time).toLocaleString() : 'No time set'}
                   </div>
+                  {activeTab === 'all' && (
+                    <div style={{ fontSize: '12px', color: '#6366f1', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}>
+                      <User size={12} /> Converted By: {lead.converter_name || lead.assignee_name || lead.assigned_to_names || 'System'}
+                    </div>
+                  )}
                 </li>
               ))}
               {leads.length === 0 && (
@@ -428,6 +433,9 @@ const Appointments = () => {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#4b5563', padding: '16px', background: '#f8fafc', borderRadius: '12px' }}>
                       <Calendar size={20} color="#10b981" /> <strong>Time:</strong> {selectedLead.callback_time ? new Date(selectedLead.callback_time).toLocaleString() : 'No time set'}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#4b5563', padding: '16px', background: '#f8fafc', borderRadius: '12px' }}>
+                      <User size={20} color="#6366f1" /> <strong>Converted By:</strong> {selectedLead.converter_name || selectedLead.assignee_name || selectedLead.assigned_to_names || 'System'}
                     </div>
                   </div>
                   

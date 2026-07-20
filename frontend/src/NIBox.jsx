@@ -299,7 +299,7 @@ const NIBox = () => {
                                 </div>
                                 {activeTab === 'all' && (
                                     <div style={{ fontSize: '12px', color: '#6366f1', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}>
-                                        <User size={12} /> Assignee: {lead.assignee_name || 'Unassigned'}
+                                        <User size={12} /> Converted By: {lead.converter_name || lead.employee_name || lead.assignee_name || 'System'}
                                     </div>
                                 )}
                             </li>
@@ -342,6 +342,9 @@ const NIBox = () => {
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#4b5563', padding: '16px', background: '#f8fafc', borderRadius: '12px' }}>
                                             <Car size={20} color="#f59e0b" /> <strong>Vehicle:</strong> {selectedLead.car_model || selectedLead.car_name || '-'} {selectedLead.registration_number ? `(${selectedLead.registration_number})` : ''}
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#4b5563', padding: '16px', background: '#f8fafc', borderRadius: '12px' }}>
+                                            <User size={20} color="#6366f1" /> <strong>Converted By:</strong> {selectedLead.converter_name || selectedLead.employee_name || selectedLead.assignee_name || 'System'}
                                         </div>
                                     </div>
                                     

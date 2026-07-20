@@ -1399,9 +1399,8 @@ app.get('/api/telecalling/reports', authenticate, async (req, res) => {
 app.get('/api/telecalling/callbacks', authenticate, async (req, res) => {
     try {
         const { type } = req.query; // 'my' or 'all'
-        console.log('GET /api/telecalling/callbacks: type =', type, 'user =', req.user);
         let query = `
-            SELECT c.*, l.notes as last_note, l.callback_time 
+            SELECT c.*, l.notes as last_note, l.callback_time, l.employee_id, u.name as converter_name, u.name as assignee_name
             FROM customers c
             LEFT JOIN (
                 SELECT customer_id, MAX(id) as max_id
@@ -1409,6 +1408,7 @@ app.get('/api/telecalling/callbacks', authenticate, async (req, res) => {
                 GROUP BY customer_id
             ) l_max ON c.id = l_max.customer_id
             LEFT JOIN call_logs l ON l_max.max_id = l.id
+            LEFT JOIN users u ON l.employee_id = u.id
             WHERE c.status = 'Call Later'
         `;
         let params = [];
@@ -1426,10 +1426,8 @@ app.get('/api/telecalling/callbacks', authenticate, async (req, res) => {
 app.get('/api/telecalling/appointments', authenticate, async (req, res) => {
     try {
         const { type } = req.query; // 'my' or 'all'
-        console.log('GET /api/telecalling/appointments: type =', type, 'user =', req.user);
-        
         let query = `
-            SELECT c.*, l.notes as last_note, l.callback_time 
+            SELECT c.*, l.notes as last_note, l.callback_time, l.employee_id, u.name as converter_name, u.name as assignee_name
             FROM customers c
             LEFT JOIN (
                 SELECT customer_id, MAX(id) as max_id
@@ -1437,9 +1435,9 @@ app.get('/api/telecalling/appointments', authenticate, async (req, res) => {
                 GROUP BY customer_id
             ) l_max ON c.id = l_max.customer_id
             LEFT JOIN call_logs l ON l_max.max_id = l.id
+            LEFT JOIN users u ON l.employee_id = u.id
             WHERE c.status = 'Appointment'
         `;
-        
         let params = [];
         if (type === 'my') {
             query += ` AND l.employee_id = ?`;
@@ -1536,9 +1534,8 @@ app.post('/api/telecalling/manual-entry', authenticate, async (req, res) => {
 app.get('/api/telecalling/nibox', authenticate, async (req, res) => {
     try {
         const { type } = req.query; // 'my' or 'all'
-        console.log('GET /api/telecalling/nibox: type =', type, 'user =', req.user);
         let query = `
-            SELECT c.*, l.notes as last_note
+            SELECT c.*, l.notes as last_note, l.employee_id, u.name as converter_name, u.name as assignee_name
             FROM customers c
             LEFT JOIN (
                 SELECT customer_id, MAX(id) as max_id
@@ -1546,6 +1543,7 @@ app.get('/api/telecalling/nibox', authenticate, async (req, res) => {
                 GROUP BY customer_id
             ) l_max ON c.id = l_max.customer_id
             LEFT JOIN call_logs l ON l_max.max_id = l.id
+            LEFT JOIN users u ON l.employee_id = u.id
             WHERE c.status IN ('Not Interested', 'NI')
         `;
         let params = [];
