@@ -13,6 +13,12 @@ export function getPerms(module) {
   const isAdmin = role === 'admin';
   const mod = permissions[module];
 
+  if (module === 'settings' || module === 'user_management') {
+    if (!isAdmin) {
+      return { canView: false, canCreate: false, canEdit: false, canDelete: false, isAdmin: false, role };
+    }
+  }
+
   if (isAdmin) {
     return { canView: true, canCreate: true, canEdit: true, canDelete: true, isAdmin: true, role };
   }

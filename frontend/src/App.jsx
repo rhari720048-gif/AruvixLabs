@@ -30,13 +30,7 @@ const ProtectedRoute = ({ children, module, requireEmployee }) => {
 
   const hasPerm = (mod) => {
     if (role === 'admin') return true;
-    if (mod === 'settings' || mod === 'user_management') {
-      const p = permissions[mod];
-      if (p === undefined || p === null) return false;
-      if (typeof p === 'boolean') return p;
-      if (typeof p === 'object' && p !== null) return !!(p.view || p.canView);
-      return false;
-    }
+    if (mod === 'settings' || mod === 'user_management') return false; // STRICTLY ADMIN ONLY
     if (mod === 'dashboard' || mod === 'profile') return true;
     const p = permissions[mod];
     if (p === undefined || p === null) return true;
@@ -65,13 +59,7 @@ const Sidebar = ({ isSidebarOpen, setSidebarOpen }) => {
 
   const hasPerm = (module) => {
     if (role === 'admin') return true; // Admin sees all
-    if (module === 'settings' || module === 'user_management') {
-      const p = permissions[module];
-      if (p === undefined || p === null) return false;
-      if (typeof p === 'boolean') return p;
-      if (typeof p === 'object' && p !== null) return !!(p.view || p.canView);
-      return false;
-    }
+    if (module === 'settings' || module === 'user_management') return false; // STRICTLY ADMIN ONLY
     if (module === 'dashboard' || module === 'profile') return true;
     const p = permissions[module];
     if (p === undefined || p === null) return true;
