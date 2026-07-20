@@ -115,7 +115,7 @@ const Login = ({ setAuth }) => {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     className="has-icon-left login-text-input"
-                    placeholder="name@aruvixlabs.com"
+                    placeholder="Enter your email"
                   />
                 </div>
               </div>

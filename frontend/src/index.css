@@ -1607,10 +1607,12 @@ input:-webkit-autofill:active {
 /* Mobile Responsiveness for 3D Dual Card & Split Layouts */
 @media (max-width: 992px) {
   .login-dual-page, .login-capsule-page, .login-split-page {
-    padding: 24px 16px !important;
+    padding: 12px 14px 28px !important;
     flex-direction: column !important;
-    justify-content: center !important;
-    gap: 20px !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    gap: 12px !important;
+    min-height: 100vh !important;
   }
 
   .login-split-left {
@@ -1618,46 +1620,50 @@ input:-webkit-autofill:active {
     width: 100% !important;
     text-align: center !important;
     align-items: center !important;
-    padding: 10px 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
 
   .login-hero-logo {
-    margin: 0 auto 16px !important;
+    margin: 0 auto 10px !important;
   }
 
-  .hero-welcome-text {
-    font-size: 24px !important;
+  .login-hero-title {
+    margin-bottom: 8px !important;
   }
 
   .indigo-brand-text {
-    font-size: 32px !important;
-    display: block;
+    display: block !important;
   }
 
   .login-hero-badge-pill {
-    margin: 12px auto 16px !important;
+    margin: 6px auto 10px !important;
+  }
+
+  .login-hero-footer {
+    margin-bottom: 8px !important;
   }
 
   .dual-cards-container {
     flex-direction: column !important;
-    gap: 20px !important;
+    gap: 16px !important;
     max-width: 440px !important;
   }
 
   .dual-indigo-card {
     max-width: 100% !important;
-    padding: 36px 28px !important;
+    padding: 24px 20px !important;
     text-align: center !important;
     align-items: center !important;
   }
 
   .dual-hero-title {
-    font-size: 28px !important;
+    font-size: 24px !important;
   }
 
   .dual-white-card {
     max-width: 100% !important;
-    padding: 36px 24px !important;
+    padding: 24px 20px !important;
   }
 
   .login-card-curved, .login-card-halo, .login-card-vertical-ribbon, .login-card-switcher, .login-card-wave, .login-card-ribbon, .login-form-card {
@@ -1677,19 +1683,19 @@ input:-webkit-autofill:active {
 }
 
 @media (max-width: 768px) {
-  /* 0. Mobile Shift Login Box Upwards (Keeping exact design intact) */
+  /* 0. Mobile Shift Login Box Upwards (Strict Portrait Mode) */
   .login-split-page {
     min-height: 100vh !important;
-    padding: 16px 16px 32px !important;
+    padding: 8px 14px 28px !important;
     display: flex !important;
     flex-direction: column !important;
     justify-content: flex-start !important;
     align-items: center !important;
-    gap: 16px !important;
+    gap: 10px !important;
   }
 
   .login-split-left {
-    padding: 10px 0 0 !important;
+    padding: 4px 0 0 !important;
     margin: 0 !important;
     text-align: center !important;
     width: 100% !important;
@@ -1697,30 +1703,30 @@ input:-webkit-autofill:active {
   }
 
   .login-hero-logo {
-    margin: 0 auto 16px !important;
+    margin: 0 auto 10px !important;
   }
 
   .login-hero-title {
-    margin-bottom: 14px !important;
+    margin-bottom: 8px !important;
   }
 
   .indigo-brand-text {
-    display: block;
+    display: block !important;
   }
 
   .login-hero-badge-pill {
-    margin: 10px auto 12px !important;
+    margin: 6px auto 8px !important;
   }
 
   .login-hero-footer {
     display: block !important;
-    margin-bottom: 8px !important;
+    margin-bottom: 6px !important;
   }
 
   .login-split-right {
     width: 100% !important;
     max-width: 440px !important;
-    margin-top: -6px !important; /* Pulls login box upwards */
+    margin-top: 0 !important;
   }
 
   /* 1. Global Layout & Spacing */
