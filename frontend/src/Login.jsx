@@ -1,17 +1,22 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Mail } from 'lucide-react';
+import { Lock, Mail, ShieldCheck, ArrowRight, Eye, EyeOff, KeyRound } from 'lucide-react';
 
 const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
 
 const Login = ({ setAuth }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
+
     try {
       const response = await fetch(`${API}/auth/login`, {
         method: 'POST',
@@ -39,97 +44,122 @@ const Login = ({ setAuth }) => {
         setAuth(true);
         window.location.href = '/';
       } else {
-        setError(data.error || 'Invalid credentials');
+        setError(data.error || 'Invalid email or password');
       }
     } catch (err) {
       setError('Server connection error. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div style={{
-      minHeight: '100vh', 
-      display: 'flex', 
-      alignItems: 'center', 
-      justifyContent: 'center',
-      backgroundColor: '#f8fafc'
-    }}>
-      <div style={{
-        background: 'white',
-        padding: '48px',
-        borderRadius: '24px',
-        boxShadow: '0 20px 40px rgba(0,0,0,0.04)',
-        width: '100%',
-        maxWidth: '440px'
-      }}>
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div style={{ 
-            width: '48px', 
-            height: '48px', 
-            background: 'var(--primary, #3b82f6)', 
-            borderRadius: '12px', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            margin: '0 auto 16px'
-          }}>
-            <span style={{ color: 'white', fontSize: '24px', fontWeight: 'bold' }}>A</span>
+    <div className="login-split-page">
+      {/* ── Left Side: White + Indigo Branding Hero ─────────────── */}
+      <div className="login-split-left">
+        <div className="login-brand-content">
+          {/* Logo Badge */}
+          <div className="login-hero-logo">
+            <span>A</span>
           </div>
-          <h2 style={{ fontSize: '28px', color: '#1e293b', marginBottom: '8px', fontWeight: '700' }}>Welcome Back</h2>
-          <p style={{ color: '#64748b', fontSize: '15px' }}>Sign in to your Aruvix account</p>
-        </div>
-        
-        {error && (
-          <div style={{ background: '#fef2f2', color: '#ef4444', padding: '12px', borderRadius: '8px', marginBottom: '24px', fontSize: '14px', textAlign: 'center', fontWeight: '500' }}>
-            {error}
-          </div>
-        )}
 
-        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '13.5px', fontWeight: '700', color: '#475569' }}>Email Address</label>
-            <div style={{ position: 'relative' }}>
-              <Mail size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#6366f1', zIndex: 2 }} />
-              <input 
-                type="email" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                style={{ width: '100%', paddingLeft: '46px', height: '48px', border: '1.5px solid #e2e8f0', borderRadius: '14px', fontSize: '14.5px', outline: 'none', background: '#f8fafc', fontWeight: '600', color: '#0f172a' }}
-                placeholder="Enter email address"
-              />
-            </div>
+          {/* Main Title */}
+          <h1 className="login-hero-title">
+            <span className="hero-welcome-text">WELCOME TO</span> <br />
+            <span className="indigo-brand-text">ARUVIXLABS</span>
+          </h1>
+
+          {/* Enterprise Badge Pill */}
+          <div className="login-hero-badge-pill">
+            <ShieldCheck size={14} color="#4f46e5" />
+            <span>Next-Gen Enterprise CRM</span>
           </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '13.5px', fontWeight: '700', color: '#475569' }}>Password</label>
-            <div style={{ position: 'relative' }}>
-              <Lock size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#6366f1', zIndex: 2 }} />
-              <input 
-                type="password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                style={{ width: '100%', paddingLeft: '46px', height: '48px', border: '1.5px solid #e2e8f0', borderRadius: '14px', fontSize: '14.5px', outline: 'none', background: '#f8fafc', fontWeight: '600', color: '#0f172a' }}
-                placeholder="Enter password"
-              />
-            </div>
+
+          <div className="login-hero-footer">
+            © 2026 AruvixLabs Enterprise CRM. All rights reserved.
           </div>
-          <button type="submit" style={{
-            background: '#3b82f6',
-            color: 'white',
-            padding: '16px',
-            borderRadius: '10px',
-            border: 'none',
-            fontSize: '16px',
-            fontWeight: '600',
-            cursor: 'pointer',
-            marginTop: '8px',
-            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
-            transition: 'background-color 0.2s'
-          }}>
-            Sign In
-          </button>
-        </form>
+        </div>
+      </div>
+
+      {/* ── Right Side: Concept F Curved Top Banner Overlay Portal ──── */}
+      <div className="login-split-right">
+        <div className="login-card-curved">
+          {/* Curved Indigo Top Banner */}
+          <div className="curved-banner-header">
+            <div className="curved-top-badge">
+              <ShieldCheck size={13} color="#ffffff" />
+              <span>SECURE PORTAL ACCESS</span>
+            </div>
+            <h2 className="curved-banner-title">Sign In to Portal</h2>
+            <p className="curved-banner-subtitle">Enter your credentials to access workspace</p>
+          </div>
+
+          {/* Lower Pearl White Form Body */}
+          <div className="curved-card-body">
+            {error && (
+              <div className="login-error-banner">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleLogin} className="login-form-element">
+              <div className="form-group-login">
+                <label className="login-field-label">Email Address</label>
+                <div className="login-input-wrapper">
+                  <div className="indigo-icon-badge">
+                    <Mail size={17} color="#4338ca" />
+                  </div>
+                  <input 
+                    type="email" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="has-icon-left login-text-input"
+                    placeholder="name@aruvixlabs.com"
+                  />
+                </div>
+              </div>
+
+              <div className="form-group-login">
+                <label className="login-field-label">Password</label>
+                <div className="login-input-wrapper">
+                  <div className="indigo-icon-badge">
+                    <KeyRound size={17} color="#4338ca" />
+                  </div>
+                  <input 
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="has-icon-left login-text-input"
+                    placeholder="Enter your password"
+                  />
+                  <button 
+                    type="button" 
+                    className="password-toggle-btn"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label="Toggle password visibility"
+                  >
+                    {showPassword ? <EyeOff size={18} color="#6366f1" /> : <Eye size={18} color="#6366f1" />}
+                  </button>
+                </div>
+              </div>
+
+              <button 
+                type="submit" 
+                disabled={loading}
+                className="curved-submit-button btn"
+              >
+                {loading ? 'Authenticating...' : (
+                  <>
+                    <span>Sign In to Portal</span>
+                    <ArrowRight size={18} />
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   );

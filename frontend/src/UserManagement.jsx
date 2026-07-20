@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Users, UserPlus, Search, Pencil, Trash2, X,
-  ShieldCheck, User, Eye, EyeOff, RefreshCw, Mail, Phone
+  ShieldCheck, User, Eye, EyeOff, RefreshCw, Mail, Phone, CheckCircle, Lock, LayoutDashboard, Calendar, Clock, Archive, PhoneCall, Settings, CheckSquare
 } from 'lucide-react';
 import { getPerms } from './permissions';
 import SearchableSelect from './SearchableSelect';
@@ -10,7 +10,7 @@ import toast from 'react-hot-toast';
 const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
 const token = () => localStorage.getItem('token');
 
-const ROLES = ['admin', 'employee', 'manager']; // Fallback
+const ROLES = ['admin', 'employee', 'manager'];
 const ROLE_COLORS = {
   admin:    { bg: '#ede9fe', color: '#6d28d9' },
   manager:  { bg: '#dbeafe', color: '#1d4ed8' },
@@ -28,6 +28,19 @@ const getRoleColor = (roleName) => {
   return { bg: `hsl(${h}, 70%, 95%)`, color: `hsl(${h}, 70%, 35%)` };
 };
 
+const MODULE_LIST = [
+  { key: 'dashboard',       label: 'Dashboard',             desc: 'Access main analytics dashboard' },
+  { key: 'leads',           label: 'Leads & Management',    desc: 'Access lead pipeline & customer leads' },
+  { key: 'appointments',    label: 'Appointments',          desc: 'Access scheduled appointments' },
+  { key: 'call_later',      label: 'Call Later',            desc: 'Access follow-ups & callbacks' },
+  { key: 'ni_box',          label: 'Not Interested (NI)',   desc: 'Access NI lead archive' },
+  { key: 'call_history',    label: 'Call History',          desc: 'Access interaction & call logs' },
+  { key: 'clients',         label: 'Clients / Customers',   desc: 'Access customer directory' },
+  { key: 'completed_work',  label: 'Completed Work',        desc: 'Access completed deals' },
+  { key: 'user_management', label: 'Staff Management',      desc: 'Access staff management & team permissions' },
+  { key: 'settings',        label: 'Settings',              desc: 'Access system settings & portal configs' }
+];
+
 const defaultForm = { name: '', email: '', phone: '', role: 'employee', password: '', status: 'Active' };
 
 export default function UserManagement() {
@@ -43,6 +56,12 @@ export default function UserManagement() {
   const [saving, setSaving]       = useState(false);
   const [deleteId, setDeleteId]   = useState(null);
   const [dbRoles, setDbRoles]     = useState([]);
+
+  // Permission Modal States
+  const [permUser, setPermUser]           = useState(null);
+  const [showPermModal, setShowPermModal] = useState(false);
+  const [userPermsState, setUserPermsState] = useState({});
+  const [savingPerms, setSavingPerms]     = useState(false);
 
   // ── helpers ──────────────────────────────────────────────────────────
 
@@ -100,6 +119,7 @@ export default function UserManagement() {
     setShowPass(false);
     setShowModal(true);
   };
+
   const openEdit = (u) => {
     if (!u) return;
     setEditUser(u);
@@ -119,7 +139,58 @@ export default function UserManagement() {
     setShowPass(false);
     setShowModal(true);
   };
+
   const closeModal = () => { setShowModal(false); setEditUser(null); };
+
+  // ── Permission Modal Open & Save ──────────────────────────────────
+  const openPermModal = (u) => {
+    setPermUser(u);
+    const rawPerms = typeof u.permissions === 'string' ? JSON.parse(u.permissions) : (u.permissions || {});
+    setUserPermsState(rawPerms);
+    setShowPermModal(true);
+  };
+
+  const toggleModulePerm = (modKey) => {
+    setUserPermsState(prev => {
+      const curr = prev[modKey];
+      let currentVal = false;
+      if (typeof curr === 'boolean') currentVal = curr;
+      else if (typeof curr === 'object' && curr !== null) currentVal = !!(curr.view || curr.canView);
+      
+      const newVal = !currentVal;
+      return {
+        ...prev,
+        [modKey]: {
+          view: newVal,
+          create: newVal,
+          edit: newVal,
+          delete: newVal
+        }
+      };
+    });
+  };
+
+  const handleSavePerms = async () => {
+    if (!permUser) return;
+    setSavingPerms(true);
+    try {
+      const res = await fetch(`${API}/users/${permUser.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+        body: JSON.stringify({ permissions: userPermsState })
+      });
+      if (res.ok) {
+        toast.success(`Page permissions updated for ${permUser.name}!`);
+        fetchUsersAndRoles();
+        setShowPermModal(false);
+      } else {
+        toast.error('Failed to update permissions');
+      }
+    } catch {
+      toast.error('Error saving permissions');
+    }
+    setSavingPerms(false);
+  };
 
   // ── save (add / edit) ─────────────────────────────────────────────
   const handleSave = async (e) => {
@@ -203,18 +274,20 @@ export default function UserManagement() {
 
   // ── styles ─────────────────────────────────────────────────────────
   const inp = {
-    width: '100%', padding: '10px 12px', borderRadius: '8px',
-    border: '1.5px solid #e5e7eb', outline: 'none', fontSize: '14px',
-    color: '#1f2937', background: '#fafafa', boxSizing: 'border-box',
+    width: '100%',
+    paddingTop: '10px',
+    paddingBottom: '10px',
+    paddingRight: '12px',
+    paddingLeft: '12px',
+    borderRadius: '8px',
+    border: '1.5px solid #e5e7eb',
+    outline: 'none',
+    fontSize: '14px',
+    color: '#1f2937',
+    background: '#fafafa',
+    boxSizing: 'border-box',
   };
   const lbl = { display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: '600', color: '#374151' };
-
-  const stats = [
-    { label: 'Total Users',    value: users.length,                            color: '#6366f1' },
-    { label: 'Active',         value: users.filter(u => u.status === 'Active').length,   color: '#10b981' },
-    { label: 'Inactive',       value: users.filter(u => u.status !== 'Active').length,   color: '#f59e0b' },
-    { label: 'Admins',         value: users.filter(u => u.role === 'admin').length,      color: '#8b5cf6' },
-  ];
 
   return (
     <div style={{ maxWidth: 1100, animation: 'fadeIn 0.3s ease-out' }}>
@@ -225,7 +298,7 @@ export default function UserManagement() {
             <Users size={28} color="var(--primary)" />
             Staff & Team Management
           </h1>
-          <p>Manage staff members, system access roles, and permission levels</p>
+          <p>Manage staff members, system access roles, and page permission levels</p>
         </div>
         <div className="crm-page-actions">
           <button onClick={fetchUsersAndRoles} className="btn btn-secondary">
@@ -271,13 +344,16 @@ export default function UserManagement() {
 
       {/* Search & Filter */}
       <div className="search-filter-container" style={{ background: 'white', borderRadius: 12, padding: '16px 20px', border: '1px solid #e5e7eb', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', marginBottom: 16 }}>
-        <div style={{ position: 'relative', flex: 1 }}>
-          <Search size={16} color="#9ca3af" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
+        <div style={{ position: 'relative', flex: 1, display: 'flex', alignItems: 'center' }}>
+          <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', color: '#9ca3af', zIndex: 2 }}>
+            <Search size={16} />
+          </div>
           <input
+            className="has-icon-left"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search by name or email..."
-            style={{ ...inp, paddingLeft: 38, background: '#f9fafb' }}
+            style={{ ...inp, background: '#f9fafb' }}
           />
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -351,8 +427,8 @@ export default function UserManagement() {
                   <td data-label="Status" style={{ padding: '14px 18px' }}>
                     <button onClick={() => canEdit && toggleStatus(u.id)}
                       disabled={!canEdit}
-                      style={{ fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 20, background: u.status === 'Active' ? '#d1fae5' : '#fee2e2', color: u.status === 'Active' ? '#065f46' : '#dc2626', border: 'none', cursor: canEdit ? 'pointer' : 'default', opacity: canEdit ? 1 : 0.7 }}>
-                      {u.status === 'Active' ? '● Active' : '○ Inactive'}
+                      style={{ fontSize: 12, fontWeight: 700, padding: '6px 14px', borderRadius: 20, background: u.status === 'Active' ? '#d1fae5' : '#fee2e2', color: u.status === 'Active' ? '#065f46' : '#dc2626', border: 'none', cursor: canEdit ? 'pointer' : 'default', opacity: canEdit ? 1 : 0.7, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      {u.status === 'Active' ? <><span className="status-dot-pulse"></span> Active</> : '○ Inactive'}
                     </button>
                   </td>
 
@@ -364,10 +440,16 @@ export default function UserManagement() {
                   <td data-label="Actions" style={{ padding: '14px 18px' }}>
                     <div style={{ display: 'flex', gap: 8 }}>
                       {canEdit && (
-                        <button onClick={() => openEdit(u)} title="Edit User"
-                          style={{ width: 34, height: 34, borderRadius: 8, background: '#eef2ff', color: '#6366f1', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <Pencil size={15} />
-                        </button>
+                        <>
+                          <button onClick={() => openPermModal(u)} title="Manage Page Permissions"
+                            style={{ width: 34, height: 34, borderRadius: 8, background: '#ede9fe', color: '#6d28d9', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <ShieldCheck size={15} />
+                          </button>
+                          <button onClick={() => openEdit(u)} title="Edit User"
+                            style={{ width: 34, height: 34, borderRadius: 8, background: '#eef2ff', color: '#6366f1', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Pencil size={15} />
+                          </button>
+                        </>
                       )}
                       {canDelete && (
                         <button onClick={() => setDeleteId(u.id)} title="Delete User"
@@ -403,33 +485,39 @@ export default function UserManagement() {
               </div>
               <div>
                 <h3 style={{ margin: 0, fontSize: 18, color: '#111827' }}>{editUser ? 'Edit User' : 'Add New User'}</h3>
-                <p style={{ margin: 0, fontSize: 13, color: '#6b7280' }}>{editUser ? `Editing: ${editUser.name}` : 'Fill in the details below'}</p>
+                <p style={{ margin: 0, fontSize: 13, color: '#6b7280' }}>{editUser ? `Editing: ${editUser.name}` : 'Fill in the credentials below'}</p>
               </div>
             </div>
 
-            <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <form onSubmit={handleSave} autoComplete="off" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                 <div style={{ gridColumn: '1/-1' }}>
                   <label style={lbl}>Full Name *</label>
-                  <div style={{ position: 'relative' }}>
-                    <User size={15} color="#9ca3af" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
-                    <input required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} style={{ ...inp, paddingLeft: 36 }} placeholder="John Doe" />
+                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%' }}>
+                    <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, pointerEvents: 'none', color: '#6b7280' }}>
+                      <User size={18} />
+                    </div>
+                    <input required className="has-icon-left" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} style={{ ...inp }} placeholder="John Doe" autoComplete="off" />
                   </div>
                 </div>
 
                 <div>
                   <label style={lbl}>Email Address *</label>
-                  <div style={{ position: 'relative' }}>
-                    <Mail size={15} color="#9ca3af" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
-                    <input required type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} style={{ ...inp, paddingLeft: 36 }} placeholder="user@company.com" />
+                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%' }}>
+                    <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, pointerEvents: 'none', color: '#6b7280' }}>
+                      <Mail size={18} />
+                    </div>
+                    <input required className="has-icon-left" type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} style={{ ...inp }} placeholder="user@company.com" autoComplete="new-password" />
                   </div>
                 </div>
 
                 <div>
                   <label style={lbl}>Phone Number (10 digits only)</label>
-                  <div style={{ position: 'relative' }}>
-                    <Phone size={15} color="#9ca3af" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
-                    <input type="tel" maxLength={10} value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value.replace(/[^0-9]/g, '').slice(0, 10) })} style={{ ...inp, paddingLeft: 36 }} placeholder="9876543210" />
+                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%' }}>
+                    <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, pointerEvents: 'none', color: '#6b7280' }}>
+                      <Phone size={18} />
+                    </div>
+                    <input className="has-icon-left" type="tel" maxLength={10} value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value.replace(/[^0-9]/g, '').slice(0, 10) })} style={{ ...inp }} placeholder="9876543210" autoComplete="off" />
                   </div>
                 </div>
 
@@ -459,20 +547,25 @@ export default function UserManagement() {
                   />
                 </div>
 
-                <div>
+                <div style={{ gridColumn: '1/-1' }}>
                   <label style={lbl}>{editUser ? 'New Password (optional)' : 'Password *'}</label>
-                  <div style={{ position: 'relative' }}>
+                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%' }}>
+                    <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, pointerEvents: 'none', color: '#6b7280' }}>
+                      <Lock size={18} />
+                    </div>
                     <input
+                      className="has-icon-left"
                       type={showPass ? 'text' : 'password'}
                       required={!editUser}
                       value={form.password}
                       onChange={e => setForm({ ...form, password: e.target.value })}
-                      style={{ ...inp, paddingRight: 38 }}
+                      style={{ ...inp, paddingRight: '48px' }}
                       placeholder={editUser ? 'Leave blank to keep current' : 'Min 6 characters'}
+                      autoComplete="new-password"
                     />
                     <button type="button" onClick={() => setShowPass(!showPass)}
-                      style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}>
-                      {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
+                      style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', zIndex: 3 }}>
+                      {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
                 </div>
@@ -489,6 +582,96 @@ export default function UserManagement() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Page Permissions Matrix Modal ────────────────────────────── */}
+      {showPermModal && permUser && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
+          <div className="modal-content-wrapper" style={{ background: 'white', borderRadius: 18, padding: '28px 32px', width: '100%', maxWidth: 580, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 25px 70px rgba(0,0,0,0.25)', position: 'relative' }}>
+            <button onClick={() => setShowPermModal(false)} style={{ position: 'absolute', top: 16, right: 16, background: '#f3f4f6', border: 'none', borderRadius: 8, padding: 8, cursor: 'pointer', color: '#6b7280' }}>
+              <X size={18} />
+            </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+              <div style={{ width: 46, height: 46, borderRadius: 12, background: 'linear-gradient(135deg, #4f46e5, #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                <ShieldCheck size={24} />
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: 18, color: '#0f172a', fontWeight: 800 }}>Page Access & Permissions</h3>
+                <p style={{ margin: 0, fontSize: 13, color: '#64748b', fontWeight: 500 }}>
+                  Managing allowed pages for: <strong style={{ color: '#4338ca' }}>{permUser.name}</strong> ({permUser.email})
+                </p>
+              </div>
+            </div>
+
+            <div style={{ background: '#f8fafc', borderRadius: 12, padding: '12px 16px', marginBottom: 20, border: '1px solid #e2e8f0', fontSize: 12.5, color: '#475569', lineHeight: 1.5 }}>
+              💡 <strong>Default Permission Rule:</strong> New team members get access to all operational CRM pages by default. Admin can restrict specific pages below. Pages turned <strong>OFF</strong> will be hidden from their sidebar and access will be restricted.
+            </div>
+
+            {/* Permission Toggle List */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+              {MODULE_LIST.map(mod => {
+                const curr = userPermsState[mod.key];
+                let isAllowed = false;
+                if ((permUser.role || '').toLowerCase() === 'admin') {
+                  isAllowed = true;
+                } else if (typeof curr === 'boolean') {
+                  isAllowed = curr;
+                } else if (typeof curr === 'object' && curr !== null) {
+                  isAllowed = !!(curr.view || curr.canView);
+                } else {
+                  // Default fallback for new users: allowed for all except user_management & settings
+                  isAllowed = mod.key !== 'user_management' && mod.key !== 'settings';
+                }
+
+                const isAdminRole = (permUser.role || '').toLowerCase() === 'admin';
+
+                return (
+                  <div key={mod.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderRadius: 12, background: isAllowed ? '#f5f3ff' : '#fafafa', border: `1.5px solid ${isAllowed ? '#c7d2fe' : '#e5e7eb'}`, transition: 'all 0.2s' }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 14, color: isAllowed ? '#3730a3' : '#374151', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        {mod.label}
+                        {isAllowed ? <span style={{ fontSize: 10, background: '#e0e7ff', color: '#4338ca', padding: '2px 8px', borderRadius: 10, fontWeight: 800 }}>GRANTED</span> : <span style={{ fontSize: 10, background: '#fee2e2', color: '#dc2626', padding: '2px 8px', borderRadius: 10, fontWeight: 800 }}>RESTRICTED</span>}
+                      </div>
+                      <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{mod.desc}</div>
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled={isAdminRole}
+                      onClick={() => toggleModulePerm(mod.key)}
+                      style={{
+                        padding: '6px 16px',
+                        borderRadius: 20,
+                        fontSize: 12,
+                        fontWeight: 800,
+                        border: 'none',
+                        cursor: isAdminRole ? 'not-allowed' : 'pointer',
+                        background: isAllowed ? '#4f46e5' : '#e2e8f0',
+                        color: isAllowed ? '#ffffff' : '#64748b',
+                        boxShadow: isAllowed ? '0 4px 12px rgba(79, 70, 229, 0.3)' : 'none',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      {isAllowed ? 'ALLOWED ✓' : 'OFF ✕'}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button type="button" onClick={() => setShowPermModal(false)}
+                style={{ flex: 1, padding: '11px', background: '#f3f4f6', color: '#374151', border: '1px solid #e5e7eb', borderRadius: 10, fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
+                Cancel
+              </button>
+              <button type="button" onClick={handleSavePerms} disabled={savingPerms}
+                style={{ flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '11px', background: savingPerms ? '#a5b4fc' : '#4f46e5', color: 'white', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: 14, cursor: savingPerms ? 'not-allowed' : 'pointer', boxShadow: '0 4px 14px rgba(79,70,229,0.35)' }}>
+                <CheckCircle size={16} /> {savingPerms ? 'Saving Permissions...' : 'Save Page Permissions'}
+              </button>
+            </div>
           </div>
         </div>
       )}

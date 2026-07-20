@@ -31,7 +31,17 @@ const ProtectedRoute = ({ children, module, requireEmployee }) => {
   const hasPerm = (mod) => {
     if (role === 'admin') return true;
     if (mod === 'dashboard' || mod === 'profile') return true;
-    return permissions[mod] && permissions[mod].view;
+    const p = permissions[mod];
+    if (p === undefined) {
+      // Default: allow all operational pages except settings & user_management for non-admins
+      return mod !== 'settings' && mod !== 'user_management';
+    }
+    if (typeof p === 'boolean') return p;
+    if (typeof p === 'object' && p !== null) {
+      if (p.view !== undefined) return !!p.view;
+      if (p.canView !== undefined) return !!p.canView;
+    }
+    return !!p;
   };
 
   if (requireEmployee && role !== 'employee') return <Navigate to="/" />;
@@ -52,7 +62,17 @@ const Sidebar = ({ isSidebarOpen, setSidebarOpen }) => {
   const hasPerm = (module) => {
     if (role === 'admin') return true; // Admin sees all
     if (module === 'dashboard' || module === 'profile') return true; // Always allow Dashboard and My Profile
-    return permissions[module] && permissions[module].view;
+    const p = permissions[module];
+    if (p === undefined) {
+      // Default: allow all operational pages except settings & user_management for non-admins
+      return module !== 'settings' && module !== 'user_management';
+    }
+    if (typeof p === 'boolean') return p;
+    if (typeof p === 'object' && p !== null) {
+      if (p.view !== undefined) return !!p.view;
+      if (p.canView !== undefined) return !!p.canView;
+    }
+    return !!p;
   };
 
   return (

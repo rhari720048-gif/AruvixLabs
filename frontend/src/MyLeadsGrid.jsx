@@ -199,7 +199,7 @@ const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdat
         <h2 style={{ color: 'var(--text-dark)', margin: 0 }}>My Leads ({leads.length})</h2>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '20px' }}>
         {leads.map(lead => (
           <div 
             key={lead.id} 

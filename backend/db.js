@@ -10,11 +10,13 @@ const pool = mysql.createPool({
     database: process.env.DB_NAME,
     ssl: {
         minVersion: 'TLSv1.2',
-        rejectUnauthorized: true
+        rejectUnauthorized: false
     },
     waitForConnections: true,
     connectionLimit: 10,
-    queueLimit: 0
+    queueLimit: 0,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 0
 });
 
 async function initDB() {
@@ -129,6 +131,17 @@ async function initDB() {
         } catch (e) { }
         try {
             await pool.query("ALTER TABLE customers ADD COLUMN converted_by INT NULL");
+        } catch (e) { }
+
+        // Indexes for fast call_logs query synchronization
+        try {
+            await pool.query("CREATE INDEX idx_call_logs_customer ON call_logs(customer_id)");
+        } catch (e) { }
+        try {
+            await pool.query("CREATE INDEX idx_call_logs_employee ON call_logs(employee_id)");
+        } catch (e) { }
+        try {
+            await pool.query("CREATE INDEX idx_call_logs_created ON call_logs(created_at)");
         } catch (e) { }
 
         // Seed default roles if roles table is empty

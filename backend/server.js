@@ -18,25 +18,34 @@ app.use(helmet({
     crossOriginEmbedderPolicy: false,
 }));
 
-// Security: Rate Limiting
+// Security: Strict Rate Limiting
 const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 1000, // 1000 requests per IP per 15 minutes
+    max: 500, // 500 requests per IP per 15 minutes
     standardHeaders: true,
     legacyHeaders: false,
-    message: { error: 'Too many requests from this IP. Please try again after 15 minutes.' }
+    message: { error: 'Too many API requests from this IP. Please try again after 15 minutes.' }
 });
 
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 30, // 30 login attempts per 15 minutes per IP
+    max: 15, // 15 login attempts per 15 minutes per IP (Brute-force protection)
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: 'Too many login attempts. Please try again after 15 minutes.' }
 });
 
+const sensitiveOpsLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 20, // 20 sensitive admin/user management operations per 15 minutes per IP
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many sensitive requests. Please try again after 15 minutes.' }
+});
+
 app.use('/api/', apiLimiter);
 app.use('/api/auth/login', authLimiter);
+app.use('/api/users', sensitiveOpsLimiter);
 
 app.use(cors({
     origin: ['https://aruvix-labs.vercel.app', 'http://localhost:5173', 'http://localhost:3000'],
@@ -211,40 +220,38 @@ app.get('/api/customers', authenticate, async (req, res) => {
 });
 
 app.put('/api/customers/:id', authenticate, async (req, res) => {
-    const { status, notes, name, phone, district, source, assigned_to, car_model, registration_number, callback_time } = req.body;
+    const { status, notes, name, phone, district, source, assigned_to, car_model, registration_number, callback_time, duration } = req.body;
     console.log('PUT /api/customers/:id', req.params.id, 'payload:', req.body);
     try {
+        const customerId = req.params.id;
+        const empId = req.user?.id || null;
+
         if (name) {
             // Full update
             const parsed = parseAssignedTo(assigned_to);
             const assignedToStr = JSON.stringify(parsed);
             const query = 'UPDATE customers SET name=?, phone=?, district=?, source=?, notes=?, status=?, assigned_to=?, car_model=?, registration_number=? WHERE id=?';
                 
-            const params = [name, phone, district, source, notes, status, assignedToStr, car_model || '', registration_number || '', req.params.id];
+            const params = [name, phone, district, source, notes, status, assignedToStr, car_model || '', registration_number || '', customerId];
                 
             await pool.query(query, params);
-            
-            // If callback_time is provided, update the latest call_log for this customer
-            if (callback_time !== undefined) {
-                // Find latest call log
-                const [logs] = await pool.query('SELECT id FROM call_logs WHERE customer_id = ? ORDER BY id DESC LIMIT 1', [req.params.id]);
-                if (logs.length > 0) {
-                    await pool.query('UPDATE call_logs SET callback_time = ? WHERE id = ?', [callback_time || null, logs[0].id]);
-                } else {
-                    // If no call log exists, create a dummy one just to store the callback time
-                    await pool.query('INSERT INTO call_logs (customer_id, status, notes, callback_time) VALUES (?, ?, ?, ?)', [req.params.id, status, notes, callback_time || null]);
-                }
-            }
         } else {
             // Partial update (just status/notes)
-            await pool.query('UPDATE customers SET status = ?, notes = ? WHERE id = ?', [status, notes, req.params.id]);
+            await pool.query('UPDATE customers SET status = ?, notes = ? WHERE id = ?', [status, notes, customerId]);
             // Record conversion info when status changes to Converted
             if (status === 'Converted') {
-                await pool.query('UPDATE customers SET converted_at = NOW(), converted_by = ? WHERE id = ? AND converted_at IS NULL', [req.user.id, req.params.id]);
+                await pool.query('UPDATE customers SET converted_at = NOW(), converted_by = ? WHERE id = ? AND converted_at IS NULL', [empId, customerId]);
             } else if (status === 'Completed Work') {
-                await pool.query('UPDATE customers SET completed_at = NOW() WHERE id = ?', [req.params.id]);
+                await pool.query('UPDATE customers SET completed_at = NOW() WHERE id = ?', [customerId]);
             }
         }
+
+        // Auto-log interaction to call_logs for real-time sync & consistency
+        await pool.query(
+            'INSERT INTO call_logs (customer_id, employee_id, status, notes, callback_time, duration) VALUES (?, ?, ?, ?, ?, ?)',
+            [customerId, empId, status || 'Updated', notes || 'Customer details updated', callback_time || null, duration || 0]
+        );
+
         res.json({ success: true });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -279,11 +286,19 @@ app.post('/api/customers', authenticate, async (req, res) => {
     const assignedToStr = JSON.stringify(parsed);
     
     try {
-        await pool.query(
+        const [result] = await pool.query(
             'INSERT INTO customers (customer_id, name, phone, district, source, notes, status, assigned_to, car_model, registration_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [customer_id, name, phone, district, source, notes, 'Pending', assignedToStr, car_model || '', registration_number || '']
         );
-        res.json({ success: true });
+        const newCustomerId = result.insertId;
+
+        // Auto-log initial customer creation event into call_logs
+        await pool.query(
+            'INSERT INTO call_logs (customer_id, employee_id, status, notes) VALUES (?, ?, ?, ?)',
+            [newCustomerId, req.user?.id || null, 'Pending', notes || 'Customer record created']
+        );
+
+        res.json({ success: true, id: newCustomerId });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -313,23 +328,43 @@ app.get('/api/users', authenticate, async (req, res) => {
 app.post('/api/users', authenticate, async (req, res) => {
     const canCreate = req.user.role === 'admin' || req.user.permissions?.user_management?.create;
     if (!canCreate) return res.status(403).json({ error: 'Access denied: You do not have create permissions for user management.' });
-    const { name, email, phone, role, password, status } = req.body;
+    const { name, email, phone, role, password, status, permissions } = req.body;
     try {
         const [existing] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
         if (existing.length > 0) return res.status(400).json({ error: 'Email already exists' });
 
-        // Validate that the role exists in the roles database table
-        const [dbRoles] = await pool.query('SELECT permissions FROM roles WHERE LOWER(name) = LOWER(?)', [role]);
-        if (dbRoles.length === 0) {
-            return res.status(400).json({ error: `Role '${role}' does not exist. Please add it first in Settings -> User Permissions.` });
+        const userRole = (role || 'employee').toLowerCase();
+
+        // Default permissions for new team members: Granted ALL pages EXCEPT settings & staff management (user_management)
+        const defaultMemberPerms = {
+            dashboard:       { view: true, create: true, edit: true, delete: true },
+            leads:           { view: true, create: true, edit: true, delete: true },
+            appointments:    { view: true, create: true, edit: true, delete: true },
+            call_later:      { view: true, create: true, edit: true, delete: true },
+            ni_box:          { view: true, create: true, edit: true, delete: true },
+            call_history:    { view: true, create: true, edit: true, delete: true },
+            clients:         { view: true, create: true, edit: true, delete: true },
+            completed_work:  { view: true, create: true, edit: true, delete: true },
+            user_management: { view: userRole === 'admin', create: userRole === 'admin', edit: userRole === 'admin', delete: userRole === 'admin' },
+            settings:        { view: userRole === 'admin', create: userRole === 'admin', edit: userRole === 'admin', delete: userRole === 'admin' }
+        };
+
+        let finalPerms = permissions || defaultMemberPerms;
+
+        // Also check if role exists in roles table as fallback
+        const [dbRoles] = await pool.query('SELECT permissions FROM roles WHERE LOWER(name) = LOWER(?)', [userRole]);
+        if (dbRoles.length > 0 && !permissions) {
+            try {
+                const dbPerms = typeof dbRoles[0].permissions === 'string' ? JSON.parse(dbRoles[0].permissions) : dbRoles[0].permissions;
+                finalPerms = { ...defaultMemberPerms, ...dbPerms };
+            } catch (e) {}
         }
 
-        const defaultPerms = typeof dbRoles[0].permissions === 'string' ? JSON.parse(dbRoles[0].permissions) : dbRoles[0].permissions;
         const hashedPassword = await bcrypt.hash(password, 10);
 
         await pool.query(
             'INSERT INTO users (name, email, phone, role, password, status, permissions) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [name, email, phone, role, hashedPassword, status, JSON.stringify(defaultPerms)]
+            [name, email, phone, userRole, hashedPassword, status || 'Active', JSON.stringify(finalPerms)]
         );
         res.json({ success: true });
     } catch (error) {
@@ -343,27 +378,21 @@ app.put('/api/users/:id', authenticate, async (req, res) => {
     if (!canEdit) return res.status(403).json({ error: 'Access denied: You do not have edit permissions for user management.' });
     const { name, email, phone, role, password, status, permissions } = req.body;
     try {
-        const [existing] = await pool.query('SELECT role, permissions FROM users WHERE id = ?', [req.params.id]);
+        const [existing] = await pool.query('SELECT role, permissions, name, email, phone, status FROM users WHERE id = ?', [req.params.id]);
         if (existing.length === 0) return res.status(404).json({ error: 'User not found' });
 
         let finalPerms = existing[0].permissions;
-
-        if (role) {
-            const [dbRoles] = await pool.query('SELECT permissions FROM roles WHERE LOWER(name) = LOWER(?)', [role]);
-            if (dbRoles.length === 0) {
-                return res.status(400).json({ error: `Role '${role}' does not exist. Please add it first in Settings -> User Permissions.` });
-            }
-
-            if (permissions) {
-                finalPerms = JSON.stringify(permissions);
-            } else if ((existing[0].role || '').toLowerCase() !== role.toLowerCase()) {
-                finalPerms = JSON.stringify(dbRoles[0].permissions);
-            }
-        } else if (permissions) {
-            finalPerms = JSON.stringify(permissions);
+        if (permissions) {
+            finalPerms = typeof permissions === 'string' ? permissions : JSON.stringify(permissions);
         }
 
-        const queryParams = [name, email, phone, role || existing[0].role, status, finalPerms];
+        const newName   = name !== undefined ? name : existing[0].name;
+        const newEmail  = email !== undefined ? email : existing[0].email;
+        const newPhone  = phone !== undefined ? phone : existing[0].phone;
+        const newRole   = role !== undefined ? role : existing[0].role;
+        const newStatus = status !== undefined ? status : existing[0].status;
+
+        const queryParams = [newName, newEmail, newPhone, newRole, newStatus, finalPerms];
         let queryStr = 'UPDATE users SET name=?, email=?, phone=?, role=?, status=?, permissions=?';
 
         if (password && password.trim() !== '') {
