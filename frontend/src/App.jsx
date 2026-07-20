@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import Landing from './Landing';
 import Login from './Login';
-import { LayoutDashboard, User, UserPlus, Users, Settings, ChevronRight, Pencil, X, CheckCircle, Camera, Eye, Edit2, Trash2, PhoneCall, Clock, Calendar, Archive, Building } from 'lucide-react';
+import { LayoutDashboard, User, UserPlus, Users, Settings, ChevronRight, Pencil, X, CheckCircle, Camera, Eye, Edit2, Trash2, PhoneCall, Clock, Calendar, Archive, Building, LogOut } from 'lucide-react';
 import AdminLeads from './AdminLeads';
 import SettingsPage from './SettingsPage';
 import Clients from './Clients';
@@ -47,6 +47,7 @@ const Sidebar = ({ isSidebarOpen, setSidebarOpen }) => {
   let permissions = {};
   try { permissions = JSON.parse(localStorage.getItem('permissions') || '{}'); } catch (e) { }
   const role = (localStorage.getItem('role') || 'employee').toLowerCase();
+  const userName = localStorage.getItem('user_name') || 'User';
 
   const hasPerm = (module) => {
     if (role === 'admin') return true; // Admin sees all
@@ -57,14 +58,14 @@ const Sidebar = ({ isSidebarOpen, setSidebarOpen }) => {
   return (
     <>
       <div className={`sidebar-overlay ${isSidebarOpen ? 'active' : ''}`} onClick={() => setSidebarOpen(false)}></div>
-      <aside className={`sidebar ${isSidebarOpen ? 'sidebar-open' : ''}`}>
+      <aside className={`sidebar ${isSidebarOpen ? 'sidebar-open' : ''}`} style={{ display: 'flex', flexDirection: 'column' }}>
       <div className="sidebar-logo">
         <div style={{ width: 32, height: 32, background: 'var(--primary)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <span style={{ color: 'white', fontSize: 16 }}>A</span>
         </div>
         AruvixLabs
       </div>
-      <ul className="nav-links" style={{ overflowY: 'auto', paddingBottom: '20px' }}>
+      <ul className="nav-links" style={{ overflowY: 'auto', flex: 1, paddingBottom: '20px' }}>
         {hasPerm('dashboard') && <li><Link onClick={() => setSidebarOpen(false)} to="/" className={`nav-link ${isActive('/')}`}><LayoutDashboard size={20} /> Dashboard</Link></li>}
         {hasPerm('profile') && <li><Link onClick={() => setSidebarOpen(false)} to="/profile" className={`nav-link ${isActive('/profile')}`}><User size={20} /> My Profile</Link></li>}
         
@@ -78,8 +79,33 @@ const Sidebar = ({ isSidebarOpen, setSidebarOpen }) => {
         {hasPerm('completed_work') && <li><Link onClick={() => setSidebarOpen(false)} to="/completed-work" className={`nav-link ${isActive('/completed-work')}`}><CheckCircle size={20} /> Completed Work</Link></li>}
         
         {hasPerm('user_management') && <li><Link onClick={() => setSidebarOpen(false)} to="/user-management" className={`nav-link ${isActive('/user-management')}`}><Users size={20} /> Staff Management</Link></li>}
-        {hasPerm('settings') && <li style={{ marginTop: '20px' }}><Link onClick={() => setSidebarOpen(false)} to="/settings" className={`nav-link ${isActive('/settings')}`}><Settings size={20} /> Settings</Link></li>}
+        {hasPerm('settings') && <li style={{ marginTop: '14px' }}><Link onClick={() => setSidebarOpen(false)} to="/settings" className={`nav-link ${isActive('/settings')}`}><Settings size={20} /> Settings</Link></li>}
       </ul>
+
+      {/* User Profile & Logout section below Settings */}
+      <div style={{ marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid rgba(226, 232, 240, 0.8)', paddingBottom: '16px', paddingLeft: '16px', paddingRight: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', background: '#f8fafc', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
+            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '15px', flexShrink: 0 }}>
+              {userName.charAt(0).toUpperCase()}
+            </div>
+            <div style={{ overflow: 'hidden' }}>
+              <div style={{ fontWeight: '700', fontSize: '13.5px', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{userName}</div>
+              <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'capitalize' }}>{role}</div>
+            </div>
+          </div>
+          <button 
+            onClick={() => {
+              localStorage.clear();
+              window.location.href = '/login';
+            }}
+            title="Logout"
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34, borderRadius: 10, background: '#fee2e2', color: '#dc2626', border: 'none', cursor: 'pointer', flexShrink: 0 }}
+          >
+            <LogOut size={16} />
+          </button>
+        </div>
+      </div>
     </aside>
     </>
   );

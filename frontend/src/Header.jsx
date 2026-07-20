@@ -139,28 +139,7 @@ export default function Header({ setSidebarOpen }) {
         <h2 className="header-title" style={{ margin: 0, fontSize: 'clamp(16px, 4vw, 24px)' }}>Welcome back, {user.name}</h2>
       </div>
       
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-
-
-
-        <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0 }}>
-            {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
-          </div>
-          <span style={{ fontWeight: 600, color: '#374151' }} className="hide-on-mobile">{user.name}</span>
-          
-          <button 
-            onClick={() => {
-              localStorage.clear();
-              window.location.href = '/login';
-            }}
-            title="Logout"
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 8, background: '#fee2e2', color: '#dc2626', border: 'none', cursor: 'pointer', marginLeft: 8 }}
-          >
-            <LogOut size={16} />
-          </button>
-        </div>
-      </div>
+      <div></div>
 
       {/* Pass Request Modal */}
       {showPassModal && (
