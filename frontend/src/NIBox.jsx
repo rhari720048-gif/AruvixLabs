@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Archive, RefreshCw, User, Users, PlusCircle, CheckCircle, Edit3, PhoneCall, MapPin, Car, Clock, Phone, PhoneOff, Calendar } from 'lucide-react';
+import { Archive, RefreshCw, User, Users, PlusCircle, CheckCircle, Edit3, PhoneCall, MapPin, Car, Clock, Phone, PhoneOff, Calendar, Download } from 'lucide-react';
 import './index.css';
 import ViewModal from './ViewModal';
 import EditLeadModal from './EditLeadModal';
@@ -28,6 +28,33 @@ const NIBox = () => {
     const [manualForm, setManualForm] = useState({ name: '', phone: '', location: '', car_name: '', notes: '' });
     const [users, setUsers] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleExportCSV = () => {
+        if (leads.length === 0) return toast.error('No NI leads data to export.');
+        
+        const exportRows = leads.map(l => ({
+            'Customer Name': l.name || '',
+            'Phone Number': l.phone || '',
+            'District / Location': l.district || l.location || '',
+            'Car Details': `${l.car_model || l.car_name || ''} ${l.registration_number ? '(' + l.registration_number + ')' : ''}`.trim(),
+            'Assignee': l.assignee_name || l.assigned_to || 'Unassigned',
+            'Last Feedback Note': l.last_note || l.notes || ''
+        }));
+
+        const headers = Object.keys(exportRows[0]);
+        const csvRows = [headers.join(',')];
+        for (const row of exportRows) {
+            const values = headers.map(h => `"${('' + (row[h] || '')).replace(/"/g, '""')}"`);
+            csvRows.push(values.join(','));
+        }
+        const blob = new Blob(['\uFEFF' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Not_Interested_Leads_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        toast.success('NI Box leads exported to CSV!');
+    };
 
     const handleDelete = async (id) => {
         if (!window.confirm("Are you sure you want to delete this lead?")) return;
@@ -210,9 +237,10 @@ const NIBox = () => {
                     </h1>
                     <p>Archived leads, disposition feedback logs, and re-engagement recovery options</p>
                 </div>
+                <button onClick={handleExportCSV} className="btn-export-csv">
+                    <Download size={18} /> Export CSV
+                </button>
             </div>
-
-
 
             <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
                 <button 
@@ -260,8 +288,8 @@ const NIBox = () => {
                                             <Phone size={14} />
                                         </a>
                                         <ActionButtons 
-                                            onView={() => setViewLead(lead)}
-                                            onEdit={() => setEditLead(lead)}
+                                            onView={() => setViewRecord(lead)}
+                                            onEdit={() => setEditRecord(lead)}
                                             onDelete={() => handleDelete(lead.id)}
                                         />
                                     </div>
@@ -286,7 +314,7 @@ const NIBox = () => {
                 <div className={`split-main ${!selectedLead ? 'mobile-hide' : ''}`} style={{ display: 'flex', flexDirection: 'column' }}>
                     {selectedLead ? (
                         <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                            <div className="split-main-header">
+                            <div className="split-main-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                     <button 
                                         type="button"
@@ -298,6 +326,11 @@ const NIBox = () => {
                                     </button>
                                     <h2 style={{ margin: 0, color: '#111827', fontSize: '20px' }}>{selectedLead.name}</h2>
                                 </div>
+                                <ActionButtons 
+                                    onView={() => setViewRecord(selectedLead)}
+                                    onEdit={() => setEditRecord(selectedLead)}
+                                    onDelete={() => handleDelete(selectedLead.id)}
+                                />
                             </div>
                                 <div className="split-main-content">
                                     <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
