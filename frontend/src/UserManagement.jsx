@@ -105,9 +105,11 @@ export default function UserManagement() {
 
   const filtered = safeUsers.filter(u => {
     if (!u) return false;
-    const q = (search || '').toLowerCase();
-    const matchSearch = (u.name || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q);
-    const matchRole   = roleFilter === 'all' || ((u.role || '').toLowerCase() === (roleFilter || '').toLowerCase());
+    const q = (search || '').trim().toLowerCase();
+    const matchSearch = !q || (u.name || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q);
+    const userRole = (u.role || '').trim().toLowerCase();
+    const targetFilter = (roleFilter || '').trim().toLowerCase();
+    const matchRole = targetFilter === 'all' || userRole === targetFilter;
     return matchSearch && matchRole;
   });
 
@@ -359,11 +361,11 @@ export default function UserManagement() {
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <button onClick={() => setRoleFilter('all')}
-            style={{ padding: '8px 16px', background: roleFilter === 'all' ? '#4f46e5' : '#f3f4f6', color: roleFilter === 'all' ? 'white' : '#6b7280', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: 'pointer', textTransform: 'capitalize', transition: '0.2s' }}>
+            style={{ padding: '8px 16px', background: (roleFilter || '').trim().toLowerCase() === 'all' ? '#4f46e5' : '#f3f4f6', color: (roleFilter || '').trim().toLowerCase() === 'all' ? 'white' : '#6b7280', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: 'pointer', textTransform: 'capitalize', transition: '0.2s' }}>
             All Roles
           </button>
-          {Array.from(new Set(users.map(u => (u.role || 'employee').trim()).filter(Boolean))).map(rName => {
-            const isSel = roleFilter.toLowerCase() === rName.toLowerCase();
+          {Array.from(new Set(safeUsers.map(u => (u.role || 'employee').trim()).filter(Boolean))).map(rName => {
+            const isSel = (roleFilter || '').trim().toLowerCase() === rName.trim().toLowerCase();
             return (
               <button key={rName} onClick={() => setRoleFilter(rName)}
                 style={{ padding: '8px 16px', background: isSel ? '#4f46e5' : '#f3f4f6', color: isSel ? 'white' : '#6b7280', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: 'pointer', textTransform: 'capitalize', transition: '0.2s' }}>
