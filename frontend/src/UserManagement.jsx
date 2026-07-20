@@ -208,7 +208,8 @@ export default function UserManagement() {
           fetchUsersAndRoles();
           toast.success('User updated successfully!');
         } else {
-          toast.error('Failed to update user.');
+          const err = await res.json();
+          toast.error(err.error || 'Failed to update user.');
         }
       } else {
         // POST /api/users

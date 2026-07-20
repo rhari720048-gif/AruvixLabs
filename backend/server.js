@@ -332,7 +332,8 @@ app.get('/api/users', authenticate, async (req, res) => {
 
 // Add new user
 app.post('/api/users', authenticate, async (req, res) => {
-    const canCreate = req.user.role === 'admin' || req.user.permissions?.user_management?.create;
+    const reqRole = (req.user?.role || '').toLowerCase();
+    const canCreate = reqRole === 'admin' || req.user?.permissions?.user_management?.create;
     if (!canCreate) return res.status(403).json({ error: 'Access denied: You do not have create permissions for user management.' });
     const { name, email, phone, role, password, status, permissions } = req.body;
     try {
@@ -380,7 +381,8 @@ app.post('/api/users', authenticate, async (req, res) => {
 
 // Edit User
 app.put('/api/users/:id', authenticate, async (req, res) => {
-    const canEdit = req.user.role === 'admin' || req.user.permissions?.user_management?.edit;
+    const reqRole = (req.user?.role || '').toLowerCase();
+    const canEdit = reqRole === 'admin' || req.user?.permissions?.user_management?.edit;
     if (!canEdit) return res.status(403).json({ error: 'Access denied: You do not have edit permissions for user management.' });
     const { name, email, phone, role, password, status, permissions } = req.body;
     try {
@@ -422,7 +424,8 @@ app.put('/api/users/:id', authenticate, async (req, res) => {
 
 // DELETE user
 app.delete('/api/users/:id', authenticate, async (req, res) => {
-    const canDelete = req.user.role === 'admin' || req.user.permissions?.user_management?.delete;
+    const reqRole = (req.user?.role || '').toLowerCase();
+    const canDelete = reqRole === 'admin' || req.user?.permissions?.user_management?.delete;
     if (!canDelete) return res.status(403).json({ error: 'Access denied: You do not have delete permissions for user management.' });
     const userId = req.params.id;
     try {
