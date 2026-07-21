@@ -150,6 +150,7 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
       toast.error('Failed to submit feedback.');
     }
   };
+  const handleFeedbackSubmit = handleSubmitFeedback;
 
   const formatTime = (totalSeconds) => {
     if (totalSeconds == null) return '00:00';
