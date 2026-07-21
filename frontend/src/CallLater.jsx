@@ -345,14 +345,14 @@ const CallLater = () => {
                        (l.district || l.location || '').toLowerCase().includes(q) ||
                        (l.year || '').toString().toLowerCase().includes(q) ||
                        (l.notes || '').toLowerCase().includes(q);
-              }).map(lead => (
+              }).map((lead, index) => (
                 <li 
                   key={lead.id}
                   onClick={() => setSelectedLead(lead)}
                   className={`contact-card ${selectedLead?.id === lead.id ? 'active' : ''}`}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                    <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: '700' }}>{lead.name}</h3>
+                    <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: '700' }}>{index + 1}. {lead.name}</h3>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                       <a 
                         href={`tel:${lead.phone}`}

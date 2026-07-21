@@ -51,7 +51,8 @@ const AdminLeads = () => {
       setCurrentUserRole(role);
     }
     fetchEmployees();
-    if (selectedLocation || role === 'admin' || adminSkippedLocation) {
+    const canSkip = role && role !== 'employee' && role !== 'telecaller';
+    if (selectedLocation || canSkip || adminSkippedLocation) {
       fetchLeads(selectedLocation || '');
     }
   }, [selectedLocation, adminSkippedLocation]);
@@ -280,7 +281,8 @@ const AdminLeads = () => {
 
   const renderLocationModal = () => {
     if (selectedLocation) return null;
-    if (currentUserRole === 'admin' && adminSkippedLocation) return null;
+    const canSkip = currentUserRole && currentUserRole !== 'employee' && currentUserRole !== 'telecaller';
+    if (canSkip && adminSkippedLocation) return null;
 
     // Filter location search list
     const filteredLocations = TAMIL_NADU_LOCATIONS.filter(loc => 
@@ -400,7 +402,7 @@ const AdminLeads = () => {
               </div>
             )}
           </div>
-          {currentUserRole === 'admin' && (
+          {canSkip && (
             <button 
               onClick={() => {
                 setAdminSkippedLocation(true);

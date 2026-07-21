@@ -368,7 +368,7 @@ const Appointments = () => {
                   onClick={() => setSelectedLead(lead)}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div style={{ fontWeight: '700', color: '#1e293b', fontSize: '15px' }}>{lead.name}</div>
+                    <div style={{ fontWeight: '700', color: '#1e293b', fontSize: '15px' }}>{index + 1}. {lead.name}</div>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                       <a 
                         href={`tel:${lead.phone}`}
