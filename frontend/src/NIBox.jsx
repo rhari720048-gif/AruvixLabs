@@ -292,6 +292,7 @@ const NIBox = () => {
                                    (l.phone || '').toLowerCase().includes(q) ||
                                    (l.car_model || l.car_name || '').toLowerCase().includes(q) ||
                                    (l.district || l.location || '').toLowerCase().includes(q) ||
+                                   (l.year || '').toString().toLowerCase().includes(q) ||
                                    (l.notes || '').toLowerCase().includes(q);
                         }).map(lead => (
                             <li 

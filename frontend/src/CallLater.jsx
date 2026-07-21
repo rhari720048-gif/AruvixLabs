@@ -331,6 +331,7 @@ const CallLater = () => {
                      (l.phone || '').toLowerCase().includes(q) ||
                      (l.car_model || l.car_name || '').toLowerCase().includes(q) ||
                      (l.district || l.location || '').toLowerCase().includes(q) ||
+                     (l.year || '').toString().toLowerCase().includes(q) ||
                      (l.notes || '').toLowerCase().includes(q);
             }).length === 0 ? (
               <li style={{ textAlign: 'center', color: '#94a3b8', padding: '20px 0' }}>No matching leads</li>
@@ -342,6 +343,7 @@ const CallLater = () => {
                        (l.phone || '').toLowerCase().includes(q) ||
                        (l.car_model || l.car_name || '').toLowerCase().includes(q) ||
                        (l.district || l.location || '').toLowerCase().includes(q) ||
+                       (l.year || '').toString().toLowerCase().includes(q) ||
                        (l.notes || '').toLowerCase().includes(q);
               }).map(lead => (
                 <li 

@@ -97,7 +97,18 @@ const CallHistory = () => {
   };
 
   const filteredLogs = useMemo(() => {
-    return logs.filter(log => (log.phone && log.phone.includes(searchTerm)) || (log.customer_name && log.customer_name.toLowerCase().includes(searchTerm.toLowerCase())));
+    const q = searchTerm.toLowerCase().trim();
+    if (!q) return logs;
+    return logs.filter(log => 
+      (log.phone && log.phone.includes(q)) || 
+      (log.customer_name && log.customer_name.toLowerCase().includes(q)) ||
+      (log.location && log.location.toLowerCase().includes(q)) ||
+      (log.district && log.district.toLowerCase().includes(q)) ||
+      (log.car_model && log.car_model.toLowerCase().includes(q)) ||
+      (log.car_name && log.car_name.toLowerCase().includes(q)) ||
+      (log.notes && log.notes.toLowerCase().includes(q)) ||
+      (log.employee_name && log.employee_name.toLowerCase().includes(q))
+    );
   }, [logs, searchTerm]);
 
   const userGroupedLogs = useMemo(() => {

@@ -393,7 +393,10 @@ const Clients = () => {
                  (c.phone || '').toLowerCase().includes(q) ||
                  (c.district || c.location || '').toLowerCase().includes(q) ||
                  (c.car_model || c.car_name || '').toLowerCase().includes(q) ||
+                 (c.registration_number || '').toLowerCase().includes(q) ||
                  (c.source || '').toLowerCase().includes(q) ||
+                 (c.notes || '').toLowerCase().includes(q) ||
+                 (c.year || '').toString().toLowerCase().includes(q) ||
                  (c.converted_by_name || '').toLowerCase().includes(q);
         }))}
         {activeTab === 'mine' && hasMineTab && renderTable(clients.filter(c => c.converted_by_name === currentUser).filter(c => {
@@ -403,7 +406,10 @@ const Clients = () => {
                  (c.phone || '').toLowerCase().includes(q) ||
                  (c.district || c.location || '').toLowerCase().includes(q) ||
                  (c.car_model || c.car_name || '').toLowerCase().includes(q) ||
+                 (c.registration_number || '').toLowerCase().includes(q) ||
                  (c.source || '').toLowerCase().includes(q) ||
+                 (c.notes || '').toLowerCase().includes(q) ||
+                 (c.year || '').toString().toLowerCase().includes(q) ||
                  (c.converted_by_name || '').toLowerCase().includes(q);
         }))}
       </div>
