@@ -199,6 +199,7 @@ const Clients = () => {
       <table>
         <thead>
           <tr>
+            <th style={{ width: '40px', textAlign: 'center' }}>#</th>
             <th>Client Name</th>
             <th>Contact Info</th>
             <th>Location</th>
@@ -212,10 +213,11 @@ const Clients = () => {
         <tbody>
           {data.length === 0 ? (
             <tr>
-              <td colSpan="8" style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>No clients found.</td>
+              <td colSpan="9" style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>No clients found.</td>
             </tr>
-          ) : data.map(c => (
+          ) : data.map((c, index) => (
             <tr key={c.id}>
+              <td data-label="S.No" style={{ textAlign: 'center', fontWeight: 'bold' }}>{index + 1}</td>
               <td data-label="Client Name">
                 <div style={{ fontWeight: '700', color: '#0F172A' }}>{c.name}</div>
               </td>

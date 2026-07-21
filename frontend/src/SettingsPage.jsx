@@ -636,7 +636,7 @@ const SettingsPage = () => {
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
                   <thead>
                     <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                      {['User', 'Email', 'Role', 'Allowed Modules', 'Actions'].map(col => (
+                      {['#', 'User', 'Email', 'Role', 'Allowed Modules', 'Actions'].map(col => (
                         <th key={col} style={{ padding: '12px 18px', textAlign: 'left', fontWeight: '600', color: '#4b5563', fontSize: '12px', textTransform: 'uppercase' }}>{col}</th>
                       ))}
                     </tr>
@@ -649,6 +649,7 @@ const SettingsPage = () => {
                         const allowedKeys = Object.keys(u.permissions || {}).filter(k => u.permissions[k]?.view);
                         return (
                           <tr key={u.id} style={{ borderBottom: '1px solid #f3f4f6', background: index % 2 === 0 ? 'white' : '#f9fafb' }}>
+                            <td data-label="S.No" style={{ padding: '12px 18px', fontWeight: 'bold', width: '40px' }}>{index + 1}</td>
                             <td data-label="User" style={{ padding: '12px 18px' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                 <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: `hsl(${(u.id * 80) % 360},60%,60%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: '700', fontSize: '13px' }}>

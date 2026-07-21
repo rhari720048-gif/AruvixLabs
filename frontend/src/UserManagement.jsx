@@ -447,7 +447,7 @@ export default function UserManagement() {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                {['User', 'Email', 'Phone', 'Role', 'Status', 'Joined', 'Actions'].map(h => (
+                {['#', 'User', 'Email', 'Phone', 'Role', 'Status', 'Joined', 'Actions'].map(h => (
                   <th key={h} style={{ padding: '14px 18px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</th>
                 ))}
               </tr>
@@ -458,6 +458,7 @@ export default function UserManagement() {
                   onMouseEnter={e => e.currentTarget.style.background = '#f5f3ff'}
                   onMouseLeave={e => e.currentTarget.style.background = i % 2 === 0 ? 'white' : '#fafafa'}>
 
+                  <td data-label="S.No" style={{ padding: '14px 18px', fontWeight: 'bold', width: '40px' }}>{i + 1}</td>
                   {/* Avatar + Name */}
                   <td data-label="User" style={{ padding: '14px 18px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

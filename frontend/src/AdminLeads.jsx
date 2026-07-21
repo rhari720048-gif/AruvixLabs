@@ -33,6 +33,8 @@ const AdminLeads = () => {
   const [employees, setEmployees] = useState([]);
   const [currentUser, setCurrentUser] = useState('');
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [currentUserRole, setCurrentUserRole] = useState('');
+  const [adminSkippedLocation, setAdminSkippedLocation] = useState(false);
 
   const [selectedLocation, setSelectedLocation] = useState(
     localStorage.getItem('selected_lead_location') || ''
@@ -41,15 +43,18 @@ const AdminLeads = () => {
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user'));
+    let role = '';
     if (user) {
       setCurrentUser(user.name);
       setCurrentUserId(user.id);
+      role = (user.role || '').toLowerCase();
+      setCurrentUserRole(role);
     }
     fetchEmployees();
-    if (selectedLocation) {
-      fetchLeads(selectedLocation);
+    if (selectedLocation || role === 'admin' || adminSkippedLocation) {
+      fetchLeads(selectedLocation || '');
     }
-  }, [selectedLocation]);
+  }, [selectedLocation, adminSkippedLocation]);
 
   const fetchEmployees = async () => {
     try {
@@ -105,6 +110,7 @@ const AdminLeads = () => {
   const handleChangeLocation = () => {
     localStorage.removeItem('selected_lead_location');
     setSelectedLocation('');
+    setAdminSkippedLocation(false);
     setLeads([]);
   };
 
@@ -274,6 +280,7 @@ const AdminLeads = () => {
 
   const renderLocationModal = () => {
     if (selectedLocation) return null;
+    if (currentUserRole === 'admin' && adminSkippedLocation) return null;
 
     // Filter location search list
     const filteredLocations = TAMIL_NADU_LOCATIONS.filter(loc => 
@@ -393,6 +400,31 @@ const AdminLeads = () => {
               </div>
             )}
           </div>
+          {currentUserRole === 'admin' && (
+            <button 
+              onClick={() => {
+                setAdminSkippedLocation(true);
+                fetchLeads('');
+              }}
+              style={{
+                width: '100%',
+                padding: '12px',
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '12px',
+                color: '#ffffff',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                marginTop: '16px',
+                transition: 'background 0.2s'
+              }}
+              onMouseOver={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'}
+              onMouseOut={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
+            >
+              Skip & View All Leads
+            </button>
+          )}
         </div>
       </div>
     );

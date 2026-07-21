@@ -195,6 +195,7 @@ const CallHistory = () => {
                 <table>
                   <thead>
                     <tr>
+                      <th style={{ width: '40px', textAlign: 'center' }}>#</th>
                       <th>Date & Time</th>
                       <th>Customer Name</th>
                       <th>Phone</th>
@@ -205,8 +206,9 @@ const CallHistory = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {groupData.logs.map(log => (
+                    {groupData.logs.map((log, index) => (
                       <tr key={log.id}>
+                        <td data-label="S.No" style={{ textAlign: 'center', fontWeight: 'bold' }}>{index + 1}</td>
                         <td data-label="Date & Time" style={{ fontSize: '13px' }}>
                           {new Date(log.created_at).toLocaleString()}
                         </td>

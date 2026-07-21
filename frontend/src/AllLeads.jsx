@@ -332,6 +332,7 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
               <th style={{ width: '40px' }}>
                 <input type="checkbox" checked={selectedIds.length === filteredLeads.length && filteredLeads.length > 0} onChange={toggleSelectAll} style={{ cursor: 'pointer' }} />
               </th>
+              <th style={{ width: '40px', textAlign: 'center' }}>#</th>
               <th>Client Name</th>
               <th>Vehicle</th>
               <th>Year</th>
@@ -343,13 +344,14 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
           <tbody>
             {filteredLeads.length === 0 ? (
               <tr>
-                <td colSpan="7" className="empty-state">No leads found.</td>
+                <td colSpan="8" className="empty-state">No leads found.</td>
               </tr>
-            ) : filteredLeads.map(lead => (
+            ) : filteredLeads.map((lead, index) => (
               <tr key={lead.id} className={selectedIds.includes(lead.id) ? 'selected-row' : ''}>
                 <td data-label="Select">
                   <input type="checkbox" checked={selectedIds.includes(lead.id)} onChange={() => toggleSelect(lead.id)} style={{ cursor: 'pointer' }} />
                 </td>
+                <td data-label="S.No" style={{ textAlign: 'center', fontWeight: 'bold' }}>{index + 1}</td>
                 <td data-label="Client Name" style={{ fontWeight: '600', color: '#1e293b' }}>{lead.name}</td>
                 <td data-label="Vehicle">
                   {lead.car_model || '-'} 

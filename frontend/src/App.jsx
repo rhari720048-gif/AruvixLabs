@@ -242,6 +242,7 @@ const Dashboard = () => {
         <table>
           <thead>
             <tr>
+              <th style={{ width: '40px', textAlign: 'center' }}>#</th>
               <th>ID</th>
               <th>Name</th>
               <th>Phone</th>
@@ -251,8 +252,9 @@ const Dashboard = () => {
             </tr>
           </thead>
           <tbody>
-            {data.slice(0, 10).map(c => (
+            {data.slice(0, 10).map((c, index) => (
               <tr key={c.id}>
+                <td data-label="S.No" style={{ textAlign: 'center', fontWeight: 'bold' }}>{index + 1}</td>
                 <td data-label="ID">{c.customer_id}</td>
                 <td data-label="Name">
                   <div style={{ fontWeight: 600, color: '#111827' }}>{c.name}</div>
@@ -272,7 +274,7 @@ const Dashboard = () => {
               </tr>
             ))}
             {data.length === 0 && (
-              <tr><td colSpan="6" style={{ textAlign: 'center', padding: '30px', color: '#6b7280' }}>No recent records found.</td></tr>
+              <tr><td colSpan="7" style={{ textAlign: 'center', padding: '30px', color: '#6b7280' }}>No recent records found.</td></tr>
             )}
           </tbody>
         </table>
@@ -308,12 +310,14 @@ const DummyPage = ({ title, columns, data, stats }) => (
         <table>
           <thead>
             <tr>
+              <th style={{ width: '40px', textAlign: 'center' }}>#</th>
               {columns.map((c, i) => <th key={i}>{c}</th>)}
             </tr>
           </thead>
           <tbody>
             {data.map((row, i) => (
               <tr key={i}>
+                <td style={{ textAlign: 'center', fontWeight: 'bold' }}>{i + 1}</td>
                 {row.map((cell, j) => {
                   let badgeClass = "";
                   if (typeof cell === 'string') {
