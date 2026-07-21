@@ -338,16 +338,6 @@ const DummyPage = ({ title, columns, data, stats }) => (
 );
 
 const ProfilePage = () => {
-  const getProfilePerms = () => {
-    let permissions = {};
-    try { permissions = JSON.parse(localStorage.getItem('permissions') || '{}'); } catch (e) { }
-    const role = (localStorage.getItem('role') || 'employee').toLowerCase();
-    const isAdmin = role === 'admin';
-    const mod = permissions['profile'] || {};
-    return {
-      canEdit: isAdmin || !!mod.edit
-    };
-  };
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -363,63 +353,177 @@ const ProfilePage = () => {
       .catch(() => setLoading(false));
   }, []);
 
-  const fieldStyle = {
-    width: '100%',
-    padding: '14px 18px',
-    borderRadius: '16px',
-    border: '1.5px solid rgba(226, 232, 240, 0.95)',
-    background: '#F8FAFC',
-    color: '#0F172A',
-    fontWeight: '600',
-    fontSize: '14px',
-    outline: 'none',
-    boxSizing: 'border-box'
-  };
+  if (loading) return (
+    <div style={{ padding: '60px', textAlign: 'center', fontFamily: "'Outfit', 'Inter', sans-serif" }}>
+      <div className="spinner" style={{ margin: '0 auto 16px auto' }}></div>
+      <p style={{ color: '#64748b', fontWeight: '600' }}>Loading Profile Details...</p>
+    </div>
+  );
 
-  if (loading) return <div style={{ padding: 40, textAlign: 'center' }}>Loading Profile...</div>;
+  const initial = (user?.name || 'U').charAt(0).toUpperCase();
 
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto', animation: 'fadeIn 0.3s ease-out' }}>
-      <div style={{ background: 'white', borderRadius: '24px', border: '1px solid #e2e8f0', padding: '32px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
+    <div style={{ maxWidth: 850, margin: '0 auto', animation: 'fadeIn 0.35s ease-out', fontFamily: "'Outfit', 'Inter', sans-serif" }}>
+      
+      {/* Outer Premium Card */}
+      <div style={{ background: '#ffffff', borderRadius: '28px', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 20px 40px -10px rgba(15, 23, 42, 0.08)' }}>
         
-        {/* Header */}
-        <div style={{ marginBottom: '28px', borderBottom: '1px solid #f1f5f9', paddingBottom: '20px' }}>
-          <h1 style={{ fontSize: '24px', fontWeight: '800', color: '#0f172a', margin: 0 }}>My Profile</h1>
-          <p style={{ color: '#64748b', fontSize: '14px', margin: '4px 0 0 0' }}>Your staff account profile details managed in Staff Management</p>
+        {/* Hero Banner Header */}
+        <div style={{
+          background: 'linear-gradient(135deg, #4f46e5 0%, #3730a3 50%, #312e81 100%)',
+          padding: '40px 32px 64px 32px',
+          position: 'relative',
+          color: '#ffffff',
+          overflow: 'hidden'
+        }}>
+          {/* Ambient Glow Orbs */}
+          <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '200px', height: '200px', borderRadius: '50%', background: 'rgba(255, 255, 255, 0.1)', filter: 'blur(30px)', pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', bottom: '-20px', left: '20%', width: '150px', height: '150px', borderRadius: '50%', background: 'rgba(99, 102, 241, 0.3)', filter: 'blur(25px)', pointerEvents: 'none' }} />
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 1, flexWrap: 'wrap', gap: '16px' }}>
+            <div>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255, 255, 255, 0.15)', backdropFilter: 'blur(10px)', padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: '700', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '12px' }}>
+                <ShieldCheck size={14} color="#a5b4fc" /> Staff Account Profile
+              </span>
+              <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 6px 0', letterSpacing: '-0.02em', color: '#ffffff' }}>{user?.name || 'Staff Member'}</h1>
+              <p style={{ margin: 0, color: '#c7d2fe', fontSize: '14px', fontWeight: '500' }}>Official CRM Executive Profile</p>
+            </div>
+            
+            {/* Role Badge Pill */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.2)',
+              backdropFilter: 'blur(12px)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              padding: '10px 20px',
+              borderRadius: '20px',
+              textAlign: 'center',
+              boxShadow: '0 8px 20px rgba(0,0,0,0.15)'
+            }}>
+              <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#e0e7ff', fontWeight: '600' }}>Access Level</div>
+              <div style={{ fontSize: '16px', fontWeight: '800', color: '#ffffff', textTransform: 'uppercase', marginTop: '2px' }}>{user?.role || 'EMPLOYEE'}</div>
+            </div>
+          </div>
         </div>
 
-        {/* Info Banner */}
-        <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', color: '#0369a1', padding: '14px 18px', borderRadius: '16px', marginBottom: '28px', fontWeight: '600', fontSize: '13.5px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <ShieldCheck size={20} color="#0284c7" />
-          <span>Staff account details are managed & updated by Admin in Staff Management.</span>
-        </div>
+        {/* Profile Card Body Container with Floating Avatar */}
+        <div style={{ padding: '0 32px 36px 32px', position: 'relative' }}>
+          
+          {/* Floating Avatar & Status Bar */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '-42px', marginBottom: '32px', position: 'relative', zIndex: 2, flexWrap: 'wrap', gap: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+              <div style={{
+                width: '84px',
+                height: '84px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '34px',
+                fontWeight: '800',
+                border: '4px solid #ffffff',
+                boxShadow: '0 10px 25px rgba(79, 70, 229, 0.35)',
+                textShadow: '0 2px 4px rgba(0,0,0,0.2)'
+              }}>
+                {initial}
+              </div>
+              <div style={{ paddingTop: '38px' }}>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800', color: '#0f172a' }}>{user?.name}</h3>
+                <p style={{ margin: '2px 0 0 0', fontSize: '13px', color: '#64748b', fontWeight: '500' }}>{user?.email}</p>
+              </div>
+            </div>
 
-        {/* Read-Only Form Fields */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#374151' }}>Full Name</label>
-            <input value={user?.name || '-'} readOnly disabled style={fieldStyle} />
+            {/* Account Active Pill */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: user?.status === 'Inactive' ? '#fef2f2' : '#f0fdf4',
+              border: `1px solid ${user?.status === 'Inactive' ? '#fca5a5' : '#bbf7d0'}`,
+              padding: '8px 16px',
+              borderRadius: '16px',
+              fontSize: '13px',
+              fontWeight: '700',
+              color: user?.status === 'Inactive' ? '#dc2626' : '#15803d'
+            }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: user?.status === 'Inactive' ? '#ef4444' : '#22c55e', boxShadow: `0 0 8px ${user?.status === 'Inactive' ? '#ef4444' : '#22c55e'}` }} />
+              {user?.status || 'Active Account'}
+            </div>
           </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#374151' }}>Email Address</label>
-            <input value={user?.email || '-'} readOnly disabled style={fieldStyle} />
+
+          {/* Info Cards Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '18px', marginBottom: '28px' }}>
+            
+            {/* Card 1: Full Name */}
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '20px', padding: '18px 20px', transition: 'all 0.2s ease-in-out' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                <div style={{ width: '34px', height: '34px', borderRadius: '12px', background: '#e0e7ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <User size={18} color="#4f46e5" />
+                </div>
+                <span style={{ fontSize: '12px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Full Name</span>
+              </div>
+              <div style={{ fontSize: '15px', fontWeight: '700', color: '#0f172a', paddingLeft: '44px' }}>{user?.name || '-'}</div>
+            </div>
+
+            {/* Card 2: Email Address */}
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '20px', padding: '18px 20px', transition: 'all 0.2s ease-in-out' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                <div style={{ width: '34px', height: '34px', borderRadius: '12px', background: '#dbeafe', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Building size={18} color="#2563eb" />
+                </div>
+                <span style={{ fontSize: '12px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Email Address</span>
+              </div>
+              <div style={{ fontSize: '15px', fontWeight: '700', color: '#0f172a', paddingLeft: '44px', wordBreak: 'break-all' }}>{user?.email || '-'}</div>
+            </div>
+
+            {/* Card 3: Phone Number */}
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '20px', padding: '18px 20px', transition: 'all 0.2s ease-in-out' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                <div style={{ width: '34px', height: '34px', borderRadius: '12px', background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <PhoneCall size={18} color="#16a34a" />
+                </div>
+                <span style={{ fontSize: '12px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Phone Number</span>
+              </div>
+              <div style={{ fontSize: '15px', fontWeight: '700', color: '#0f172a', paddingLeft: '44px' }}>{user?.phone || 'Not Provided'}</div>
+            </div>
+
+            {/* Card 4: Member Since */}
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '20px', padding: '18px 20px', transition: 'all 0.2s ease-in-out' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                <div style={{ width: '34px', height: '34px', borderRadius: '12px', background: '#fae8ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Calendar size={18} color="#c026d3" />
+                </div>
+                <span style={{ fontSize: '12px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Member Since</span>
+              </div>
+              <div style={{ fontSize: '15px', fontWeight: '700', color: '#0f172a', paddingLeft: '44px' }}>
+                {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Active'}
+              </div>
+            </div>
+
           </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#374151' }}>Phone Number</label>
-            <input value={user?.phone || '-'} readOnly disabled style={fieldStyle} />
+
+          {/* Sync Information Footer Banner */}
+          <div style={{
+            background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+            border: '1px solid #e2e8f0',
+            borderRadius: '18px',
+            padding: '14px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+            flexWrap: 'wrap'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#475569', fontSize: '13px', fontWeight: '600' }}>
+              <ShieldCheck size={18} color="#4f46e5" />
+              <span>Synced with Admin Staff Management System</span>
+            </div>
+            <span style={{ fontSize: '12px', background: '#ffffff', color: '#6366f1', border: '1px solid #c7d2fe', padding: '4px 12px', borderRadius: '12px', fontWeight: '700' }}>
+              Managed by Administrator
+            </span>
           </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#374151' }}>Role</label>
-            <input value={(user?.role || 'EMPLOYEE').toUpperCase()} readOnly disabled style={{ ...fieldStyle, background: '#eef2ff', fontWeight: '700', color: '#4338ca', textTransform: 'uppercase' }} />
-          </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#374151' }}>Account Status</label>
-            <input value={user?.status || 'Active'} readOnly disabled style={{ ...fieldStyle, background: user?.status === 'Inactive' ? '#fef2f2' : '#f0fdf4', color: user?.status === 'Inactive' ? '#dc2626' : '#16a34a', fontWeight: '700' }} />
-          </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#374151' }}>Member Since</label>
-            <input value={user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Active'} readOnly disabled style={fieldStyle} />
-          </div>
+
         </div>
 
       </div>
