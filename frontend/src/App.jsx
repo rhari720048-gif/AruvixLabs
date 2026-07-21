@@ -356,227 +356,202 @@ const ProfilePage = () => {
   if (loading) return (
     <div style={{ padding: '80px', textAlign: 'center', fontFamily: "'Outfit', 'Inter', sans-serif" }}>
       <div className="spinner" style={{ margin: '0 auto 16px auto' }}></div>
-      <p style={{ color: '#64748b', fontWeight: '600' }}>Loading Executive Profile...</p>
+      <p style={{ color: '#64748b', fontWeight: '600' }}>Loading Profile Details...</p>
     </div>
   );
 
   const initial = (user?.name || 'U').charAt(0).toUpperCase();
 
   return (
-    <div style={{ maxWidth: 960, margin: '0 auto', animation: 'fadeIn 0.35s ease-out', fontFamily: "'Outfit', 'Inter', sans-serif" }}>
+    <div style={{ maxWidth: 860, margin: '0 auto', animation: 'fadeIn 0.35s ease-out', fontFamily: "'Outfit', 'Inter', sans-serif" }}>
       
-      {/* Outer Split Card */}
+      {/* Outer Floating Glass Card */}
       <div style={{
-        background: '#ffffff',
+        background: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(20px)',
         borderRadius: '32px',
-        border: '1px solid #e2e8f0',
-        overflow: 'hidden',
-        boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.1)',
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))',
-        minHeight: '480px'
+        border: '1.5px solid rgba(226, 232, 240, 0.9)',
+        boxShadow: '0 25px 50px -12px rgba(99, 102, 241, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.8) inset',
+        padding: '40px',
+        position: 'relative',
+        overflow: 'hidden'
       }}>
         
-        {/* Left Column: Dark Executive Sidebar */}
-        <div style={{
-          background: 'linear-gradient(180deg, #3730a3 0%, #1e1b4b 100%)',
-          padding: '44px 32px',
-          color: '#ffffff',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          textAlign: 'center',
-          position: 'relative',
-          overflow: 'hidden'
-        }}>
-          {/* Ambient Background Lights */}
-          <div style={{ position: 'absolute', top: '-60px', left: '-60px', width: '220px', height: '220px', borderRadius: '50%', background: 'rgba(99, 102, 241, 0.25)', filter: 'blur(40px)', pointerEvents: 'none' }} />
-          <div style={{ position: 'absolute', bottom: '-40px', right: '-40px', width: '180px', height: '180px', borderRadius: '50%', background: 'rgba(129, 140, 248, 0.15)', filter: 'blur(35px)', pointerEvents: 'none' }} />
+        {/* Ambient Background Gradient Flares */}
+        <div style={{ position: 'absolute', top: '-80px', right: '-80px', width: '260px', height: '260px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(255, 255, 255, 0) 70%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: '-80px', left: '-80px', width: '260px', height: '260px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(168, 85, 247, 0.12) 0%, rgba(255, 255, 255, 0) 70%)', pointerEvents: 'none' }} />
 
-          {/* Avatar Ring */}
-          <div style={{ position: 'relative', marginBottom: '24px', zIndex: 2 }}>
-            <div style={{
-              width: '100px',
-              height: '100px',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-              color: '#ffffff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '42px',
-              fontWeight: '800',
-              border: '4px solid rgba(255, 255, 255, 0.25)',
-              boxShadow: '0 12px 30px rgba(0, 0, 0, 0.35)',
-              margin: '0 auto'
-            }}>
-              {initial}
-            </div>
-            <div style={{
-              position: 'absolute',
-              bottom: '2px',
-              right: '2px',
-              background: '#22c55e',
-              border: '3px solid #1e1b4b',
-              width: '20px',
-              height: '20px',
-              borderRadius: '50%',
-              boxShadow: '0 0 10px #22c55e'
-            }} title="Online Status" />
-          </div>
-
-          {/* User Name & Role */}
-          <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#ffffff', margin: '0 0 6px 0', letterSpacing: '-0.02em' }}>
-            {user?.name || 'Staff Executive'}
-          </h2>
+        {/* Profile Header Block */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '36px', flexWrap: 'wrap', gap: '20px', borderBottom: '1px solid #f1f5f9', paddingBottom: '28px' }}>
           
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            background: 'rgba(255, 255, 255, 0.12)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            color: '#c7d2fe',
-            padding: '6px 16px',
-            borderRadius: '20px',
-            fontSize: '12px',
-            fontWeight: '700',
-            textTransform: 'uppercase',
-            letterSpacing: '0.06em',
-            marginBottom: '28px'
-          }}>
-            <ShieldCheck size={14} color="#a5b4fc" />
-            {user?.role || 'EMPLOYEE'}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '22px' }}>
+            {/* Avatar Circle with Pastel Ring */}
+            <div style={{ position: 'relative' }}>
+              <div style={{
+                width: '88px',
+                height: '88px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #818cf8 0%, #4f46e5 100%)',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '36px',
+                fontWeight: '800',
+                boxShadow: '0 10px 25px rgba(99, 102, 241, 0.3)',
+                border: '4px solid #ffffff'
+              }}>
+                {initial}
+              </div>
+              <div style={{
+                position: 'absolute',
+                bottom: '4px',
+                right: '4px',
+                background: user?.status === 'Inactive' ? '#ef4444' : '#22c55e',
+                border: '3px solid #ffffff',
+                width: '18px',
+                height: '18px',
+                borderRadius: '50%',
+                boxShadow: '0 0 10px rgba(34, 197, 94, 0.5)'
+              }} />
+            </div>
+
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <h1 style={{ fontSize: '26px', fontWeight: '800', color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
+                  {user?.name || 'Staff Member'}
+                </h1>
+                <span style={{ background: '#dcfce7', color: '#15803d', padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase' }}>
+                  ✓ Verified
+                </span>
+              </div>
+              <p style={{ margin: 0, color: '#64748b', fontSize: '14px', fontWeight: '500' }}>
+                {user?.email || 'Official CRM Staff Account'}
+              </p>
+            </div>
           </div>
 
-          <div style={{ width: '100%', borderTop: '1px solid rgba(255, 255, 255, 0.1)', margin: 'auto 0 24px 0' }} />
-
-          {/* Sidebar Status Pill & Footer */}
-          <div style={{ width: '100%' }}>
-            <div style={{
-              background: user?.status === 'Inactive' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(34, 197, 94, 0.15)',
-              border: `1px solid ${user?.status === 'Inactive' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(34, 197, 94, 0.3)'}`,
-              color: user?.status === 'Inactive' ? '#fca5a5' : '#86efac',
-              padding: '10px 16px',
-              borderRadius: '16px',
-              fontSize: '13px',
-              fontWeight: '700',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px'
-            }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: user?.status === 'Inactive' ? '#ef4444' : '#22c55e' }} />
-              {user?.status ? `${user.status} System User` : 'Active System User'}
+          {/* Role Pill Badge */}
+          <div style={{
+            background: '#eef2ff',
+            border: '1.5px solid #c7d2fe',
+            padding: '10px 22px',
+            borderRadius: '20px',
+            textAlign: 'center',
+            boxShadow: '0 4px 12px rgba(99, 102, 241, 0.08)'
+          }}>
+            <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em', color: '#4338ca', fontWeight: '700' }}>
+              System Access Level
+            </div>
+            <div style={{ fontSize: '15px', fontWeight: '800', color: '#312e81', textTransform: 'uppercase', marginTop: '2px' }}>
+              {user?.role || 'EMPLOYEE'}
             </div>
           </div>
 
         </div>
 
-        {/* Right Column: Main Content Overview */}
-        <div style={{ padding: '44px 38px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        {/* 4 Pastel Icon Chip Cards Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '32px' }}>
           
-          <div>
-            {/* Header Title */}
-            <div style={{ marginBottom: '32px', borderBottom: '1px solid #f1f5f9', paddingBottom: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6366f1', fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
-                <User size={16} /> Verified Staff Credentials
+          {/* Card 1: Full Name */}
+          <div style={{
+            background: 'rgba(248, 250, 252, 0.8)',
+            border: '1px solid #e2e8f0',
+            borderRadius: '22px',
+            padding: '20px',
+            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
+              <div style={{ width: '38px', height: '38px', borderRadius: '14px', background: '#e0e7ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <User size={20} color="#4f46e5" />
               </div>
-              <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#0f172a', margin: 0 }}>Account Overview</h2>
-              <p style={{ color: '#64748b', fontSize: '14px', margin: '4px 0 0 0' }}>Profile details synchronized from Staff Management</p>
+              <div>
+                <div style={{ fontSize: '11px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Full Name</div>
+                <div style={{ fontSize: '15px', fontWeight: '800', color: '#0f172a', marginTop: '2px' }}>{user?.name || '-'}</div>
+              </div>
             </div>
+          </div>
 
-            {/* 4 Cards List Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '32px' }}>
-              
-              {/* Card 1: Full Name */}
-              <div style={{
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderLeft: '4px solid #6366f1',
-                borderRadius: '18px',
-                padding: '18px 20px'
-              }}>
-                <div style={{ fontSize: '11px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                  Full Name
-                </div>
-                <div style={{ fontSize: '16px', fontWeight: '800', color: '#0f172a' }}>
-                  {user?.name || '-'}
-                </div>
+          {/* Card 2: Email Address */}
+          <div style={{
+            background: 'rgba(248, 250, 252, 0.8)',
+            border: '1px solid #e2e8f0',
+            borderRadius: '22px',
+            padding: '20px',
+            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
+              <div style={{ width: '38px', height: '38px', borderRadius: '14px', background: '#e0f2fe', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Building size={20} color="#0284c7" />
               </div>
-
-              {/* Card 2: Email Address */}
-              <div style={{
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderLeft: '4px solid #3b82f6',
-                borderRadius: '18px',
-                padding: '18px 20px'
-              }}>
-                <div style={{ fontSize: '11px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                  Email Address
-                </div>
-                <div style={{ fontSize: '15px', fontWeight: '800', color: '#0f172a', wordBreak: 'break-all' }}>
-                  {user?.email || '-'}
-                </div>
+              <div>
+                <div style={{ fontSize: '11px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Email Address</div>
+                <div style={{ fontSize: '15px', fontWeight: '800', color: '#0f172a', marginTop: '2px', wordBreak: 'break-all' }}>{user?.email || '-'}</div>
               </div>
+            </div>
+          </div>
 
-              {/* Card 3: Phone Number */}
-              <div style={{
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderLeft: '4px solid #10b981',
-                borderRadius: '18px',
-                padding: '18px 20px'
-              }}>
-                <div style={{ fontSize: '11px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                  Phone Number
-                </div>
-                <div style={{ fontSize: '16px', fontWeight: '800', color: '#0f172a' }}>
-                  {user?.phone || 'Not Provided'}
-                </div>
+          {/* Card 3: Phone Number */}
+          <div style={{
+            background: 'rgba(248, 250, 252, 0.8)',
+            border: '1px solid #e2e8f0',
+            borderRadius: '22px',
+            padding: '20px',
+            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
+              <div style={{ width: '38px', height: '38px', borderRadius: '14px', background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <PhoneCall size={20} color="#16a34a" />
               </div>
+              <div>
+                <div style={{ fontSize: '11px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Phone Number</div>
+                <div style={{ fontSize: '15px', fontWeight: '800', color: '#0f172a', marginTop: '2px' }}>{user?.phone || 'Not Provided'}</div>
+              </div>
+            </div>
+          </div>
 
-              {/* Card 4: Member Since */}
-              <div style={{
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderLeft: '4px solid #d946ef',
-                borderRadius: '18px',
-                padding: '18px 20px'
-              }}>
-                <div style={{ fontSize: '11px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                  Member Since
-                </div>
-                <div style={{ fontSize: '16px', fontWeight: '800', color: '#0f172a' }}>
+          {/* Card 4: Member Since */}
+          <div style={{
+            background: 'rgba(248, 250, 252, 0.8)',
+            border: '1px solid #e2e8f0',
+            borderRadius: '22px',
+            padding: '20px',
+            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
+              <div style={{ width: '38px', height: '38px', borderRadius: '14px', background: '#fce7f3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Calendar size={20} color="#be185d" />
+              </div>
+              <div>
+                <div style={{ fontSize: '11px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Member Since</div>
+                <div style={{ fontSize: '15px', fontWeight: '800', color: '#0f172a', marginTop: '2px' }}>
                   {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Active'}
                 </div>
               </div>
-
             </div>
           </div>
 
-          {/* System Security Note Footer */}
-          <div style={{
-            background: '#f0fdf4',
-            border: '1px solid #bbf7d0',
-            borderRadius: '18px',
-            padding: '14px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '12px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#15803d', fontSize: '13px', fontWeight: '700' }}>
-              <CheckCircle size={18} color="#16a34a" />
-              <span>Admin Controlled Account</span>
-            </div>
-            <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '600' }}>
-              Synced with Staff Management
-            </span>
-          </div>
+        </div>
 
+        {/* Bottom Glass Notice Bar */}
+        <div style={{
+          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+          border: '1px solid #e2e8f0',
+          borderRadius: '20px',
+          padding: '16px 24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '12px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#475569', fontSize: '13.5px', fontWeight: '600' }}>
+            <ShieldCheck size={18} color="#6366f1" />
+            <span>Synced in real-time with Admin Staff Management</span>
+          </div>
+          <span style={{ fontSize: '12px', background: '#ffffff', color: '#4f46e5', border: '1px solid #c7d2fe', padding: '5px 14px', borderRadius: '14px', fontWeight: '700', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
+            Admin Controlled Settings
+          </span>
         </div>
 
       </div>
