@@ -113,10 +113,10 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
     }
 
     let finalStatus = 'Uncalled';
-    if (feedback.selection === 'Interested') finalStatus = 'Converted';
+    if (feedback.selection === 'Interested' || feedback.selection === 'Converted') finalStatus = 'Converted';
     else if (feedback.selection === 'Appointment') finalStatus = 'Appointment';
     else if (feedback.selection === 'Call Later') finalStatus = 'Call Later';
-    else if (feedback.selection === 'Not Interested (NI)') finalStatus = 'NI';
+    else if (feedback.selection === 'Not Interested' || feedback.selection === 'Not Interested (NI)' || feedback.selection === 'NI') finalStatus = 'NI';
     else if (feedback.selection === 'Wrong / Invalid Number') finalStatus = 'Invalid Number';
 
     const finalNotes = `[${feedback.selection}] ${feedback.notes || ''} ${feedback.reason ? `(Reason: ${feedback.reason})` : ''}`.trim();
