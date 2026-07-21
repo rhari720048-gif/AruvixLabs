@@ -7,7 +7,7 @@ import EditLeadModal from './EditLeadModal';
 import ModernDateTimePicker from './ModernDateTimePicker';
 import SearchableSelect from './SearchableSelect';
 
-const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
+import { API } from './apiConfig';
 
 const CallLater = () => {
   const [activeTab, setActiveTab] = useState('my'); // 'my', 'all', 'manual'

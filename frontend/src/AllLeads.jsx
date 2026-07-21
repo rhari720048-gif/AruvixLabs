@@ -5,9 +5,9 @@ import ActionButtons from './ActionButtons';
 import EditLeadModal from './EditLeadModal';
 import toast from 'react-hot-toast';
 
-const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
+import { API } from './apiConfig';
 
-const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handleBulkAssign, handleEdit, refreshLeads }) => {
+const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handleBulkAssign, handleEdit, refreshLeads, onAddLeadClick }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIds, setSelectedIds] = useState([]);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState([]);
@@ -78,26 +78,67 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
     }
 
     setTimeout(() => {
-        resetCallState();
-        setCallPhase('dialing');
-        
-        setTimeout(() => {
-            setCallPhase('active');
-            setSecondsElapsed(0);
-            const interval = setInterval(() => {
-                setSecondsElapsed(prev => prev + 1);
-            }, 1000);
-            setTimerInterval(interval);
-        }, 2000);
+      setCallPhase('dialing');
+      setSecondsElapsed(0);
     }, 100);
   };
 
-  const stopTimer = () => {
-    if (timerInterval) {
-      clearInterval(timerInterval);
-      setTimerInterval(null);
-    }
+  const endCall = () => {
+    if (timerInterval) clearInterval(timerInterval);
     setCallPhase('feedback');
+  };
+
+  const cancelCall = () => {
+    resetCallState();
+  };
+
+  const handleSelection = (option) => {
+    setFeedback(prev => ({ ...prev, selection: option }));
+  };
+
+  const handleSubmitFeedback = async () => {
+    if (!feedback.selection) {
+      toast.error('Please select a feedback status.');
+      return;
+    }
+
+    let finalStatus = 'Uncalled';
+    if (feedback.selection === 'Interested') finalStatus = 'Converted';
+    else if (feedback.selection === 'Appointment') finalStatus = 'Appointment';
+    else if (feedback.selection === 'Call Later') finalStatus = 'Call Later';
+    else if (feedback.selection === 'Not Interested (NI)') finalStatus = 'NI';
+    else if (feedback.selection === 'Wrong / Invalid Number') finalStatus = 'Invalid Number';
+
+    const finalNotes = `[${feedback.selection}] ${feedback.notes || ''} ${feedback.reason ? `(Reason: ${feedback.reason})` : ''}`.trim();
+
+    try {
+      const res = await fetch(`${API}/telecalling/feedback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          customer_id: selectedLead.id,
+          status: finalStatus,
+          notes: finalNotes,
+          callback_time: feedback.callback_time || null,
+          duration: secondsElapsed
+        })
+      });
+      if (res.ok) {
+        toast.success('Feedback submitted successfully!');
+        resetCallState();
+        fetchCallHistory(selectedLead.id);
+        if (refreshLeads) refreshLeads();
+        setSelectedLead(null);
+      } else {
+        toast.error("Failed to submit feedback.");
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error('Failed to submit feedback.');
+    }
   };
 
   const formatTime = (totalSeconds) => {
@@ -128,55 +169,6 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
     }
   };
 
-  const handleFeedbackSubmit = async (e) => {
-    e.preventDefault();
-    if (!feedback.selection) return toast.error('Please select a call outcome');
-    
-    if (['Appointment', 'Call Later'].includes(feedback.selection) && !feedback.notes) {
-       return toast.error('Please enter feedback notes.');
-    }
-    if (feedback.selection === 'Not Interested' && !feedback.reason) {
-       return toast.error('Please enter a reason.');
-    }
-
-    const finalStatus = feedback.selection === 'Not Interested' ? 'NI' : feedback.selection;
-    const finalNotes = feedback.selection === 'Not Interested' ? `Reason: ${feedback.reason}` : feedback.notes;
-
-    try {
-      const res = await fetch(`${API}/telecalling/feedback`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          customer_id: selectedLead.id,
-          status: finalStatus,
-          notes: finalNotes,
-          callback_time: feedback.callback_time || null,
-          duration: secondsElapsed
-        })
-      });
-      if (res.ok) {
-        toast.success('Feedback submitted successfully!');
-        
-        selectedLead.status = finalStatus;
-        
-        resetCallState();
-        fetchCallHistory(selectedLead.id);
-        
-        if (refreshLeads) refreshLeads();
-        setSelectedLead(null);
-      } else {
-        toast.error("Failed to submit feedback.");
-      }
-    } catch (e) {
-      console.error(e);
-      toast.error('Failed to submit feedback.');
-    }
-  };
-
-  // Filter leads based on search
   const filteredLeads = leads.filter(lead => 
     (lead.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (lead.phone || '').includes(searchTerm) ||
@@ -235,7 +227,30 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
           </h1>
           <p>Database of prospect leads, assigned contacts, and quick dial actions</p>
         </div>
-        <div className="crm-page-actions">
+        <div className="crm-page-actions" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          {onAddLeadClick && (
+            <button 
+              onClick={onAddLeadClick} 
+              className="btn btn-primary"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 20px',
+                background: 'linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '10px',
+                fontWeight: '600',
+                fontSize: '14px',
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <UserPlus size={18} /> + Add New Lead
+            </button>
+          )}
           <button onClick={downloadCSV} className="btn-export-csv">
             <Download size={18} /> Export CSV
           </button>

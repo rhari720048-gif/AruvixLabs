@@ -6,7 +6,7 @@ import { UserPlus, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { getPerms } from './permissions';
-const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
+import { API } from './apiConfig';
 
 const AdminLeads = () => {
   const navigate = useNavigate();
@@ -312,6 +312,7 @@ const AdminLeads = () => {
             handleBulkAssign={handleBulkAssign}
             handleEdit={canEdit ? handleEdit : undefined}
             refreshLeads={fetchLeads}
+            onAddLeadClick={hasAddTab ? () => setActivePage('add') : undefined}
           />
         ) : null}
       </div>

@@ -4,7 +4,7 @@ import SearchableSelect from './SearchableSelect';
 import ModernDateTimePicker from './ModernDateTimePicker';
 import toast from 'react-hot-toast';
 
-const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
+import { API } from './apiConfig';
 
 const EditLeadModal = ({ isOpen, onClose, data, onSave }) => {
   const [formData, setFormData] = useState({

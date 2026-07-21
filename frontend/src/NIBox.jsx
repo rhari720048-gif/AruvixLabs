@@ -8,7 +8,7 @@ import ModernDateTimePicker from './ModernDateTimePicker';
 import SearchableSelect from './SearchableSelect';
 import toast from 'react-hot-toast';
 
-const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
+import { API } from './apiConfig';
 
 const NIBox = () => {
     const [activeTab, setActiveTab] = useState('my'); // 'my', 'all', 'manual'

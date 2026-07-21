@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Clock, User, Phone, MapPin, Car, FileText, Calendar, CheckCircle } from 'lucide-react';
 
-const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
+import { API } from './apiConfig';
 
 const formatTime = (totalSeconds) => {
   if (totalSeconds == null) return '00:00';

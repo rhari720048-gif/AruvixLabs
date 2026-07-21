@@ -4,7 +4,7 @@ import ActionButtons from './ActionButtons';
 import EditLeadModal from './EditLeadModal';
 import toast from 'react-hot-toast';
 
-const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
+import { API } from './apiConfig';
 
 const MyLeadsGrid = ({ leads, employees, handleEdit, handleDelete, onStatusUpdate }) => {
   const [selectedLead, setSelectedLead] = useState(null);

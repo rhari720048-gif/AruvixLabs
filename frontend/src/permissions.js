@@ -1,40 +1,48 @@
 /**
  * permissions.js — Shared permission helper for AruvixLabs CRM
  *
- * Usage in any component:
- *   import { getPerms } from './permissions';
- *   const { canView, canCreate, canEdit, canDelete } = getPerms('leads');
+ * Rules:
+ * 1. Admin role gets all pages & full CRUD permissions by default.
+ * 2. ALL NON-ADMIN USERS (CTO, Manager, Employee, Telecaller, Sales, or any custom role):
+ *    - MUST ALWAYS BE ALLOWED TO VIEW all regular CRM pages:
+ *      (Dashboard, Profile, Leads, Appointments, Call Later, NI Box, Call History, Clients, Completed Work).
+ *    - Settings & Staff Management (user_management) are hidden by default and ONLY shown if Admin explicitly grants permission in user's permissions object.
  */
 
 export function getPerms(module) {
   let permissions = {};
   try { permissions = JSON.parse(localStorage.getItem('permissions') || '{}'); } catch(e){}
-  const role = (localStorage.getItem('role') || 'employee').toLowerCase();
-  const isAdmin = role === 'admin';
+  const rawRole = (localStorage.getItem('role') || 'employee').trim().toLowerCase();
+  const isAdmin = rawRole === 'admin';
   const mod = permissions[module];
 
-  if (module === 'settings' || module === 'user_management') {
-    if (!isAdmin) {
-      return { canView: false, canCreate: false, canEdit: false, canDelete: false, isAdmin: false, role };
-    }
-  }
-
+  // Admin gets all pages and permissions by default
   if (isAdmin) {
-    return { canView: true, canCreate: true, canEdit: true, canDelete: true, isAdmin: true, role };
+    return { canView: true, canCreate: true, canEdit: true, canDelete: true, isAdmin: true, role: rawRole };
   }
 
-  let canView = true;
-  let canCreate = true;
-  let canEdit = true;
-  let canDelete = true;
+  const isRestricted = module === 'settings' || module === 'user_management';
 
-  if (mod === undefined || mod === null) {
-    const isRestrictedByDefault = module === 'settings' || module === 'user_management';
-    canView = !isRestrictedByDefault;
-    canCreate = !isRestrictedByDefault;
-    canEdit = !isRestrictedByDefault;
-    canDelete = !isRestrictedByDefault;
-  } else if (typeof mod === 'boolean') {
+  if (!isRestricted) {
+    // Regular CRM pages are ALWAYS viewable by any non-admin role
+    let canCreate = true;
+    let canEdit = true;
+    let canDelete = true;
+    if (typeof mod === 'object' && mod !== null) {
+      if (mod.create !== undefined) canCreate = !!mod.create;
+      if (mod.edit !== undefined) canEdit = !!mod.edit;
+      if (mod.delete !== undefined) canDelete = !!mod.delete;
+    }
+    return { canView: true, canCreate, canEdit, canDelete, isAdmin: false, role: rawRole };
+  }
+
+  // Restricted pages (settings & user_management): ONLY viewable if explicitly granted
+  let canView = false;
+  let canCreate = false;
+  let canEdit = false;
+  let canDelete = false;
+
+  if (typeof mod === 'boolean') {
     canView = mod;
     canCreate = mod;
     canEdit = mod;
@@ -51,7 +59,7 @@ export function getPerms(module) {
     canCreate,
     canEdit,
     canDelete,
-    isAdmin,
-    role
+    isAdmin: false,
+    role: rawRole
   };
 }

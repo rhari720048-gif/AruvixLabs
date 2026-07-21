@@ -3,7 +3,7 @@ import { Clock, Phone, FileText, Search, User, Users, Trash2, Calendar, PhoneCal
 import { getPerms } from './permissions';
 import toast from 'react-hot-toast';
 
-const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
+import { API } from './apiConfig';
 
 const CallHistory = () => {
   const { canDelete } = getPerms('call_history');

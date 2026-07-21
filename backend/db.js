@@ -147,6 +147,18 @@ async function initDB() {
         try {
             await pool.query("CREATE INDEX idx_call_logs_created ON call_logs(created_at)");
         } catch (e) { }
+        try {
+            await pool.query("CREATE INDEX idx_call_logs_cust_max ON call_logs(customer_id, id)");
+        } catch (e) { }
+        try {
+            await pool.query("CREATE INDEX idx_customers_status_created ON customers(status, created_at)");
+        } catch (e) { }
+        try {
+            await pool.query("CREATE INDEX idx_customers_status ON customers(status)");
+        } catch (e) { }
+        try {
+            await pool.query("CREATE INDEX idx_users_email ON users(email)");
+        } catch (e) { }
 
         // Seed default roles if roles table is empty
         const [rolesCount] = await pool.query('SELECT COUNT(*) as count FROM roles');

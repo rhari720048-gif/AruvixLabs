@@ -1,12 +1,18 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { pool, initDB } = require('./db');
 const { sendWelcomeEmail, testConnection, setPool } = require('./mailer');
+
+let bcrypt;
+try {
+    bcrypt = require('bcrypt');
+} catch (e) {
+    bcrypt = require('bcryptjs');
+}
 
 dotenv.config();
 
@@ -45,7 +51,6 @@ const sensitiveOpsLimiter = rateLimit({
 
 app.use('/api/', apiLimiter);
 app.use('/api/auth/login', authLimiter);
-app.use('/api/users', sensitiveOpsLimiter);
 
 app.use(cors({
     origin: ['https://aruvix-labs.vercel.app', 'http://localhost:5173', 'http://localhost:3000'],
@@ -82,24 +87,7 @@ const authenticate = async (req, res, next) => {
     if (!token) return res.status(401).json({ error: 'Access denied' });
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-        // Fetch fresh role and permissions from DB
-        const [rows] = await pool.query('SELECT role, permissions FROM users WHERE id = ?', [decoded.id]);
-        if (rows.length > 0) {
-            let permissions = {};
-            if (rows[0].permissions) {
-                try {
-                    permissions = typeof rows[0].permissions === 'string' ? JSON.parse(rows[0].permissions) : rows[0].permissions;
-                } catch (e) { }
-            }
-            req.user = {
-                ...decoded,
-                role: rows[0].role,
-                permissions: permissions
-            };
-        } else {
-            req.user = decoded;
-        }
+        req.user = decoded;
         next();
     } catch (err) {
         res.status(400).json({ error: 'Invalid token' });
@@ -111,11 +99,7 @@ app.post('/api/auth/login', async (req, res) => {
     const cleanEmail = (req.body.email || '').trim().toLowerCase();
     const cleanPassword = (req.body.password || '').trim();
     try {
-        const [rows] = await pool.query(`
-            SELECT u.*
-            FROM users u 
-            WHERE LOWER(TRIM(u.email)) = ?
-        `, [cleanEmail]);
+        const [rows] = await pool.query('SELECT u.* FROM users u WHERE u.email = ?', [cleanEmail]);
         const user = rows[0];
 
         if (!user || !(await bcrypt.compare(cleanPassword, user.password))) {
@@ -139,6 +123,19 @@ app.post('/api/auth/login', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
+// Health check & keep-alive endpoint (100% Free - prevents Render cold starts)
+app.get('/api/ping', (req, res) => {
+    res.json({ status: 'ok', time: new Date().toISOString() });
+});
+
+// Self-ping every 10 minutes to keep Render free tier server awake
+const https = require('https');
+setInterval(() => {
+    https.get('https://aruvixlabs.onrender.com/api/ping', (res) => {
+        // Keep alive heart-beat
+    }).on('error', () => {});
+}, 10 * 60 * 1000);
 
 // Fetch current logged-in user's fresh data (for permission refresh)
 app.get('/api/auth/me', authenticate, async (req, res) => {
@@ -194,10 +191,11 @@ app.get('/api/customers', authenticate, async (req, res) => {
             LEFT JOIN call_logs l ON l_max.max_id = l.id
             ORDER BY c.created_at DESC
         `;
-        let params = [];
-        const [rows] = await pool.query(query, params);
+        const [[rows], [users]] = await Promise.all([
+            pool.query(query),
+            pool.query('SELECT id, name FROM users')
+        ]);
 
-        const [users] = await pool.query('SELECT id, name FROM users');
         const userMap = {};
         users.forEach(u => userMap[u.id] = u.name);
 
@@ -328,6 +326,16 @@ app.get('/api/users', authenticate, async (req, res) => {
             permissions: typeof u.permissions === 'string' ? JSON.parse(u.permissions) : (u.permissions || {})
         }));
         res.json(users);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// GET all roles
+app.get('/api/roles', authenticate, async (req, res) => {
+    try {
+        const [rows] = await pool.query('SELECT * FROM roles ORDER BY id ASC');
+        res.json(rows);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -1356,18 +1364,18 @@ app.put('/api/telecalling/bulk-assign', authenticate, async (req, res) => {
 app.post('/api/telecalling/feedback', authenticate, async (req, res) => {
     try {
         const { customer_id, status, notes, callback_time, duration } = req.body;
-        console.log('POST /api/telecalling/feedback: body =', req.body, 'user =', req.user);
+        const userId = parseInt(req.user.id, 10);
         
-        await pool.query(
+        const insertLogPromise = pool.query(
             'INSERT INTO call_logs (customer_id, employee_id, status, notes, callback_time, duration) VALUES (?, ?, ?, ?, ?, ?)',
             [customer_id, req.user.id, status, notes, callback_time || null, duration || 0]
         );
         
-        // Retrieve existing assigned_to to append user id
-        const [custRows] = await pool.query('SELECT assigned_to FROM customers WHERE id = ?', [customer_id]);
-        const assignedArr = custRows.length > 0 ? parseAssignedTo(custRows[0].assigned_to) : [];
+        const getCustPromise = pool.query('SELECT assigned_to FROM customers WHERE id = ?', [customer_id]);
+
+        const [, [custRows]] = await Promise.all([insertLogPromise, getCustPromise]);
         
-        const userId = parseInt(req.user.id, 10);
+        const assignedArr = custRows.length > 0 ? parseAssignedTo(custRows[0].assigned_to) : [];
         if (!isNaN(userId) && !assignedArr.includes(userId)) {
             assignedArr.push(userId);
         }
@@ -1383,10 +1391,17 @@ app.post('/api/telecalling/feedback', authenticate, async (req, res) => {
 
 app.get('/api/telecalling/reports', authenticate, async (req, res) => {
     try {
-        const [totalLeads] = await pool.query("SELECT COUNT(*) as count FROM customers WHERE status != 'Converted'");
-        const [totalCalls] = await pool.query("SELECT COUNT(*) as count FROM call_logs");
-        const [appointments] = await pool.query("SELECT COUNT(*) as count FROM customers WHERE status = 'Appointment'");
-        const [notInterested] = await pool.query("SELECT COUNT(*) as count FROM customers WHERE status IN ('Not Interested', 'NI')");
+        const [
+            [totalLeads],
+            [totalCalls],
+            [appointments],
+            [notInterested]
+        ] = await Promise.all([
+            pool.query("SELECT COUNT(*) as count FROM customers WHERE status != 'Converted'"),
+            pool.query("SELECT COUNT(*) as count FROM call_logs"),
+            pool.query("SELECT COUNT(*) as count FROM customers WHERE status = 'Appointment'"),
+            pool.query("SELECT COUNT(*) as count FROM customers WHERE status IN ('Not Interested', 'NI')")
+        ]);
         
         res.json({
             totalLeads: totalLeads[0].count,

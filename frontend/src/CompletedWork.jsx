@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import ViewModal from './ViewModal';
 import { getPerms } from './permissions';
 
-const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
+import { API } from './apiConfig';
 
 const CompletedWork = () => {
   const perms = getPerms('completed_work');

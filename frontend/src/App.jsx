@@ -11,6 +11,7 @@ import Header from './Header';
 import ViewModal from './ViewModal';
 import { getPerms } from './permissions';
 import { Toaster } from 'react-hot-toast';
+import { API } from './apiConfig';
 import './index.css';
 
 import Appointments from './Appointments';
@@ -18,7 +19,6 @@ import CallLater from './CallLater';
 import NIBox from './NIBox';
 import CallHistory from './CallHistory';
 import CompletedWork from './CompletedWork';
-// Mock Data removed as data is now fetched from APIs
 
 const ProtectedRoute = ({ children, module, requireEmployee }) => {
   const token = localStorage.getItem('token');
@@ -30,10 +30,11 @@ const ProtectedRoute = ({ children, module, requireEmployee }) => {
 
   const hasPerm = (mod) => {
     if (role === 'admin') return true;
-    if (mod === 'settings' || mod === 'user_management') return false; // STRICTLY ADMIN ONLY
-    if (mod === 'dashboard' || mod === 'profile') return true;
+    const isRestricted = mod === 'settings' || mod === 'user_management';
+    if (!isRestricted) return true; // ALL regular CRM pages (Dashboard, Profile, Leads, Clients, etc.) ALWAYS shown!
+    
     const p = permissions[mod];
-    if (p === undefined || p === null) return true;
+    if (p === undefined || p === null) return false;
     if (typeof p === 'boolean') return p;
     if (typeof p === 'object' && p !== null) {
       if (p.view !== undefined) return !!p.view;
@@ -42,7 +43,7 @@ const ProtectedRoute = ({ children, module, requireEmployee }) => {
     return !!p;
   };
 
-  if (requireEmployee && role !== 'employee') return <Navigate to="/" />;
+  if (requireEmployee && role === 'admin') return <Navigate to="/" />;
   if (module && !hasPerm(module)) return <Navigate to="/" />;
 
   return children;
@@ -58,11 +59,12 @@ const Sidebar = ({ isSidebarOpen, setSidebarOpen }) => {
   const userName = localStorage.getItem('user_name') || 'User';
 
   const hasPerm = (module) => {
-    if (role === 'admin') return true; // Admin sees all
-    if (module === 'settings' || module === 'user_management') return false; // STRICTLY ADMIN ONLY
-    if (module === 'dashboard' || module === 'profile') return true;
+    if (role === 'admin') return true;
+    const isRestricted = module === 'settings' || module === 'user_management';
+    if (!isRestricted) return true; // ALL regular CRM pages (Dashboard, Profile, Leads, Clients, etc.) ALWAYS shown!
+    
     const p = permissions[module];
-    if (p === undefined || p === null) return true;
+    if (p === undefined || p === null) return false;
     if (typeof p === 'boolean') return p;
     if (typeof p === 'object' && p !== null) {
       if (p.view !== undefined) return !!p.view;
@@ -85,7 +87,6 @@ const Sidebar = ({ isSidebarOpen, setSidebarOpen }) => {
         {hasPerm('dashboard') && <li><Link onClick={() => setSidebarOpen(false)} to="/" className={`nav-link ${isActive('/')}`}><LayoutDashboard size={20} /> Dashboard</Link></li>}
         {hasPerm('profile') && <li><Link onClick={() => setSidebarOpen(false)} to="/profile" className={`nav-link ${isActive('/profile')}`}><User size={20} /> My Profile</Link></li>}
         
-
         {hasPerm('leads') && <li><Link onClick={() => setSidebarOpen(false)} to="/leads" className={`nav-link ${isActive('/leads')}`}><UserPlus size={20} /> Leads</Link></li>}
         {hasPerm('appointments') && <li><Link onClick={() => setSidebarOpen(false)} to="/appointments" className={`nav-link ${isActive('/appointments')}`}><Calendar size={20} /> Appointments</Link></li>}
         {hasPerm('call_later') && <li><Link onClick={() => setSidebarOpen(false)} to="/call-later" className={`nav-link ${isActive('/call-later')}`}><Clock size={20} /> Call Later</Link></li>}
@@ -101,10 +102,6 @@ const Sidebar = ({ isSidebarOpen, setSidebarOpen }) => {
     </>
   );
 };
-
-
-
-const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5000/api' : 'https://aruvixlabs.onrender.com/api';
 
 const Dashboard = () => {
   const [data, setData] = useState([]);
@@ -398,138 +395,69 @@ const ProfilePage = () => {
     try {
       const res = await fetch(`${API}/auth/profile`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          name: draft.name,
-          phone: draft.phone,
-          bio: draft.bio,
-          location: draft.location,
-          department: draft.department,
-        })
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
+        body: JSON.stringify(draft)
       });
       if (res.ok) {
-        setForm({ ...draft });
+        setForm(draft);
         setIsEditing(false);
         setSaved(true);
+        toast.success("Profile saved successfully.");
         setTimeout(() => setSaved(false), 3000);
       }
     } catch (err) {
       console.error(err);
+      toast.error("Error updating profile.");
     }
   };
 
-  if (loading) {
-    return <div style={{ padding: '40px', color: '#6b7280', textAlign: 'center' }}>Loading profile details...</div>;
-  }
-
-  const inputStyle = (editing) => ({
-    width: '100%', padding: '10px 12px', borderRadius: '8px',
-    border: editing ? '1.5px solid #6366f1' : '1px solid #e5e7eb',
-    background: editing ? '#fff' : '#f9fafb',
-    color: '#1f2937', fontSize: '14px', outline: 'none',
-    cursor: editing ? 'text' : 'default', transition: '0.2s',
+  const inputStyle = (editable) => ({
+    width: '100%',
+    padding: '12px',
+    borderRadius: '10px',
+    border: editable ? '1.5px solid #6366f1' : '1px solid #e2e8f0',
+    background: editable ? '#ffffff' : '#f8fafc',
+    color: '#0f172a',
+    fontWeight: editable ? '600' : '500',
+    fontSize: '14px',
+    outline: 'none',
+    transition: 'all 0.2s',
   });
 
+  if (loading) return <div style={{ padding: 40, textAlign: 'center' }}>Loading Profile...</div>;
+
   return (
-    <div style={{ maxWidth: 880, animation: 'fadeIn 0.3s ease-out' }}>
-      <div className="crm-page-header">
-        <div className="crm-page-title-group">
-          <h1>
-            <User size={28} color="var(--primary)" />
-            My User Profile
-          </h1>
-          <p>Personal profile preferences, contact information, and role credentials</p>
-        </div>
-      </div>
-
-      {saved && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#d1fae5', color: '#065f46', padding: '12px 20px', borderRadius: 16, marginBottom: 20, fontWeight: 600 }}>
-          <CheckCircle size={18} /> Profile updated successfully!
-        </div>
-      )}
-
-      {/* Dashboard-Style KPI Cards for Profile */}
-      <div className="modern-stats-grid">
-        <div className="modern-stat-card grad-profile">
-          <div className="modern-stat-header">
-            <span>Account Role</span>
-            <User size={20} />
+    <div style={{ maxWidth: 800, margin: '0 auto', animation: 'fadeIn 0.3s ease-out' }}>
+      <div style={{ background: 'white', borderRadius: '24px', border: '1px solid #e2e8f0', padding: '32px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', borderBottom: '1px solid #f1f5f9', paddingBottom: '20px' }}>
+          <div>
+            <h1 style={{ fontSize: '24px', fontWeight: '800', color: '#0f172a', margin: 0 }}>My Profile</h1>
+            <p style={{ color: '#64748b', fontSize: '14px', margin: '4px 0 0 0' }}>Manage your account settings & details</p>
           </div>
-          <div className="modern-stat-value" style={{ fontSize: '28px', textTransform: 'capitalize' }}>{form.role || 'Staff'}</div>
-          <User size={90} className="bg-icon" />
-        </div>
-
-        <div className="modern-stat-card grad-converted">
-          <div className="modern-stat-header">
-            <span>Account Status</span>
-            <CheckCircle size={20} />
-          </div>
-          <div className="modern-stat-value" style={{ fontSize: '28px' }}>Active</div>
-          <CheckCircle size={90} className="bg-icon" />
-        </div>
-
-        <div className="modern-stat-card grad-pending">
-          <div className="modern-stat-header">
-            <span>Department</span>
-            <Building size={20} />
-          </div>
-          <div className="modern-stat-value" style={{ fontSize: '28px' }}>{form.department || 'Sales'}</div>
-          <Building size={90} className="bg-icon" />
-        </div>
-      </div>
-
-      {/* Profile Header Card */}
-      <div className="card-panel" style={{ overflow: 'hidden', padding: 0, marginBottom: 24 }}>
-        <div style={{ height: 120, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }} />
-        <div style={{ padding: '0 30px 24px', position: 'relative' }}>
-          {/* Avatar */}
-          <div style={{ position: 'relative', display: 'inline-block', marginTop: -44 }}>
-            <div style={{ width: 96, height: 96, borderRadius: '50%', background: '#6366f1', border: '4px solid white', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', boxShadow: '0 4px 16px rgba(99,102,241,0.3)' }}>
-              {avatar ? <img src={avatar} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: 'white', fontSize: 36, fontWeight: 800 }}>{form.name.charAt(0)}</span>}
-            </div>
-            {isEditing && (
-              <button onClick={() => fileRef.current.click()} style={{ position: 'absolute', bottom: 2, right: 2, width: 32, height: 32, borderRadius: '50%', background: '#6366f1', border: '2px solid white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                <Camera size={14} color="white" />
-              </button>
-            )}
-            <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { if (e.target.files[0]) setAvatar(URL.createObjectURL(e.target.files[0])); }} />
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 14, flexWrap: 'wrap', gap: '12px' }}>
+          {canEdit && (
             <div>
-              <h2 style={{ margin: 0, color: '#0F172A', fontSize: 24, fontWeight: '800' }}>{form.name}</h2>
-              <p style={{ margin: '4px 0 0', color: '#64748B', fontSize: 14, fontWeight: '600' }}>{form.role} · {form.department}</p>
+              {!isEditing ? (
+                <button onClick={handleEdit} className="btn btn-primary">
+                  <Pencil size={16} /> Edit Profile
+                </button>
+              ) : (
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button onClick={handleCancel} className="btn btn-secondary"><X size={16} /> Cancel</button>
+                  <button onClick={handleSave} className="btn btn-primary"><CheckCircle size={16} /> Save Changes</button>
+                </div>
+              )}
             </div>
-            {canEdit && !isEditing ? (
-              <button
-                onClick={handleEdit}
-                id="edit-profile-btn"
-                className="btn btn-primary"
-              >
-                <Pencil size={16} /> Edit Profile Details
-              </button>
-            ) : isEditing ? (
-              <div style={{ display: 'flex', gap: 10 }}>
-                <button onClick={handleCancel} className="btn btn-secondary">
-                  <X size={15} /> Cancel
-                </button>
-                <button form="profile-form" type="submit" className="btn btn-success">
-                  <CheckCircle size={15} /> Save Changes
-                </button>
-              </div>
-            ) : null}
-          </div>
+          )}
         </div>
-      </div>
 
-      {/* Details Form */}
-      <div style={{ background: 'white', borderRadius: 16, boxShadow: '0 4px 20px rgba(0,0,0,0.07)', border: '1px solid #e5e7eb', padding: '30px' }}>
-        <h3 style={{ margin: '0 0 24px', color: '#111827', fontSize: 17, fontWeight: 700 }}>Personal Information</h3>
-        <form id="profile-form" onSubmit={handleSave}>
-          <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+        {saved && (
+          <div style={{ background: '#ecfdf5', color: '#047857', padding: '12px 16px', borderRadius: '12px', marginBottom: '24px', fontWeight: '600', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <CheckCircle size={18} /> Profile changes saved successfully!
+          </div>
+        )}
+
+        <form onSubmit={handleSave}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
             <div>
               <label style={{ display: 'block', marginBottom: 6, fontSize: 13, fontWeight: 600, color: '#374151' }}>Full Name</label>
               <input value={isEditing ? draft.name : form.name} onChange={e => setDraft({ ...draft, name: e.target.value })} readOnly={!isEditing} style={inputStyle(isEditing)} />
