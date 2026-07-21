@@ -477,8 +477,23 @@ const ProfilePage = () => {
               <input value={isEditing ? draft.location : form.location} onChange={e => setDraft({ ...draft, location: e.target.value })} readOnly={!isEditing} style={inputStyle(isEditing)} />
             </div>
             <div>
-              <label style={{ display: 'block', marginBottom: 6, fontSize: 13, fontWeight: 600, color: '#374151' }}>Role</label>
-              <input value={isEditing ? draft.role : form.role} onChange={e => setDraft({ ...draft, role: e.target.value })} readOnly={!isEditing} style={inputStyle(isEditing)} />
+              <label style={{ display: 'block', marginBottom: 6, fontSize: 13, fontWeight: 600, color: '#374151' }}>
+                Role <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '500' }}>(Managed by Admin)</span>
+              </label>
+              <input 
+                value={form.role ? form.role.toUpperCase() : ''} 
+                readOnly={true} 
+                disabled={true}
+                title="Role can only be changed by Admin in Staff Management"
+                style={{ 
+                  ...inputStyle(false), 
+                  background: '#f1f5f9', 
+                  color: '#475569', 
+                  fontWeight: '700', 
+                  cursor: 'not-allowed',
+                  textTransform: 'uppercase'
+                }} 
+              />
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={{ display: 'block', marginBottom: 6, fontSize: 13, fontWeight: 600, color: '#374151' }}>Bio</label>
