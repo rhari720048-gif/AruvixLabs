@@ -2117,48 +2117,48 @@ input:-webkit-autofill:active {
 
   .crm-page-actions button, .crm-page-actions a, .btn {
     flex: 1 1 calc(50% - 4px) !important;
-    min-height: 38px !important;
+    min-height: 32px !important;
     justify-content: center !important;
-    font-size: 12px !important;
-    padding: 6px 10px !important;
-    border-radius: 10px !important;
+    font-size: 11.5px !important;
+    padding: 5px 10px !important;
+    border-radius: 8px !important;
   }
 
-  /* 4. Dashboard KPI Cards (Compact & Neat) */
+  /* 4. Dashboard KPI Cards (Compact & Tighter) */
   .modern-stats-grid, .stats-grid, .kpi-grid {
     grid-template-columns: repeat(2, 1fr) !important;
-    gap: 8px !important;
-    margin-bottom: 12px !important;
+    gap: 6px !important;
+    margin-bottom: 10px !important;
   }
 
   .modern-stat-card, .stat-card, .crm-card {
-    padding: 12px 10px !important;
-    border-radius: 14px !important;
+    padding: 10px 8px !important;
+    border-radius: 12px !important;
   }
 
   .modern-stat-header {
-    font-size: 11px !important;
+    font-size: 10px !important;
     font-weight: 700 !important;
   }
 
   .modern-stat-value {
-    font-size: 18px !important;
-    margin-top: 2px !important;
+    font-size: 16px !important;
+    margin-top: 1px !important;
     font-weight: 800 !important;
   }
 
   .bg-icon {
-    width: 40px !important;
-    height: 40px !important;
+    width: 32px !important;
+    height: 32px !important;
     opacity: 0.08 !important;
   }
 
-  /* 5. Search Bars & Filters */
+  /* 5. Search Bars & Filters (Tighter & Compact) */
   .search-filter-container {
     flex-direction: column !important;
-    padding: 10px !important;
-    gap: 8px !important;
-    border-radius: 12px !important;
+    padding: 8px !important;
+    gap: 6px !important;
+    border-radius: 10px !important;
   }
 
   .search-filter-container > div {
@@ -2167,17 +2167,30 @@ input:-webkit-autofill:active {
 
   .search-filter-container input, .searchable-select, select, input, textarea {
     width: 100% !important;
-    font-size: 13px !important;
-    height: 38px !important;
-    padding-top: 6px !important;
-    padding-right: 10px !important;
-    padding-bottom: 6px !important;
-    padding-left: 10px;
-    border-radius: 10px !important;
+    font-size: 12.5px !important;
+    height: 34px !important;
+    padding-top: 4px !important;
+    padding-right: 8px !important;
+    padding-bottom: 4px !important;
+    padding-left: 8px !important;
+    border-radius: 8px !important;
   }
 
   input.has-icon-left, input[style*="paddingLeft"], input[style*="padding-left"] {
-    padding-left: 44px !important;
+    padding-left: 36px !important;
+  }
+
+  /* Compact Forms, Labels & Form Groups */
+  label {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    margin-bottom: 3px !important;
+  }
+
+  .card-panel {
+    padding: 14px 12px !important;
+    border-radius: 14px !important;
+    gap: 12px !important;
   }
 
   /* Filter buttons horizontal scroll */
@@ -2193,16 +2206,24 @@ input:-webkit-autofill:active {
   .filter-buttons-scroll button, .leads-header-tabs button {
     flex-shrink: 0 !important;
     white-space: nowrap !important;
-    padding: 6px 10px !important;
-    font-size: 11.5px !important;
-    border-radius: 8px !important;
+    padding: 5px 8px !important;
+    font-size: 11px !important;
+    border-radius: 6px !important;
   }
 
-  /* 6. Tables - Responsive Card List (No Horizontal Scroll!) */
+  /* 6. Compact Buttons global */
+  button, .btn, .btn-primary, .btn-secondary, .btn-success, .btn-danger, .btn-warning, .btn-info {
+    padding: 5px 10px !important;
+    font-size: 11.5px !important;
+    border-radius: 8px !important;
+    min-height: 32px !important;
+  }
+
+  /* 7. Tables - Responsive Card List (Compact Card Stack) */
   .table-container, .data-table-container, .modern-table-container, div[style*="overflow: hidden"], div[style*="overflow-x: auto"] {
     width: 100% !important;
     overflow-x: visible !important;
-    border-radius: 12px !important;
+    border-radius: 10px !important;
   }
 
   table {
@@ -2218,7 +2239,7 @@ input:-webkit-autofill:active {
   tbody {
     display: flex !important;
     flex-direction: column !important;
-    gap: 12px !important;
+    gap: 8px !important;
     width: 100% !important;
   }
 
@@ -2227,16 +2248,16 @@ input:-webkit-autofill:active {
     flex-direction: column !important;
     background: #ffffff !important;
     border: 1px solid #e2e8f0 !important;
-    border-radius: 16px !important;
-    padding: 12px 14px !important;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03) !important;
+    border-radius: 12px !important;
+    padding: 8px 10px !important;
+    box-shadow: 0 3px 8px rgba(15, 23, 42, 0.02) !important;
     width: 100% !important;
     box-sizing: border-box !important;
   }
 
   th, td {
-    padding: 8px 0 !important;
-    font-size: 13px !important;
+    padding: 6px 0 !important;
+    font-size: 12px !important;
     white-space: normal !important;
     display: flex !important;
     justify-content: space-between !important;
@@ -2244,22 +2265,22 @@ input:-webkit-autofill:active {
     text-align: right !important;
     border: none !important;
     border-bottom: 1px dashed #f1f5f9 !important;
-    min-height: 38px !important;
+    min-height: 32px !important;
     box-sizing: border-box !important;
   }
 
   td:last-child {
     border-bottom: none !important;
-    padding-top: 12px !important;
+    padding-top: 8px !important;
     justify-content: flex-end !important;
-    gap: 8px !important;
+    gap: 6px !important;
   }
 
   td[data-label]::before {
     content: attr(data-label) !important;
     font-weight: 700 !important;
     color: var(--text-muted) !important;
-    font-size: 11px !important;
+    font-size: 10px !important;
     text-transform: uppercase !important;
     letter-spacing: 0.04em !important;
     padding-right: 12px !important;
