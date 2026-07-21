@@ -4,9 +4,9 @@
  * Rules:
  * 1. Admin role gets all pages & full CRUD permissions by default.
  * 2. ALL NON-ADMIN USERS (CTO, Manager, Employee, Telecaller, Sales, or any custom role):
- *    - MUST ALWAYS BE ALLOWED TO VIEW all regular CRM pages:
- *      (Dashboard, Profile, Leads, Appointments, Call Later, NI Box, Call History, Clients, Completed Work).
- *    - Settings & Staff Management (user_management) are hidden by default and ONLY shown if Admin explicitly grants permission in user's permissions object.
+ *    - On all regular CRM pages (Leads, Clients, Appointments, Call Later, NI Box, Call History, Completed Work, Dashboard, Profile),
+ *      non-admin users HAVE FULL ACCESS (canView = true, canCreate = true, canEdit = true, canDelete = true).
+ *    - Settings & Staff Management (user_management) are hidden by default and ONLY accessible if Admin explicitly grants permission.
  */
 
 export function getPerms(module) {
@@ -24,19 +24,18 @@ export function getPerms(module) {
   const isRestricted = module === 'settings' || module === 'user_management';
 
   if (!isRestricted) {
-    // Regular CRM pages are ALWAYS viewable by any non-admin role
-    let canCreate = true;
-    let canEdit = true;
-    let canDelete = true;
-    if (typeof mod === 'object' && mod !== null) {
-      if (mod.create !== undefined) canCreate = !!mod.create;
-      if (mod.edit !== undefined) canEdit = !!mod.edit;
-      if (mod.delete !== undefined) canDelete = !!mod.delete;
-    }
-    return { canView: true, canCreate, canEdit, canDelete, isAdmin: false, role: rawRole };
+    // Regular CRM pages ALWAYS grant FULL ACCESS (View, Create, Edit, Delete) for all non-admin roles!
+    return { 
+      canView: true, 
+      canCreate: true, 
+      canEdit: true, 
+      canDelete: true, 
+      isAdmin: false, 
+      role: rawRole 
+    };
   }
 
-  // Restricted pages (settings & user_management): ONLY viewable if explicitly granted
+  // Restricted pages (settings & user_management): ONLY accessible if explicitly granted
   let canView = false;
   let canCreate = false;
   let canEdit = false;

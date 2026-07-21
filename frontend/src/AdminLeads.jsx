@@ -11,17 +11,13 @@ import { API } from './apiConfig';
 const AdminLeads = () => {
   const navigate = useNavigate();
   const perms = getPerms('leads');
-  const hasAddTab = perms.add_leads ?? perms.canCreate;
-  const hasAllTab = perms.all_leads ?? perms.canView;
-  const canCreate = perms.create ?? perms.canCreate;
-  const canDelete = perms.delete ?? perms.canDelete;
-  const canEdit = perms.edit ?? perms.canEdit;
+  const hasAddTab = perms.add_leads ?? perms.canCreate ?? true;
+  const hasAllTab = perms.all_leads ?? perms.canView ?? true;
+  const canCreate = perms.create ?? perms.canCreate ?? true;
+  const canDelete = perms.delete ?? perms.canDelete ?? true;
+  const canEdit = perms.edit ?? perms.canEdit ?? true;
 
-  const [activePage, setActivePage] = useState(() => {
-    if (hasAllTab) return 'all';
-    if (hasAddTab) return 'add';
-    return '';
-  });
+  const [activePage, setActivePage] = useState('all');
   const [leads, setLeads] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [currentUser, setCurrentUser] = useState('');
