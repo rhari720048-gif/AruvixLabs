@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PlusCircle, List, CheckCircle, Download, Upload, Users, Eye, Edit2, Trash2, UserCheck, ShieldCheck, Sparkles } from 'lucide-react';
+import { PlusCircle, List, CheckCircle, Download, Upload, Users, Eye, Edit2, Trash2, UserCheck, ShieldCheck, Sparkles, Search } from 'lucide-react';
 import Papa from 'papaparse';
 import ViewModal from './ViewModal';
 import EditLeadModal from './EditLeadModal';
@@ -25,6 +25,7 @@ const Clients = () => {
     return '';
   });
   const [clients, setClients] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [form, setForm] = useState({ name: '', phone: '', email: '', district: '', car_model: '', registration_number: '', source: 'Manual Entry' });
   const [viewClient, setViewClient] = useState(null);
   const [editClient, setEditClient] = useState(null);
@@ -369,8 +370,42 @@ const Clients = () => {
           </div>
         )}
 
-        {activeTab === 'all' && hasAllTab && renderTable(clients)}
-        {activeTab === 'mine' && hasMineTab && renderTable(clients.filter(c => c.converted_by_name === currentUser))}
+        {(activeTab === 'all' || activeTab === 'mine') && (
+          <div className="card-panel" style={{ padding: '16px 24px', marginBottom: '24px' }}>
+            <div style={{ position: 'relative', width: '100%', maxWidth: '400px' }}>
+              <Search size={18} color="#94a3b8" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }} />
+              <input 
+                type="text" 
+                className="has-icon-left"
+                placeholder="Search clients by name, phone, car, location..." 
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                style={{ width: '100%', paddingLeft: '46px' }}
+              />
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'all' && hasAllTab && renderTable(clients.filter(c => {
+          if (!searchTerm.trim()) return true;
+          const q = searchTerm.toLowerCase().trim();
+          return (c.name || '').toLowerCase().includes(q) ||
+                 (c.phone || '').toLowerCase().includes(q) ||
+                 (c.district || c.location || '').toLowerCase().includes(q) ||
+                 (c.car_model || c.car_name || '').toLowerCase().includes(q) ||
+                 (c.source || '').toLowerCase().includes(q) ||
+                 (c.converted_by_name || '').toLowerCase().includes(q);
+        }))}
+        {activeTab === 'mine' && hasMineTab && renderTable(clients.filter(c => c.converted_by_name === currentUser).filter(c => {
+          if (!searchTerm.trim()) return true;
+          const q = searchTerm.toLowerCase().trim();
+          return (c.name || '').toLowerCase().includes(q) ||
+                 (c.phone || '').toLowerCase().includes(q) ||
+                 (c.district || c.location || '').toLowerCase().includes(q) ||
+                 (c.car_model || c.car_name || '').toLowerCase().includes(q) ||
+                 (c.source || '').toLowerCase().includes(q) ||
+                 (c.converted_by_name || '').toLowerCase().includes(q);
+        }))}
       </div>
 
       {viewClient && (

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, PhoneCall, Calendar, MapPin, Car, CheckCircle, RefreshCw, User, Users, PlusCircle, Edit3, Phone, PhoneOff, Download } from 'lucide-react';
+import { Clock, PhoneCall, Calendar, MapPin, Car, CheckCircle, RefreshCw, User, Users, PlusCircle, Edit3, Phone, PhoneOff, Download, Search } from 'lucide-react';
 import ActionButtons from './ActionButtons';
 import toast from 'react-hot-toast';
 import ViewModal from './ViewModal';
@@ -12,6 +12,7 @@ import { API } from './apiConfig';
 const CallLater = () => {
   const [activeTab, setActiveTab] = useState('my'); // 'my', 'all', 'manual'
   const [leads, setLeads] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [selectedLead, setSelectedLead] = useState(null);
   const [feedback, setFeedback] = useState({ status: 'Call Later', notes: '', callback_time: '' });
   const [loading, setLoading] = useState(true);
@@ -308,11 +309,41 @@ const CallLater = () => {
             </button>
           </div>
           
+          <div style={{ padding: '12px 16px', borderBottom: '1px solid #e2e8f0' }}>
+            <div style={{ position: 'relative', width: '100%' }}>
+              <Search size={16} color="#94a3b8" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+              <input 
+                type="text" 
+                className="has-icon-left"
+                placeholder="Search Call Later queue..." 
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                style={{ width: '100%', paddingLeft: '40px', fontSize: '13px', borderRadius: '10px' }}
+              />
+            </div>
+          </div>
+          
           <ul className="split-sidebar-list" style={{ listStyle: 'none', padding: '16px', margin: 0 }}>
-            {leads.length === 0 ? (
-              <li style={{ textAlign: 'center', color: '#94a3b8', padding: '20px 0' }}>No leads in queue</li>
+            {leads.filter(l => {
+              if (!searchTerm.trim()) return true;
+              const q = searchTerm.toLowerCase().trim();
+              return (l.name || '').toLowerCase().includes(q) ||
+                     (l.phone || '').toLowerCase().includes(q) ||
+                     (l.car_model || l.car_name || '').toLowerCase().includes(q) ||
+                     (l.district || l.location || '').toLowerCase().includes(q) ||
+                     (l.notes || '').toLowerCase().includes(q);
+            }).length === 0 ? (
+              <li style={{ textAlign: 'center', color: '#94a3b8', padding: '20px 0' }}>No matching leads</li>
             ) : (
-              leads.map(lead => (
+              leads.filter(l => {
+                if (!searchTerm.trim()) return true;
+                const q = searchTerm.toLowerCase().trim();
+                return (l.name || '').toLowerCase().includes(q) ||
+                       (l.phone || '').toLowerCase().includes(q) ||
+                       (l.car_model || l.car_name || '').toLowerCase().includes(q) ||
+                       (l.district || l.location || '').toLowerCase().includes(q) ||
+                       (l.notes || '').toLowerCase().includes(q);
+              }).map(lead => (
                 <li 
                   key={lead.id}
                   onClick={() => setSelectedLead(lead)}

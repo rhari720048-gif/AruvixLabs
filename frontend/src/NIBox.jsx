@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Archive, RefreshCw, User, Users, PlusCircle, CheckCircle, Edit3, PhoneCall, MapPin, Car, Clock, Phone, PhoneOff, Calendar, Download } from 'lucide-react';
+import { Archive, RefreshCw, User, Users, PlusCircle, CheckCircle, Edit3, PhoneCall, MapPin, Car, Clock, Phone, PhoneOff, Calendar, Download, Search } from 'lucide-react';
 import './index.css';
 import ViewModal from './ViewModal';
 import EditLeadModal from './EditLeadModal';
@@ -13,6 +13,7 @@ import { API } from './apiConfig';
 const NIBox = () => {
     const [activeTab, setActiveTab] = useState('my'); // 'my', 'all', 'manual'
     const [leads, setLeads] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
     const [selectedLead, setSelectedLead] = useState(null);
     const [feedback, setFeedback] = useState({ status: 'Call Later', notes: '', callback_time: '' });
     const [loading, setLoading] = useState(true);
@@ -269,8 +270,30 @@ const NIBox = () => {
                         </button>
                     </div>
                     
+                    <div style={{ padding: '12px 16px', borderBottom: '1px solid #e2e8f0' }}>
+                      <div style={{ position: 'relative', width: '100%' }}>
+                        <Search size={16} color="#94a3b8" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+                        <input 
+                          type="text" 
+                          className="has-icon-left"
+                          placeholder="Search NI leads..." 
+                          value={searchTerm}
+                          onChange={e => setSearchTerm(e.target.value)}
+                          style={{ width: '100%', paddingLeft: '40px', fontSize: '13px', borderRadius: '10px' }}
+                        />
+                      </div>
+                    </div>
+                    
                     <ul className="split-sidebar-list" style={{ listStyle: 'none', padding: '16px', margin: 0 }}>
-                        {leads.map(lead => (
+                        {leads.filter(l => {
+                            if (!searchTerm.trim()) return true;
+                            const q = searchTerm.toLowerCase().trim();
+                            return (l.name || '').toLowerCase().includes(q) ||
+                                   (l.phone || '').toLowerCase().includes(q) ||
+                                   (l.car_model || l.car_name || '').toLowerCase().includes(q) ||
+                                   (l.district || l.location || '').toLowerCase().includes(q) ||
+                                   (l.notes || '').toLowerCase().includes(q);
+                        }).map(lead => (
                             <li 
                                 key={lead.id} 
                                 className={`contact-card ${selectedLead?.id === lead.id ? 'active' : ''}`}
