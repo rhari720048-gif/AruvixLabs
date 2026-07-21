@@ -183,7 +183,10 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
   const filteredLeads = leads.filter(lead => 
     (lead.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (lead.phone || '').includes(searchTerm) ||
-    (lead.location || '').toLowerCase().includes(searchTerm.toLowerCase())
+    (lead.location || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (lead.car_model || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (lead.car_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (lead.year || '').toString().toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const toggleSelectAll = () => {
