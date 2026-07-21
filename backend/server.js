@@ -140,7 +140,7 @@ setInterval(() => {
 // Fetch current logged-in user's fresh data (for permission refresh)
 app.get('/api/auth/me', authenticate, async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT id, name, email, role, phone, bio, location, department, permissions FROM users WHERE id = ?', [req.user.id]);
+        const [rows] = await pool.query('SELECT id, name, email, role, phone, status, created_at, permissions FROM users WHERE id = ?', [req.user.id]);
         if (!rows[0]) return res.status(404).json({ error: 'User not found' });
         const user = rows[0];
         let permissions = {};
@@ -153,9 +153,8 @@ app.get('/api/auth/me', authenticate, async (req, res) => {
             email: user.email,
             role: user.role,
             phone: user.phone || '',
-            bio: user.bio || '',
-            location: user.location || '',
-            department: user.department || '',
+            status: user.status || 'Active',
+            created_at: user.created_at,
             permissions
         });
     } catch (error) {

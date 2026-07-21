@@ -348,23 +348,8 @@ const ProfilePage = () => {
       canEdit: isAdmin || !!mod.edit
     };
   };
-  const { canEdit } = getProfilePerms();
-  const [isEditing, setIsEditing] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [avatar, setAvatar] = useState(null);
-  const fileRef = useRef();
-
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    location: '',
-    department: '',
-    role: '',
-    bio: '',
-  });
-  const [draft, setDraft] = useState({ ...form });
 
   useEffect(() => {
     fetch(`${API}/auth/me`, {
@@ -372,135 +357,71 @@ const ProfilePage = () => {
     })
       .then(res => res.ok ? res.json() : null)
       .then(data => {
-        if (data) {
-          const u = {
-            name: data.name || '',
-            email: data.email || '',
-            phone: data.phone || '',
-            location: data.location || '',
-            department: data.department || '',
-            role: data.role || '',
-            bio: data.bio || '',
-          };
-          setForm(u);
-          setDraft(u);
-        }
+        if (data) setUser(data);
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, []);
 
-  const handleEdit = () => { setDraft({ ...form }); setIsEditing(true); setSaved(false); };
-  const handleCancel = () => { setIsEditing(false); };
-  const handleSave = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await fetch(`${API}/auth/profile`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
-        body: JSON.stringify(draft)
-      });
-      if (res.ok) {
-        setForm(draft);
-        setIsEditing(false);
-        setSaved(true);
-        toast.success("Profile saved successfully.");
-        setTimeout(() => setSaved(false), 3000);
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error("Error updating profile.");
-    }
-  };
-
-  const inputStyle = (editable) => ({
+  const fieldStyle = {
     width: '100%',
-    padding: '12px',
-    borderRadius: '10px',
-    border: editable ? '1.5px solid #6366f1' : '1px solid #e2e8f0',
-    background: editable ? '#ffffff' : '#f8fafc',
-    color: '#0f172a',
-    fontWeight: editable ? '600' : '500',
+    padding: '14px 18px',
+    borderRadius: '16px',
+    border: '1.5px solid rgba(226, 232, 240, 0.95)',
+    background: '#F8FAFC',
+    color: '#0F172A',
+    fontWeight: '600',
     fontSize: '14px',
     outline: 'none',
-    transition: 'all 0.2s',
-  });
+    boxSizing: 'border-box'
+  };
 
   if (loading) return <div style={{ padding: 40, textAlign: 'center' }}>Loading Profile...</div>;
 
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', animation: 'fadeIn 0.3s ease-out' }}>
       <div style={{ background: 'white', borderRadius: '24px', border: '1px solid #e2e8f0', padding: '32px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', borderBottom: '1px solid #f1f5f9', paddingBottom: '20px' }}>
-          <div>
-            <h1 style={{ fontSize: '24px', fontWeight: '800', color: '#0f172a', margin: 0 }}>My Profile</h1>
-            <p style={{ color: '#64748b', fontSize: '14px', margin: '4px 0 0 0' }}>Manage your account settings & details</p>
-          </div>
-          {canEdit && (
-            <div>
-              {!isEditing ? (
-                <button onClick={handleEdit} className="btn btn-primary">
-                  <Pencil size={16} /> Edit Profile
-                </button>
-              ) : (
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button onClick={handleCancel} className="btn btn-secondary"><X size={16} /> Cancel</button>
-                  <button onClick={handleSave} className="btn btn-primary"><CheckCircle size={16} /> Save Changes</button>
-                </div>
-              )}
-            </div>
-          )}
+        
+        {/* Header */}
+        <div style={{ marginBottom: '28px', borderBottom: '1px solid #f1f5f9', paddingBottom: '20px' }}>
+          <h1 style={{ fontSize: '24px', fontWeight: '800', color: '#0f172a', margin: 0 }}>My Profile</h1>
+          <p style={{ color: '#64748b', fontSize: '14px', margin: '4px 0 0 0' }}>Your staff account profile details managed in Staff Management</p>
         </div>
 
-        {saved && (
-          <div style={{ background: '#ecfdf5', color: '#047857', padding: '12px 16px', borderRadius: '12px', marginBottom: '24px', fontWeight: '600', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <CheckCircle size={18} /> Profile changes saved successfully!
-          </div>
-        )}
+        {/* Info Banner */}
+        <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', color: '#0369a1', padding: '14px 18px', borderRadius: '16px', marginBottom: '28px', fontWeight: '600', fontSize: '13.5px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <ShieldCheck size={20} color="#0284c7" />
+          <span>Staff account details are managed & updated by Admin in Staff Management.</span>
+        </div>
 
-        <form onSubmit={handleSave}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
-            <div>
-              <label style={{ display: 'block', marginBottom: 6, fontSize: 13, fontWeight: 600, color: '#374151' }}>Full Name</label>
-              <input value={isEditing ? draft.name : form.name} onChange={e => setDraft({ ...draft, name: e.target.value })} readOnly={!isEditing} style={inputStyle(isEditing)} />
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: 6, fontSize: 13, fontWeight: 600, color: '#374151' }}>Email Address</label>
-              <input type="email" value={isEditing ? draft.email : form.email} onChange={e => setDraft({ ...draft, email: e.target.value })} readOnly={!isEditing} style={inputStyle(isEditing)} />
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: 6, fontSize: 13, fontWeight: 600, color: '#374151' }}>Phone Number (10 digits only)</label>
-              <input type="tel" maxLength={10} value={isEditing ? draft.phone : form.phone} onChange={e => setDraft({ ...draft, phone: e.target.value.replace(/[^0-9]/g, '').slice(0, 10) })} readOnly={!isEditing} style={inputStyle(isEditing)} />
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: 6, fontSize: 13, fontWeight: 600, color: '#374151' }}>Location</label>
-              <input value={isEditing ? draft.location : form.location} onChange={e => setDraft({ ...draft, location: e.target.value })} readOnly={!isEditing} style={inputStyle(isEditing)} />
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: 6, fontSize: 13, fontWeight: 600, color: '#374151' }}>
-                Role <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '500' }}>(Managed by Admin)</span>
-              </label>
-              <input 
-                value={form.role ? form.role.toUpperCase() : ''} 
-                readOnly={true} 
-                disabled={true}
-                title="Role can only be changed by Admin in Staff Management"
-                style={{ 
-                  ...inputStyle(false), 
-                  background: '#f1f5f9', 
-                  color: '#475569', 
-                  fontWeight: '700', 
-                  cursor: 'not-allowed',
-                  textTransform: 'uppercase'
-                }} 
-              />
-            </div>
-            <div style={{ gridColumn: '1 / -1' }}>
-              <label style={{ display: 'block', marginBottom: 6, fontSize: 13, fontWeight: 600, color: '#374151' }}>Bio</label>
-              <textarea value={isEditing ? draft.bio : form.bio} onChange={e => setDraft({ ...draft, bio: e.target.value })} readOnly={!isEditing} rows={3} style={{ ...inputStyle(isEditing), resize: isEditing ? 'vertical' : 'none' }} />
-            </div>
+        {/* Read-Only Form Fields */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
+          <div>
+            <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#374151' }}>Full Name</label>
+            <input value={user?.name || '-'} readOnly disabled style={fieldStyle} />
           </div>
-        </form>
+          <div>
+            <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#374151' }}>Email Address</label>
+            <input value={user?.email || '-'} readOnly disabled style={fieldStyle} />
+          </div>
+          <div>
+            <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#374151' }}>Phone Number</label>
+            <input value={user?.phone || '-'} readOnly disabled style={fieldStyle} />
+          </div>
+          <div>
+            <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#374151' }}>Role</label>
+            <input value={(user?.role || 'EMPLOYEE').toUpperCase()} readOnly disabled style={{ ...fieldStyle, background: '#eef2ff', fontWeight: '700', color: '#4338ca', textTransform: 'uppercase' }} />
+          </div>
+          <div>
+            <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#374151' }}>Account Status</label>
+            <input value={user?.status || 'Active'} readOnly disabled style={{ ...fieldStyle, background: user?.status === 'Inactive' ? '#fef2f2' : '#f0fdf4', color: user?.status === 'Inactive' ? '#dc2626' : '#16a34a', fontWeight: '700' }} />
+          </div>
+          <div>
+            <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#374151' }}>Member Since</label>
+            <input value={user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Active'} readOnly disabled style={fieldStyle} />
+          </div>
+        </div>
+
       </div>
     </div>
   );
