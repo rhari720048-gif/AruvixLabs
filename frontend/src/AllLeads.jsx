@@ -96,6 +96,7 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
     if (timerInterval) clearInterval(timerInterval);
     setCallPhase('feedback');
   };
+  const stopTimer = endCall;
 
   const cancelCall = () => {
     resetCallState();
@@ -541,7 +542,7 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
                       {formatTime(secondsElapsed)}
                     </div>
                     <button 
-                      onClick={stopTimer}
+                      onClick={endCall}
                       style={{
                         display: 'inline-flex', alignItems: 'center', gap: '10px', cursor: 'pointer',
                         background: '#ef4444', color: 'white', padding: '16px 40px', border: 'none',
