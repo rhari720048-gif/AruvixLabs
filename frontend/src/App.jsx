@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import Landing from './Landing';
 import Login from './Login';
-import { LayoutDashboard, User, UserPlus, Users, Settings, ChevronRight, Pencil, X, CheckCircle, Camera, Eye, Edit2, Trash2, PhoneCall, Clock, Calendar, Archive, Building, LogOut } from 'lucide-react';
+import { LayoutDashboard, User, UserPlus, Users, Settings, ChevronRight, Pencil, X, CheckCircle, Camera, Eye, Edit2, Trash2, PhoneCall, Clock, Calendar, Archive, Building, LogOut, ShieldCheck } from 'lucide-react';
 import AdminLeads from './AdminLeads';
 import SettingsPage from './SettingsPage';
 import Clients from './Clients';
