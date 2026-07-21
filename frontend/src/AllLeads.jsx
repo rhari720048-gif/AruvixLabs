@@ -306,6 +306,7 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
           <Search size={18} color="#94a3b8" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }} />
           <input 
             type="text" 
+            className="has-icon-left"
             placeholder="Search leads by name, phone, car..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
