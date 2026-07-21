@@ -1619,6 +1619,38 @@ app.delete('/api/telecalling/history/:id', authenticate, async (req, res) => {
     }
 });
 
+// Submit Telecalling Feedback
+app.post('/api/telecalling/feedback', authenticate, async (req, res) => {
+    try {
+        const { customer_id, status, notes, callback_time, duration } = req.body;
+        const employee_id = req.user?.id;
+
+        if (!customer_id) {
+            return res.status(400).json({ error: 'Customer ID is required' });
+        }
+
+        const [custRows] = await pool.query('SELECT id, status FROM customers WHERE id = ? OR customer_id = ?', [customer_id, customer_id]);
+        if (custRows.length === 0) {
+            return res.status(404).json({ error: 'Customer record not found' });
+        }
+        const realCustId = custRows[0].id;
+        const finalStatus = status || custRows[0].status || 'Pending';
+
+        await pool.query('UPDATE customers SET status = ?, notes = ?, last_dial_date = NOW() WHERE id = ?', [finalStatus, notes || '', realCustId]);
+
+        const formattedCbTime = callback_time ? new Date(callback_time).toISOString().slice(0, 19).replace('T', ' ') : null;
+        await pool.query(
+            'INSERT INTO call_logs (customer_id, employee_id, status, notes, callback_time, duration) VALUES (?, ?, ?, ?, ?, ?)',
+            [realCustId, employee_id || null, finalStatus, notes || '', formattedCbTime, parseInt(duration) || 0]
+        );
+
+        res.json({ success: true, message: 'Feedback submitted successfully' });
+    } catch (error) {
+        console.error('Error submitting telecalling feedback:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 

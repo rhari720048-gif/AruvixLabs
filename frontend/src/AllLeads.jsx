@@ -129,7 +129,7 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
           Authorization: `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
-          customer_id: selectedLead.id,
+          customer_id: selectedLead?.id || selectedLead?.customer_id,
           status: finalStatus,
           notes: finalNotes,
           callback_time: feedback.callback_time || null,
