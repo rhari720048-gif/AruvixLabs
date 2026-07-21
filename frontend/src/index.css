@@ -2267,6 +2267,10 @@ input:-webkit-autofill:active {
     display: block !important;
   }
 
+  td[data-label="Select"] {
+    display: none !important;
+  }
+
   /* 7. Bottom-Sheet Modals on Mobile */
   .modal-content-wrapper, .modal-content {
     position: fixed !important;
