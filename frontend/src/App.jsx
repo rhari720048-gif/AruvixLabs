@@ -353,150 +353,188 @@ const ProfilePage = () => {
       .catch(() => setLoading(false));
   }, []);
 
-  const lockedInputStyle = {
-    width: '100%',
-    padding: '14px 18px 14px 46px',
-    borderRadius: '16px',
-    border: '1.5px solid #e2e8f0',
-    background: '#f8fafc',
-    color: '#0f172a',
-    fontWeight: '700',
-    fontSize: '14px',
-    outline: 'none',
-    boxSizing: 'border-box',
-    cursor: 'not-allowed'
-  };
-
   if (loading) return (
     <div style={{ padding: '80px', textAlign: 'center', fontFamily: "'Outfit', 'Inter', sans-serif" }}>
       <div className="spinner" style={{ margin: '0 auto 16px auto' }}></div>
-      <p style={{ color: '#64748b', fontWeight: '600' }}>Loading Profile Details...</p>
+      <p style={{ color: '#64748b', fontWeight: '600' }}>Verifying Digital Badge...</p>
     </div>
   );
 
+  const initial = (user?.name || 'U').charAt(0).toUpperCase();
+  const staffIdNumber = user?.id ? `ARV-${1000 + user.id}` : 'ARV-1092';
+
   return (
-    <div style={{ maxWidth: 840, margin: '0 auto', animation: 'fadeIn 0.35s ease-out', fontFamily: "'Outfit', 'Inter', sans-serif" }}>
+    <div style={{ maxWidth: 720, margin: '0 auto', animation: 'fadeIn 0.35s ease-out', fontFamily: "'Outfit', 'Inter', sans-serif" }}>
       
-      {/* Outer Card */}
+      {/* Metallic Lanyard Strap Holder Clip */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '-10px', position: 'relative', zIndex: 3 }}>
+        <div style={{
+          width: '54px',
+          height: '14px',
+          background: 'linear-gradient(90deg, #94a3b8 0%, #cbd5e1 50%, #64748b 100%)',
+          borderRadius: '8px',
+          boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
+          border: '1px solid rgba(255,255,255,0.4)'
+        }} />
+        <div style={{
+          width: '28px',
+          height: '18px',
+          background: '#475569',
+          borderRadius: '0 0 6px 6px',
+          boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
+        }} />
+      </div>
+
+      {/* Main Holographic Badge Card Container */}
       <div style={{
-        background: '#ffffff',
+        background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
         borderRadius: '28px',
-        border: '1px solid #e2e8f0',
-        padding: '36px',
-        boxShadow: '0 15px 35px -5px rgba(15, 23, 42, 0.05)'
+        border: '2px solid rgba(99, 102, 241, 0.25)',
+        boxShadow: '0 25px 60px -15px rgba(79, 70, 229, 0.18), 0 0 35px rgba(99, 102, 241, 0.1)',
+        padding: '36px 32px',
+        position: 'relative',
+        overflow: 'hidden'
       }}>
         
-        {/* Header Title & Subtitle */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', borderBottom: '1px solid #f1f5f9', paddingBottom: '22px', flexWrap: 'wrap', gap: '16px' }}>
-          <div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#e0e7ff', color: '#4338ca', padding: '4px 12px', borderRadius: '12px', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', marginBottom: '8px' }}>
-              <ShieldCheck size={14} color="#4338ca" /> Account Credentials
+        {/* Holographic Watermark Circle Background */}
+        <div style={{ position: 'absolute', top: '-70px', right: '-70px', width: '240px', height: '240px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, rgba(255, 255, 255, 0) 70%)', pointerEvents: 'none' }} />
+
+        {/* Badge Top Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #e2e8f0', paddingBottom: '20px', marginBottom: '28px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '40px', height: '40px', borderRadius: '14px', background: 'linear-gradient(135deg, #4f46e5 0%, #3730a3 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', boxShadow: '0 6px 14px rgba(79, 70, 229, 0.3)' }}>
+              <Building size={20} />
             </div>
-            <h1 style={{ fontSize: '26px', fontWeight: '800', color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>My Profile Details</h1>
-            <p style={{ color: '#64748b', fontSize: '14px', margin: '4px 0 0 0' }}>Read-only staff profile managed by Administrator</p>
+            <div>
+              <h2 style={{ fontSize: '18px', fontWeight: '800', color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>ARUVIXLABS CRM</h2>
+              <span style={{ fontSize: '11px', fontWeight: '700', color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.06em' }}>OFFICIAL STAFF PASS</span>
+            </div>
           </div>
 
-          <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '8px 16px', borderRadius: '16px', color: '#15803d', fontWeight: '700', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 8px #22c55e' }} />
-            {user?.status ? `${user.status} Account` : 'Active Account'}
+          <div style={{
+            background: user?.status === 'Inactive' ? '#fef2f2' : '#f0fdf4',
+            border: `1.5px solid ${user?.status === 'Inactive' ? '#fca5a5' : '#bbf7d0'}`,
+            color: user?.status === 'Inactive' ? '#dc2626' : '#15803d',
+            padding: '6px 14px',
+            borderRadius: '16px',
+            fontSize: '12px',
+            fontWeight: '800',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
+          }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: user?.status === 'Inactive' ? '#ef4444' : '#22c55e', boxShadow: `0 0 8px ${user?.status === 'Inactive' ? '#ef4444' : '#22c55e'}` }} />
+            {user?.status ? `${user.status.toUpperCase()} STAFF` : 'ACTIVE STAFF'}
           </div>
         </div>
 
-        {/* Info Alert Box */}
-        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '18px', padding: '14px 18px', marginBottom: '32px', display: 'flex', alignItems: 'center', gap: '12px', color: '#475569', fontSize: '13.5px', fontWeight: '600' }}>
-          <Building size={20} color="#4f46e5" />
-          <span>Staff account details are created & updated by Admin in Staff Management.</span>
-        </div>
-
-        {/* 2-Column Form Fields with Icons inside Input */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '22px', marginBottom: '32px' }}>
+        {/* Center Passport Content Split: Avatar + Executive Credentials */}
+        <div style={{ display: 'flex', gap: '32px', alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: '32px' }}>
           
-          {/* Full Name */}
-          <div>
-            <label style={{ display: 'flex', alignItems: 'center', justifyBetween: 'space-between', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#374151' }}>
-              <span>Full Name</span>
-              <span style={{ fontSize: '11px', color: '#94a3b8', marginLeft: 'auto', fontWeight: '600' }}>🔒 Admin Managed</span>
-            </label>
-            <div style={{ position: 'relative', width: '100%' }}>
-              <User size={18} color="#6366f1" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
-              <input value={user?.name || '-'} readOnly disabled style={lockedInputStyle} />
+          {/* Left Column: Photo Avatar & Digital Staff Tag */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', width: '130px', margin: '0 auto' }}>
+            <div style={{
+              width: '110px',
+              height: '110px',
+              borderRadius: '24px',
+              background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '48px',
+              fontWeight: '800',
+              boxShadow: '0 12px 28px rgba(79, 70, 229, 0.35)',
+              border: '4px solid #ffffff'
+            }}>
+              {initial}
+            </div>
+
+            <div style={{ background: '#e0e7ff', color: '#4338ca', padding: '4px 10px', borderRadius: '10px', fontSize: '11px', fontWeight: '800', letterSpacing: '0.04em' }}>
+              {staffIdNumber}
             </div>
           </div>
 
-          {/* Email Address */}
-          <div>
-            <label style={{ display: 'flex', alignItems: 'center', justifyBetween: 'space-between', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#374151' }}>
-              <span>Email Address</span>
-              <span style={{ fontSize: '11px', color: '#94a3b8', marginLeft: 'auto', fontWeight: '600' }}>🔒 Admin Managed</span>
-            </label>
-            <div style={{ position: 'relative', width: '100%' }}>
-              <Building size={18} color="#2563eb" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
-              <input value={user?.email || '-'} readOnly disabled style={lockedInputStyle} />
+          {/* Right Column: User Details List */}
+          <div style={{ flex: 1, minWidth: '260px' }}>
+            
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ fontSize: '11px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '2px' }}>
+                Executive Full Name
+              </div>
+              <h1 style={{ fontSize: '26px', fontWeight: '800', color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
+                {user?.name || 'Staff Executive'}
+              </h1>
             </div>
-          </div>
 
-          {/* Phone Number */}
-          <div>
-            <label style={{ display: 'flex', alignItems: 'center', justifyBetween: 'space-between', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#374151' }}>
-              <span>Phone Number</span>
-              <span style={{ fontSize: '11px', color: '#94a3b8', marginLeft: 'auto', fontWeight: '600' }}>🔒 Admin Managed</span>
-            </label>
-            <div style={{ position: 'relative', width: '100%' }}>
-              <PhoneCall size={18} color="#16a34a" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
-              <input value={user?.phone || 'Not Provided'} readOnly disabled style={lockedInputStyle} />
+            {/* Role Badge */}
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ fontSize: '11px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+                Assigned System Role
+              </div>
+              <span style={{
+                background: 'linear-gradient(135deg, #4f46e5 0%, #3730a3 100%)',
+                color: '#ffffff',
+                padding: '6px 16px',
+                borderRadius: '14px',
+                fontSize: '13px',
+                fontWeight: '800',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                boxShadow: '0 4px 12px rgba(79, 70, 229, 0.25)',
+                display: 'inline-block'
+              }}>
+                <ShieldCheck size={14} style={{ display: 'inline', marginRight: '6px', verticalAlign: '-2px' }} />
+                {user?.role || 'EMPLOYEE'}
+              </span>
             </div>
-          </div>
 
-          {/* Role */}
-          <div>
-            <label style={{ display: 'flex', alignItems: 'center', justifyBetween: 'space-between', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#374151' }}>
-              <span>System Role</span>
-              <span style={{ fontSize: '11px', color: '#94a3b8', marginLeft: 'auto', fontWeight: '600' }}>🔒 Admin Managed</span>
-            </label>
-            <div style={{ position: 'relative', width: '100%' }}>
-              <ShieldCheck size={18} color="#4338ca" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
-              <input value={(user?.role || 'EMPLOYEE').toUpperCase()} readOnly disabled style={{ ...lockedInputStyle, background: '#eef2ff', color: '#4338ca' }} />
-            </div>
-          </div>
+            {/* Credentials Row Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
+              
+              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '12px 14px' }}>
+                <div style={{ fontSize: '10px', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>Email Contact</div>
+                <div style={{ fontSize: '13.5px', fontWeight: '700', color: '#0f172a', wordBreak: 'break-all' }}>{user?.email || '-'}</div>
+              </div>
 
-          {/* Account Status */}
-          <div>
-            <label style={{ display: 'flex', alignItems: 'center', justifyBetween: 'space-between', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#374151' }}>
-              <span>Account Status</span>
-              <span style={{ fontSize: '11px', color: '#94a3b8', marginLeft: 'auto', fontWeight: '600' }}>🔒 Admin Managed</span>
-            </label>
-            <div style={{ position: 'relative', width: '100%' }}>
-              <CheckCircle size={18} color={user?.status === 'Inactive' ? '#dc2626' : '#16a34a'} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
-              <input value={user?.status || 'Active'} readOnly disabled style={{ ...lockedInputStyle, background: user?.status === 'Inactive' ? '#fef2f2' : '#f0fdf4', color: user?.status === 'Inactive' ? '#dc2626' : '#16a34a' }} />
-            </div>
-          </div>
+              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '12px 14px' }}>
+                <div style={{ fontSize: '10px', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>Phone Contact</div>
+                <div style={{ fontSize: '13.5px', fontWeight: '700', color: '#0f172a' }}>{user?.phone || 'Not Provided'}</div>
+              </div>
 
-          {/* Member Since */}
-          <div>
-            <label style={{ display: 'flex', alignItems: 'center', justifyBetween: 'space-between', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#374151' }}>
-              <span>Member Since</span>
-              <span style={{ fontSize: '11px', color: '#94a3b8', marginLeft: 'auto', fontWeight: '600' }}>🔒 Auto Logged</span>
-            </label>
-            <div style={{ position: 'relative', width: '100%' }}>
-              <Calendar size={18} color="#c026d3" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
-              <input value={user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Active'} readOnly disabled style={lockedInputStyle} />
+              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '12px 14px', gridColumn: '1 / -1' }}>
+                <div style={{ fontSize: '10px', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>Issued / Member Since</div>
+                <div style={{ fontSize: '13.5px', fontWeight: '700', color: '#0f172a' }}>
+                  {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Active Member'}
+                </div>
+              </div>
+
             </div>
+
           </div>
 
         </div>
 
-        {/* Footer Security Badge */}
-        <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '22px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748b', fontSize: '13px', fontWeight: '600' }}>
-            <CheckCircle size={16} color="#16a34a" />
-            <span>Real-time sync enabled with Staff Management</span>
+        {/* Bottom Holographic Barcode & Security Watermark */}
+        <div style={{ borderTop: '2px dashed #e2e8f0', paddingTop: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {/* Stylized Barcode SVG */}
+            <div style={{ fontFamily: 'monospace', fontSize: '18px', letterSpacing: '2px', fontWeight: '900', color: '#475569', opacity: 0.85 }}>
+              |||||| | || |||| | ||| |
+            </div>
+            <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '700' }}>VERIFIED SECURITY PASS</span>
           </div>
-          <span style={{ fontSize: '12px', background: '#f1f5f9', color: '#475569', padding: '4px 12px', borderRadius: '12px', fontWeight: '700' }}>
-            AruvixLabs CRM System
-          </span>
+
+          <div style={{ fontSize: '12px', color: '#4f46e5', fontWeight: '700', background: '#eef2ff', padding: '4px 12px', borderRadius: '12px' }}>
+            Synced with Staff Management
+          </div>
+
         </div>
 
       </div>
+
     </div>
   );
 };
