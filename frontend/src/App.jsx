@@ -464,79 +464,135 @@ const ProfilePage = () => {
 
           </div>
 
-          {/* 4 Left-Border Accent Capsule Cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+          {/* 4 High-Tech Data Matrix Tiles (White + Indigo Theme) */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '22px', marginBottom: '32px' }}>
             
-            {/* Capsule 1: Full Name */}
+            {/* Tile 1: Full Name */}
             <div style={{
-              background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-              border: '1.5px solid #e2e8f0',
-              borderLeft: '5px solid #4f46e5',
-              borderRadius: '20px',
-              padding: '20px',
-              boxShadow: '0 6px 18px rgba(79, 70, 229, 0.04)'
+              background: '#ffffff',
+              border: '1.5px solid #c7d2fe',
+              borderRadius: '24px',
+              padding: '22px 24px',
+              position: 'relative',
+              overflow: 'hidden',
+              boxShadow: '0 10px 25px -5px rgba(79, 70, 229, 0.06)'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-                <User size={18} color="#4f46e5" />
-                <span style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Full Name</span>
+              {/* Top Row: Icon + Badge */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                <div style={{ width: '42px', height: '42px', borderRadius: '14px', background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(99, 102, 241, 0.15)' }}>
+                  <User size={20} color="#4338ca" />
+                </div>
+                <span style={{ background: '#e0e7ff', color: '#4338ca', padding: '4px 10px', borderRadius: '10px', fontSize: '10.5px', fontWeight: '800', textTransform: 'uppercase' }}>
+                  ✓ VERIFIED IDENTITY
+                </span>
               </div>
-              <div style={{ fontSize: '16px', fontWeight: '800', color: '#1e1b4b' }}>
+
+              {/* Label & Value */}
+              <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>
+                Full Name
+              </div>
+              <div style={{ fontSize: '17px', fontWeight: '800', color: '#1e1b4b', letterSpacing: '-0.01em' }}>
                 {user?.name || '-'}
               </div>
+
+              {/* Bottom Progress Accent Bar */}
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #4f46e5, #6366f1)' }} />
             </div>
 
-            {/* Capsule 2: Email Address */}
+            {/* Tile 2: Email Address */}
             <div style={{
-              background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-              border: '1.5px solid #e2e8f0',
-              borderLeft: '5px solid #4338ca',
-              borderRadius: '20px',
-              padding: '20px',
-              boxShadow: '0 6px 18px rgba(79, 70, 229, 0.04)'
+              background: '#ffffff',
+              border: '1.5px solid #c7d2fe',
+              borderRadius: '24px',
+              padding: '22px 24px',
+              position: 'relative',
+              overflow: 'hidden',
+              boxShadow: '0 10px 25px -5px rgba(79, 70, 229, 0.06)'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-                <Building size={18} color="#4338ca" />
-                <span style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Email Address</span>
+              {/* Top Row: Icon + Badge */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                <div style={{ width: '42px', height: '42px', borderRadius: '14px', background: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(2, 132, 199, 0.15)' }}>
+                  <Building size={20} color="#0369a1" />
+                </div>
+                <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '4px 10px', borderRadius: '10px', fontSize: '10.5px', fontWeight: '800', textTransform: 'uppercase' }}>
+                  ✉ PRIMARY CONTACT
+                </span>
               </div>
-              <div style={{ fontSize: '15px', fontWeight: '800', color: '#1e1b4b', wordBreak: 'break-all' }}>
+
+              {/* Label & Value */}
+              <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>
+                Email Address
+              </div>
+              <div style={{ fontSize: '15px', fontWeight: '800', color: '#1e1b4b', wordBreak: 'break-all', letterSpacing: '-0.01em' }}>
                 {user?.email || '-'}
               </div>
+
+              {/* Bottom Progress Accent Bar */}
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #0284c7, #38bdf8)' }} />
             </div>
 
-            {/* Capsule 3: Phone Number */}
+            {/* Tile 3: Phone Number */}
             <div style={{
-              background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-              border: '1.5px solid #e2e8f0',
-              borderLeft: '5px solid #3730a3',
-              borderRadius: '20px',
-              padding: '20px',
-              boxShadow: '0 6px 18px rgba(79, 70, 229, 0.04)'
+              background: '#ffffff',
+              border: '1.5px solid #c7d2fe',
+              borderRadius: '24px',
+              padding: '22px 24px',
+              position: 'relative',
+              overflow: 'hidden',
+              boxShadow: '0 10px 25px -5px rgba(79, 70, 229, 0.06)'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-                <PhoneCall size={18} color="#3730a3" />
-                <span style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Phone Number</span>
+              {/* Top Row: Icon + Badge */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                <div style={{ width: '42px', height: '42px', borderRadius: '14px', background: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(22, 163, 74, 0.15)' }}>
+                  <PhoneCall size={20} color="#15803d" />
+                </div>
+                <span style={{ background: '#dcfce7', color: '#15803d', padding: '4px 10px', borderRadius: '10px', fontSize: '10.5px', fontWeight: '800', textTransform: 'uppercase' }}>
+                  📞 DIRECT LINE
+                </span>
               </div>
-              <div style={{ fontSize: '16px', fontWeight: '800', color: '#1e1b4b' }}>
+
+              {/* Label & Value */}
+              <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>
+                Phone Number
+              </div>
+              <div style={{ fontSize: '17px', fontWeight: '800', color: '#1e1b4b', letterSpacing: '-0.01em' }}>
                 {user?.phone || 'Not Provided'}
               </div>
+
+              {/* Bottom Progress Accent Bar */}
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #16a34a, #4ade80)' }} />
             </div>
 
-            {/* Capsule 4: Member Since */}
+            {/* Tile 4: Member Since */}
             <div style={{
-              background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-              border: '1.5px solid #e2e8f0',
-              borderLeft: '5px solid #6366f1',
-              borderRadius: '20px',
-              padding: '20px',
-              boxShadow: '0 6px 18px rgba(79, 70, 229, 0.04)'
+              background: '#ffffff',
+              border: '1.5px solid #c7d2fe',
+              borderRadius: '24px',
+              padding: '22px 24px',
+              position: 'relative',
+              overflow: 'hidden',
+              boxShadow: '0 10px 25px -5px rgba(79, 70, 229, 0.06)'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-                <Calendar size={18} color="#6366f1" />
-                <span style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Member Since</span>
+              {/* Top Row: Icon + Badge */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                <div style={{ width: '42px', height: '42px', borderRadius: '14px', background: 'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(190, 24, 93, 0.15)' }}>
+                  <Calendar size={20} color="#be185d" />
+                </div>
+                <span style={{ background: '#fce7f3', color: '#be185d', padding: '4px 10px', borderRadius: '10px', fontSize: '10.5px', fontWeight: '800', textTransform: 'uppercase' }}>
+                  🗓 MEMBER LOG
+                </span>
               </div>
-              <div style={{ fontSize: '16px', fontWeight: '800', color: '#1e1b4b' }}>
+
+              {/* Label & Value */}
+              <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>
+                Member Since
+              </div>
+              <div style={{ fontSize: '17px', fontWeight: '800', color: '#1e1b4b', letterSpacing: '-0.01em' }}>
                 {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Active Member'}
               </div>
+
+              {/* Bottom Progress Accent Bar */}
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #be185d, #f472b6)' }} />
             </div>
 
           </div>
