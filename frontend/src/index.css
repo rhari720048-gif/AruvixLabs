@@ -2198,23 +2198,73 @@ input:-webkit-autofill:active {
     border-radius: 8px !important;
   }
 
-  /* 6. Tables - Smooth Compact View */
-  .table-container, div[style*="overflow: hidden"], div[style*="overflow-x: auto"] {
+  /* 6. Tables - Responsive Card List (No Horizontal Scroll!) */
+  .table-container, .data-table-container, .modern-table-container, div[style*="overflow: hidden"], div[style*="overflow-x: auto"] {
     width: 100% !important;
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
+    overflow-x: visible !important;
     border-radius: 12px !important;
   }
 
   table {
-    min-width: 600px !important; /* Forces scrollable view without squishing headers */
+    min-width: 100% !important;
+    width: 100% !important;
+    display: block !important;
+  }
+
+  thead {
+    display: none !important;
+  }
+
+  tbody {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
     width: 100% !important;
   }
 
+  tr {
+    display: flex !important;
+    flex-direction: column !important;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 16px !important;
+    padding: 12px 14px !important;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
   th, td {
-    padding: 8px 10px !important;
-    font-size: 12px !important;
-    white-space: nowrap !important;
+    padding: 8px 0 !important;
+    font-size: 13px !important;
+    white-space: normal !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    text-align: right !important;
+    border: none !important;
+    border-bottom: 1px dashed #f1f5f9 !important;
+    min-height: 38px !important;
+    box-sizing: border-box !important;
+  }
+
+  td:last-child {
+    border-bottom: none !important;
+    padding-top: 12px !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+  }
+
+  td[data-label]::before {
+    content: attr(data-label) !important;
+    font-weight: 700 !important;
+    color: var(--text-muted) !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+    padding-right: 12px !important;
+    text-align: left !important;
+    display: block !important;
   }
 
   /* 7. Bottom-Sheet Modals on Mobile */
@@ -2322,5 +2372,57 @@ input:-webkit-autofill:active {
 
   .crm-page-actions button, .crm-page-actions a {
     flex: 1 1 100% !important; /* Stack action buttons vertically on tiny screens */
+  }
+}
+
+/* ── Leads Page Tabs Desktop Styles ── */
+.leads-tab-wrapper {
+  display: flex;
+  gap: 15px;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 10px;
+  margin-bottom: 25px;
+}
+
+.leads-tab-btn {
+  padding: 12px 24px;
+  background: transparent;
+  color: #4b5563;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: 0.2s;
+}
+
+.leads-tab-btn:hover {
+  background: #f3f4f6;
+}
+
+.leads-tab-btn.active {
+  background: var(--primary);
+  color: white;
+}
+
+.leads-tab-btn.active:hover {
+  background: var(--primary-hover);
+}
+
+/* ── Leads Page Tabs Mobile Styles ── */
+@media (max-width: 768px) {
+  .leads-tab-wrapper {
+    gap: 8px !important;
+    margin-bottom: 15px !important;
+  }
+  
+  .leads-tab-btn {
+    padding: 8px 16px !important;
+    font-size: 13px !important;
+    border-radius: 6px !important;
+    gap: 6px !important;
   }
 }
