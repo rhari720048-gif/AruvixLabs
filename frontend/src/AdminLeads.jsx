@@ -34,7 +34,6 @@ const AdminLeads = () => {
   const [currentUser, setCurrentUser] = useState('');
   const [currentUserId, setCurrentUserId] = useState(null);
   const [currentUserRole, setCurrentUserRole] = useState('');
-  const [adminSkippedLocation, setAdminSkippedLocation] = useState(false);
 
   const [selectedLocation, setSelectedLocation] = useState(
     localStorage.getItem('selected_lead_location') || ''
@@ -43,19 +42,16 @@ const AdminLeads = () => {
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user'));
-    let role = '';
     if (user) {
       setCurrentUser(user.name);
       setCurrentUserId(user.id);
-      role = (user.role || '').toLowerCase();
-      setCurrentUserRole(role);
+      setCurrentUserRole((user.role || '').toLowerCase());
     }
     fetchEmployees();
-    const canSkip = role && role !== 'employee' && role !== 'telecaller';
-    if (selectedLocation || canSkip || adminSkippedLocation) {
-      fetchLeads(selectedLocation || '');
+    if (selectedLocation) {
+      fetchLeads(selectedLocation);
     }
-  }, [selectedLocation, adminSkippedLocation]);
+  }, [selectedLocation]);
 
   const fetchEmployees = async () => {
     try {
@@ -111,7 +107,6 @@ const AdminLeads = () => {
   const handleChangeLocation = () => {
     localStorage.removeItem('selected_lead_location');
     setSelectedLocation('');
-    setAdminSkippedLocation(false);
     setLeads([]);
   };
 
@@ -279,11 +274,7 @@ const AdminLeads = () => {
     }
   };
 
-  const renderLocationModal = () => {
-    if (selectedLocation) return null;
-    const canSkip = currentUserRole && currentUserRole !== 'employee' && currentUserRole !== 'telecaller';
-    if (canSkip && adminSkippedLocation) return null;
-
+  const renderInlineLocationSelector = () => {
     // Filter location search list
     const filteredLocations = TAMIL_NADU_LOCATIONS.filter(loc => 
       loc.toLowerCase().includes(locationSearch.toLowerCase())
@@ -291,18 +282,11 @@ const AdminLeads = () => {
 
     return (
       <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(15, 23, 42, 0.75)',
-        backdropFilter: 'blur(12px)',
-        zIndex: 9999,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '20px'
+        padding: '40px 20px',
+        minHeight: '400px'
       }}>
         <div style={{
           background: 'linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)',
@@ -310,7 +294,7 @@ const AdminLeads = () => {
           width: '100%',
           maxWidth: '480px',
           padding: '32px',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+          boxShadow: '0 20px 40px rgba(15, 23, 42, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1)',
           color: '#ffffff',
           textAlign: 'center'
         }}>
@@ -360,7 +344,7 @@ const AdminLeads = () => {
           </div>
 
           <div style={{
-            maxHeight: '260px',
+            maxHeight: '220px',
             overflowY: 'auto',
             background: 'rgba(0, 0, 0, 0.2)',
             borderRadius: '14px',
@@ -402,31 +386,6 @@ const AdminLeads = () => {
               </div>
             )}
           </div>
-          {canSkip && (
-            <button 
-              onClick={() => {
-                setAdminSkippedLocation(true);
-                fetchLeads('');
-              }}
-              style={{
-                width: '100%',
-                padding: '12px',
-                background: 'rgba(255, 255, 255, 0.1)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                borderRadius: '12px',
-                color: '#ffffff',
-                fontSize: '14px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                marginTop: '16px',
-                transition: 'background 0.2s'
-              }}
-              onMouseOver={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'}
-              onMouseOut={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
-            >
-              Skip & View All Leads
-            </button>
-          )}
         </div>
       </div>
     );
@@ -509,21 +468,20 @@ const AdminLeads = () => {
         {activePage === 'add' && hasAddTab ? (
           <AddLeads addLeads={addLeads} />
         ) : activePage === 'all' && hasAllTab ? (
-          <>
-            {renderLocationModal()}
-            {selectedLocation && (
-              <AllLeads 
-                leads={leads} 
-                employees={employees}
-                handleDelete={canDelete ? handleDelete : undefined}
-                handleBulkDelete={canDelete ? handleBulkDelete : undefined}
-                handleBulkAssign={handleBulkAssign}
-                handleEdit={canEdit ? handleEdit : undefined}
-                refreshLeads={fetchLeads}
-                onAddLeadClick={hasAddTab ? () => setActivePage('add') : undefined}
-              />
-            )}
-          </>
+          selectedLocation ? (
+            <AllLeads 
+              leads={leads} 
+              employees={employees}
+              handleDelete={canDelete ? handleDelete : undefined}
+              handleBulkDelete={canDelete ? handleBulkDelete : undefined}
+              handleBulkAssign={handleBulkAssign}
+              handleEdit={canEdit ? handleEdit : undefined}
+              refreshLeads={fetchLeads}
+              onAddLeadClick={hasAddTab ? () => setActivePage('add') : undefined}
+            />
+          ) : (
+            renderInlineLocationSelector()
+          )
         ) : null}
       </div>
     </div>
