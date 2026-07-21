@@ -613,6 +613,46 @@ function App() {
     return (
       <ErrorBoundary>
         <Router>
+          <Toaster 
+            position="top-right" 
+            reverseOrder={false}
+            toastOptions={{
+              duration: 3500,
+              style: {
+                background: 'rgba(15, 23, 42, 0.92)',
+                color: '#ffffff',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                border: '1px solid rgba(255, 255, 255, 0.15)',
+                borderRadius: '16px',
+                padding: '14px 22px',
+                fontSize: '14px',
+                fontWeight: '600',
+                boxShadow: '0 20px 45px -10px rgba(0, 0, 0, 0.35), 0 0 20px rgba(79, 70, 229, 0.25)',
+                fontFamily: "'Outfit', 'Inter', sans-serif"
+              },
+              success: {
+                duration: 3500,
+                iconTheme: { primary: '#10B981', secondary: '#FFFFFF' },
+                style: {
+                  background: 'linear-gradient(135deg, #064e3b 0%, #022c22 100%)',
+                  border: '1px solid rgba(52, 211, 153, 0.4)',
+                  color: '#f0fdf4',
+                  boxShadow: '0 20px 40px -10px rgba(6, 78, 59, 0.5), 0 0 25px rgba(16, 185, 129, 0.35)',
+                }
+              },
+              error: {
+                duration: 4000,
+                iconTheme: { primary: '#EF4444', secondary: '#FFFFFF' },
+                style: {
+                  background: 'linear-gradient(135deg, #7f1d1d 0%, #450a0a 100%)',
+                  border: '1px solid rgba(248, 113, 113, 0.4)',
+                  color: '#fef2f2',
+                  boxShadow: '0 20px 40px -10px rgba(127, 29, 29, 0.5), 0 0 25px rgba(239, 68, 68, 0.35)',
+                }
+              }
+            }}
+          />
           <Routes>
             <Route path="/" element={<Login setAuth={setIsAuthenticated} />} />
             <Route path="/login" element={<Login setAuth={setIsAuthenticated} />} />
@@ -627,7 +667,46 @@ function App() {
     <ErrorBoundary>
       <Router>
         <div className="app-container">
-          <Toaster position="top-center" reverseOrder={false} />
+          <Toaster 
+            position="top-right" 
+            reverseOrder={false}
+            toastOptions={{
+              duration: 3500,
+              style: {
+                background: 'rgba(15, 23, 42, 0.92)',
+                color: '#ffffff',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                border: '1px solid rgba(255, 255, 255, 0.15)',
+                borderRadius: '16px',
+                padding: '14px 22px',
+                fontSize: '14px',
+                fontWeight: '600',
+                boxShadow: '0 20px 45px -10px rgba(0, 0, 0, 0.35), 0 0 20px rgba(79, 70, 229, 0.25)',
+                fontFamily: "'Outfit', 'Inter', sans-serif"
+              },
+              success: {
+                duration: 3500,
+                iconTheme: { primary: '#10B981', secondary: '#FFFFFF' },
+                style: {
+                  background: 'linear-gradient(135deg, #064e3b 0%, #022c22 100%)',
+                  border: '1px solid rgba(52, 211, 153, 0.4)',
+                  color: '#f0fdf4',
+                  boxShadow: '0 20px 40px -10px rgba(6, 78, 59, 0.5), 0 0 25px rgba(16, 185, 129, 0.35)',
+                }
+              },
+              error: {
+                duration: 4000,
+                iconTheme: { primary: '#EF4444', secondary: '#FFFFFF' },
+                style: {
+                  background: 'linear-gradient(135deg, #7f1d1d 0%, #450a0a 100%)',
+                  border: '1px solid rgba(248, 113, 113, 0.4)',
+                  color: '#fef2f2',
+                  boxShadow: '0 20px 40px -10px rgba(127, 29, 29, 0.5), 0 0 25px rgba(239, 68, 68, 0.35)',
+                }
+              }
+            }}
+          />
           <Sidebar isSidebarOpen={isSidebarOpen} setSidebarOpen={setSidebarOpen} />
           <main className="main-content">
             <Header setSidebarOpen={setSidebarOpen} />

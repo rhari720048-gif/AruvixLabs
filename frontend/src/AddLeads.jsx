@@ -134,44 +134,47 @@ const AddLeads = ({ addLeads }) => {
         <button 
           onClick={() => setActiveTab('image')}
           style={{ 
-            flex: 1, minWidth: '160px', padding: '14px 20px', borderRadius: '16px', border: '1px solid',
-            borderColor: activeTab === 'image' ? 'var(--primary)' : 'rgba(226, 232, 240, 0.8)',
-            background: activeTab === 'image' ? 'white' : '#f8fafc',
-            color: activeTab === 'image' ? 'var(--primary)' : '#64748b',
-            boxShadow: activeTab === 'image' ? '0 4px 15px rgba(79, 70, 229, 0.12)' : 'none',
+            flex: 1, minWidth: '160px', padding: '16px 22px', borderRadius: '16px', border: 'none',
+            background: activeTab === 'image' ? 'linear-gradient(135deg, #4F46E5 0%, #3730A3 100%)' : '#4338CA',
+            color: '#ffffff',
+            boxShadow: activeTab === 'image' ? '0 10px 25px -4px rgba(79, 70, 229, 0.5), 0 0 15px rgba(99, 102, 241, 0.3)' : '0 4px 12px rgba(0, 0, 0, 0.1)',
+            transform: activeTab === 'image' ? 'translateY(-2px)' : 'none',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-            fontWeight: '700', fontSize: '14px', cursor: 'pointer', transition: 'all 0.3s ease'
+            fontWeight: '700', fontSize: '14px', cursor: 'pointer', transition: 'all 0.3s ease',
+            opacity: activeTab === 'image' ? 1 : 0.85
           }}
         >
-          <ImageIcon size={20} /> AI Visiting Card OCR
+          <ImageIcon size={20} color="#ffffff" /> AI Visiting Card OCR
         </button>
         <button 
           onClick={() => setActiveTab('csv')}
           style={{ 
-            flex: 1, minWidth: '160px', padding: '14px 20px', borderRadius: '16px', border: '1px solid',
-            borderColor: activeTab === 'csv' ? 'var(--primary)' : 'rgba(226, 232, 240, 0.8)',
-            background: activeTab === 'csv' ? 'white' : '#f8fafc',
-            color: activeTab === 'csv' ? 'var(--primary)' : '#64748b',
-            boxShadow: activeTab === 'csv' ? '0 4px 15px rgba(79, 70, 229, 0.12)' : 'none',
+            flex: 1, minWidth: '160px', padding: '16px 22px', borderRadius: '16px', border: 'none',
+            background: activeTab === 'csv' ? 'linear-gradient(135deg, #4F46E5 0%, #3730A3 100%)' : '#4338CA',
+            color: '#ffffff',
+            boxShadow: activeTab === 'csv' ? '0 10px 25px -4px rgba(79, 70, 229, 0.5), 0 0 15px rgba(99, 102, 241, 0.3)' : '0 4px 12px rgba(0, 0, 0, 0.1)',
+            transform: activeTab === 'csv' ? 'translateY(-2px)' : 'none',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-            fontWeight: '700', fontSize: '14px', cursor: 'pointer', transition: 'all 0.3s ease'
+            fontWeight: '700', fontSize: '14px', cursor: 'pointer', transition: 'all 0.3s ease',
+            opacity: activeTab === 'csv' ? 1 : 0.85
           }}
         >
-          <FileText size={20} /> Bulk CSV Import
+          <FileText size={20} color="#ffffff" /> Bulk CSV Import
         </button>
         <button 
           onClick={() => setActiveTab('manual')}
           style={{ 
-            flex: 1, minWidth: '160px', padding: '14px 20px', borderRadius: '16px', border: '1px solid',
-            borderColor: activeTab === 'manual' ? 'var(--primary)' : 'rgba(226, 232, 240, 0.8)',
-            background: activeTab === 'manual' ? 'white' : '#f8fafc',
-            color: activeTab === 'manual' ? 'var(--primary)' : '#64748b',
-            boxShadow: activeTab === 'manual' ? '0 4px 15px rgba(79, 70, 229, 0.12)' : 'none',
+            flex: 1, minWidth: '160px', padding: '16px 22px', borderRadius: '16px', border: 'none',
+            background: activeTab === 'manual' ? 'linear-gradient(135deg, #4F46E5 0%, #3730A3 100%)' : '#4338CA',
+            color: '#ffffff',
+            boxShadow: activeTab === 'manual' ? '0 10px 25px -4px rgba(79, 70, 229, 0.5), 0 0 15px rgba(99, 102, 241, 0.3)' : '0 4px 12px rgba(0, 0, 0, 0.1)',
+            transform: activeTab === 'manual' ? 'translateY(-2px)' : 'none',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-            fontWeight: '700', fontSize: '14px', cursor: 'pointer', transition: 'all 0.3s ease'
+            fontWeight: '700', fontSize: '14px', cursor: 'pointer', transition: 'all 0.3s ease',
+            opacity: activeTab === 'manual' ? 1 : 0.85
           }}
         >
-          <Edit3 size={20} /> Direct Manual Entry
+          <Edit3 size={20} color="#ffffff" /> Direct Manual Entry
         </button>
       </div>
 
