@@ -219,7 +219,7 @@ const CallHistory = () => {
                           {log.notes || '-'}
                         </td>
                         {canDelete && (
-                          <td data-label="Actions" style={{ display: 'flex', justifyContent: 'center' }}>
+                          <td data-label="Actions" style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
                             <button onClick={() => handleDelete(log.id)} className="btn btn-secondary" style={{ padding: '6px', color: '#ef4444' }} title="Delete Log">
                               <Trash2 size={16} color="#ef4444" />
                             </button>

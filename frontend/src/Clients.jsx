@@ -237,18 +237,20 @@ const Clients = () => {
                   <span className="badge callback">{c.converted_by_name}</span>
                 ) : '-'}
               </td>
-              <td data-label="Actions" style={{ display: 'flex', justifyContent: 'center', gap: '8px', alignItems: 'center' }}>
-                <button 
-                  onClick={() => handleCompleteWork(c.id)}
-                  className="btn btn-success" style={{ padding: '6px 12px', fontSize: '12px' }}
-                >
-                  <CheckCircle size={14} /> Complete Work
-                </button>
-                <ActionButtons 
-                  onView={() => setViewClient(c)}
-                  onEdit={() => setEditClient(c)}
-                  onDelete={() => handleDelete(c.id)}
-                />
+              <td data-label="Actions" style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
+                <div style={{ display: 'inline-flex', justifyContent: 'center', gap: '8px', alignItems: 'center' }}>
+                  <button 
+                    onClick={() => handleCompleteWork(c.id)}
+                    className="btn btn-success" style={{ padding: '6px 12px', fontSize: '12px' }}
+                  >
+                    <CheckCircle size={14} /> Complete Work
+                  </button>
+                  <ActionButtons 
+                    onView={() => setViewClient(c)}
+                    onEdit={() => setEditClient(c)}
+                    onDelete={() => handleDelete(c.id)}
+                  />
+                </div>
               </td>
             </tr>
           ))}

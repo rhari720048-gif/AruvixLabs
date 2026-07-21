@@ -177,15 +177,17 @@ const CompletedWork = () => {
                     <CheckCircle size={14} /> {c.completed_at ? new Date(c.completed_at).toLocaleDateString() : 'Completed'}
                   </span>
                 </td>
-                <td data-label="Actions" style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
-                  <button onClick={() => handleView(c)} className="btn btn-secondary" style={{ padding: '8px' }} title="View Details">
-                    <Eye size={16} color="var(--primary)" />
-                  </button>
-                  {canDelete && (
-                    <button onClick={() => handleDelete(c.id)} className="btn btn-secondary" style={{ padding: '8px', color: '#ef4444' }} title="Delete Record">
-                      <Trash2 size={16} color="#ef4444" />
+                <td data-label="Actions" style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
+                  <div style={{ display: 'inline-flex', justifyContent: 'center', gap: '8px' }}>
+                    <button onClick={() => handleView(c)} className="btn btn-secondary" style={{ padding: '8px' }} title="View Details">
+                      <Eye size={16} color="var(--primary)" />
                     </button>
-                  )}
+                    {canDelete && (
+                      <button onClick={() => handleDelete(c.id)} className="btn btn-secondary" style={{ padding: '8px', color: '#ef4444' }} title="Delete Record">
+                        <Trash2 size={16} color="#ef4444" />
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
