@@ -282,7 +282,7 @@ const AdminLeads = () => {
 
     return (
       <div style={{
-        position: 'fixed',
+        position: 'absolute',
         top: 0,
         left: 0,
         right: 0,
@@ -409,9 +409,7 @@ const AdminLeads = () => {
 
   return (
     <div className="admin-leads-page">
-      {renderLocationModal()}
-      
-      {selectedLocation && (
+      {activePage === 'all' && selectedLocation && (
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
@@ -499,20 +497,25 @@ const AdminLeads = () => {
         )}
       </div>
 
-      <div className="page-content">
+      <div className="page-content" style={{ position: 'relative', minHeight: '400px' }}>
         {activePage === 'add' && hasAddTab ? (
           <AddLeads addLeads={addLeads} />
         ) : activePage === 'all' && hasAllTab ? (
-          <AllLeads 
-            leads={leads} 
-            employees={employees}
-            handleDelete={canDelete ? handleDelete : undefined}
-            handleBulkDelete={canDelete ? handleBulkDelete : undefined}
-            handleBulkAssign={handleBulkAssign}
-            handleEdit={canEdit ? handleEdit : undefined}
-            refreshLeads={fetchLeads}
-            onAddLeadClick={hasAddTab ? () => setActivePage('add') : undefined}
-          />
+          <>
+            {renderLocationModal()}
+            {selectedLocation && (
+              <AllLeads 
+                leads={leads} 
+                employees={employees}
+                handleDelete={canDelete ? handleDelete : undefined}
+                handleBulkDelete={canDelete ? handleBulkDelete : undefined}
+                handleBulkAssign={handleBulkAssign}
+                handleEdit={canEdit ? handleEdit : undefined}
+                refreshLeads={fetchLeads}
+                onAddLeadClick={hasAddTab ? () => setActivePage('add') : undefined}
+              />
+            )}
+          </>
         ) : null}
       </div>
     </div>
