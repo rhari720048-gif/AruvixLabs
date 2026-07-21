@@ -356,268 +356,244 @@ const ProfilePage = () => {
   if (loading) return (
     <div style={{ padding: '80px', textAlign: 'center', fontFamily: "'Outfit', 'Inter', sans-serif" }}>
       <div className="spinner" style={{ margin: '0 auto 16px auto' }}></div>
-      <p style={{ color: '#4338ca', fontWeight: '600' }}>Syncing Staff Credentials...</p>
+      <p style={{ color: '#4338ca', fontWeight: '600' }}>Initializing Executive HUD...</p>
     </div>
   );
 
   const initial = (user?.name || 'U').charAt(0).toUpperCase();
 
   return (
-    <div style={{ maxWidth: 860, margin: '0 auto', animation: 'fadeIn 0.35s ease-out', fontFamily: "'Outfit', 'Inter', sans-serif" }}>
+    <div style={{ maxWidth: 880, margin: '0 auto', animation: 'fadeIn 0.35s ease-out', fontFamily: "'Outfit', 'Inter', sans-serif" }}>
       
-      {/* Outer Floating Neumorphic-Glass White Container */}
+      {/* Outer Floating White Container */}
       <div style={{
         background: '#ffffff',
-        borderRadius: '32px 16px 32px 32px',
-        border: '2px solid #e0e7ff',
-        boxShadow: '0 25px 50px -12px rgba(79, 70, 229, 0.1), 0 0 0 1px rgba(99, 102, 241, 0.08) inset',
+        borderRadius: '32px',
+        border: '1.5px solid #c7d2fe',
+        boxShadow: '0 25px 60px -10px rgba(79, 70, 229, 0.1)',
+        padding: '36px',
         position: 'relative',
         overflow: 'hidden'
       }}>
         
-        {/* Top Left Floating Indigo Emblem Banner */}
+        {/* Top Header Banner Ribbon */}
         <div style={{
-          background: 'linear-gradient(135deg, #4f46e5 0%, #312e81 100%)',
-          padding: '12px 28px',
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '10px',
+          background: 'linear-gradient(135deg, #3730a3 0%, #4f46e5 100%)',
+          borderRadius: '20px',
+          padding: '16px 24px',
           color: '#ffffff',
-          borderRadius: '0 0 20px 0',
-          boxShadow: '0 6px 18px rgba(79, 70, 229, 0.25)'
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '32px',
+          boxShadow: '0 10px 25px rgba(79, 70, 229, 0.25)',
+          flexWrap: 'wrap',
+          gap: '12px'
         }}>
-          <ShieldCheck size={18} color="#ffffff" />
-          <span style={{ fontSize: '12px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-            AruvixLabs CRM • Staff Badge
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <ShieldCheck size={22} color="#a5b4fc" />
+            <span style={{ fontSize: '13px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              OFFICIAL CRM EXECUTIVE HUD • STAFF PASSPORT
+            </span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)', padding: '5px 14px', borderRadius: '12px', fontSize: '12px', fontWeight: '700' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 10px #22c55e' }} />
+            <span>LIVE SYSTEM CONNECTED</span>
+          </div>
         </div>
 
-        {/* Profile Card Body */}
-        <div style={{ padding: '36px 40px 40px 40px' }}>
+        {/* Identity Hero Header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '28px', borderBottom: '1.5px solid #eef2ff', paddingBottom: '32px', marginBottom: '36px', flexWrap: 'wrap' }}>
           
-          {/* Header Block: Squircle Avatar & Identity */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '24px', borderBottom: '1.5px solid #eef2ff', paddingBottom: '32px', marginBottom: '32px' }}>
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-              {/* Squircle Initial Avatar */}
-              <div style={{ position: 'relative' }}>
-                <div style={{
-                  width: '96px',
-                  height: '96px',
-                  borderRadius: '28px',
-                  background: 'linear-gradient(135deg, #4f46e5 0%, #3730a3 100%)',
-                  color: '#ffffff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '44px',
-                  fontWeight: '800',
-                  boxShadow: '0 12px 30px rgba(79, 70, 229, 0.3)',
-                  border: '4px solid #ffffff'
-                }}>
-                  {initial}
-                </div>
-                <div style={{
-                  position: 'absolute',
-                  bottom: '-4px',
-                  right: '-4px',
-                  background: '#22c55e',
-                  border: '3.5px solid #ffffff',
-                  width: '20px',
-                  height: '20px',
-                  borderRadius: '50%',
-                  boxShadow: '0 0 10px rgba(34, 197, 94, 0.5)'
-                }} title="Active System User" />
-              </div>
-
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                  <h1 style={{ fontSize: '28px', fontWeight: '800', color: '#1e1b4b', margin: 0, letterSpacing: '-0.02em' }}>
-                    {user?.name || 'Staff Member'}
-                  </h1>
-                  <span style={{ background: '#e0e7ff', color: '#3730a3', padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>
-                    ✓ Verified
-                  </span>
-                </div>
-                <p style={{ margin: 0, color: '#64748b', fontSize: '14px', fontWeight: '600' }}>
-                  {user?.email || 'Official Staff Credentials'}
-                </p>
-              </div>
-            </div>
-
-            {/* System Access Role Pill */}
+          <div style={{ position: 'relative' }}>
             <div style={{
-              background: '#ffffff',
-              border: '2px solid #e0e7ff',
-              padding: '12px 24px',
-              borderRadius: '20px',
-              textAlign: 'center',
-              boxShadow: '0 8px 20px rgba(79, 70, 229, 0.05)'
+              width: '100px',
+              height: '100px',
+              borderRadius: '28px',
+              background: 'linear-gradient(135deg, #4f46e5 0%, #312e81 100%)',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '46px',
+              fontWeight: '800',
+              boxShadow: '0 14px 30px rgba(79, 70, 229, 0.3)',
+              border: '4px solid #ffffff'
             }}>
-              <div style={{ fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#4338ca', fontWeight: '700' }}>
-                System Access Level
-              </div>
-              <div style={{ fontSize: '16px', fontWeight: '800', color: '#1e1b4b', textTransform: 'uppercase', marginTop: '2px' }}>
-                {user?.role || 'EMPLOYEE'}
-              </div>
+              {initial}
             </div>
-
+            <div style={{
+              position: 'absolute',
+              bottom: '-4px',
+              right: '-4px',
+              background: '#22c55e',
+              border: '3px solid #ffffff',
+              width: '20px',
+              height: '20px',
+              borderRadius: '50%',
+              boxShadow: '0 0 10px #22c55e'
+            }} title="Online Status" />
           </div>
 
-          {/* 4 High-Tech Data Matrix Tiles (White + Indigo Theme) */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '22px', marginBottom: '32px' }}>
-            
-            {/* Tile 1: Full Name */}
-            <div style={{
-              background: '#ffffff',
-              border: '1.5px solid #c7d2fe',
-              borderRadius: '24px',
-              padding: '22px 24px',
-              position: 'relative',
-              overflow: 'hidden',
-              boxShadow: '0 10px 25px -5px rgba(79, 70, 229, 0.06)'
-            }}>
-              {/* Top Row: Icon + Badge */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-                <div style={{ width: '42px', height: '42px', borderRadius: '14px', background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(99, 102, 241, 0.15)' }}>
-                  <User size={20} color="#4338ca" />
-                </div>
-                <span style={{ background: '#e0e7ff', color: '#4338ca', padding: '4px 10px', borderRadius: '10px', fontSize: '10.5px', fontWeight: '800', textTransform: 'uppercase' }}>
-                  ✓ VERIFIED IDENTITY
-                </span>
-              </div>
-
-              {/* Label & Value */}
-              <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>
-                Full Name
-              </div>
-              <div style={{ fontSize: '17px', fontWeight: '800', color: '#1e1b4b', letterSpacing: '-0.01em' }}>
-                {user?.name || '-'}
-              </div>
-
-              {/* Bottom Progress Accent Bar */}
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #4f46e5, #6366f1)' }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px', flexWrap: 'wrap' }}>
+              <h1 style={{ fontSize: '30px', fontWeight: '800', color: '#1e1b4b', margin: 0, letterSpacing: '-0.02em' }}>
+                {user?.name || 'Staff Executive'}
+              </h1>
+              <span style={{ background: '#e0e7ff', color: '#3730a3', padding: '4px 12px', borderRadius: '12px', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>
+                ✓ Verified Account
+              </span>
             </div>
+            <p style={{ margin: '0 0 12px 0', color: '#64748b', fontSize: '14px', fontWeight: '600' }}>
+              {user?.email || 'Official CRM Staff Member'}
+            </p>
 
-            {/* Tile 2: Email Address */}
-            <div style={{
-              background: '#ffffff',
-              border: '1.5px solid #c7d2fe',
-              borderRadius: '24px',
-              padding: '22px 24px',
-              position: 'relative',
-              overflow: 'hidden',
-              boxShadow: '0 10px 25px -5px rgba(79, 70, 229, 0.06)'
-            }}>
-              {/* Top Row: Icon + Badge */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-                <div style={{ width: '42px', height: '42px', borderRadius: '14px', background: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(2, 132, 199, 0.15)' }}>
-                  <Building size={20} color="#0369a1" />
-                </div>
-                <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '4px 10px', borderRadius: '10px', fontSize: '10.5px', fontWeight: '800', textTransform: 'uppercase' }}>
-                  ✉ PRIMARY CONTACT
-                </span>
-              </div>
-
-              {/* Label & Value */}
-              <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>
-                Email Address
-              </div>
-              <div style={{ fontSize: '15px', fontWeight: '800', color: '#1e1b4b', wordBreak: 'break-all', letterSpacing: '-0.01em' }}>
-                {user?.email || '-'}
-              </div>
-
-              {/* Bottom Progress Accent Bar */}
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #0284c7, #38bdf8)' }} />
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#f8fafc', border: '1.5px solid #e2e8f0', padding: '6px 16px', borderRadius: '14px' }}>
+              <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '700', textTransform: 'uppercase' }}>ROLE:</span>
+              <span style={{ fontSize: '13px', color: '#4338ca', fontWeight: '800', textTransform: 'uppercase' }}>{user?.role || 'EMPLOYEE'}</span>
             </div>
-
-            {/* Tile 3: Phone Number */}
-            <div style={{
-              background: '#ffffff',
-              border: '1.5px solid #c7d2fe',
-              borderRadius: '24px',
-              padding: '22px 24px',
-              position: 'relative',
-              overflow: 'hidden',
-              boxShadow: '0 10px 25px -5px rgba(79, 70, 229, 0.06)'
-            }}>
-              {/* Top Row: Icon + Badge */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-                <div style={{ width: '42px', height: '42px', borderRadius: '14px', background: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(22, 163, 74, 0.15)' }}>
-                  <PhoneCall size={20} color="#15803d" />
-                </div>
-                <span style={{ background: '#dcfce7', color: '#15803d', padding: '4px 10px', borderRadius: '10px', fontSize: '10.5px', fontWeight: '800', textTransform: 'uppercase' }}>
-                  📞 DIRECT LINE
-                </span>
-              </div>
-
-              {/* Label & Value */}
-              <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>
-                Phone Number
-              </div>
-              <div style={{ fontSize: '17px', fontWeight: '800', color: '#1e1b4b', letterSpacing: '-0.01em' }}>
-                {user?.phone || 'Not Provided'}
-              </div>
-
-              {/* Bottom Progress Accent Bar */}
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #16a34a, #4ade80)' }} />
-            </div>
-
-            {/* Tile 4: Member Since */}
-            <div style={{
-              background: '#ffffff',
-              border: '1.5px solid #c7d2fe',
-              borderRadius: '24px',
-              padding: '22px 24px',
-              position: 'relative',
-              overflow: 'hidden',
-              boxShadow: '0 10px 25px -5px rgba(79, 70, 229, 0.06)'
-            }}>
-              {/* Top Row: Icon + Badge */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-                <div style={{ width: '42px', height: '42px', borderRadius: '14px', background: 'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(190, 24, 93, 0.15)' }}>
-                  <Calendar size={20} color="#be185d" />
-                </div>
-                <span style={{ background: '#fce7f3', color: '#be185d', padding: '4px 10px', borderRadius: '10px', fontSize: '10.5px', fontWeight: '800', textTransform: 'uppercase' }}>
-                  🗓 MEMBER LOG
-                </span>
-              </div>
-
-              {/* Label & Value */}
-              <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>
-                Member Since
-              </div>
-              <div style={{ fontSize: '17px', fontWeight: '800', color: '#1e1b4b', letterSpacing: '-0.01em' }}>
-                {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Active Member'}
-              </div>
-
-              {/* Bottom Progress Accent Bar */}
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #be185d, #f472b6)' }} />
-            </div>
-
           </div>
 
-          {/* Bottom Security Footer */}
+        </div>
+
+        {/* 4 Horizontal Command Strips (List Layout) */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '36px' }}>
+          
+          {/* Strip 1: Full Name */}
           <div style={{
-            background: '#f8fafc',
-            border: '1.5px solid #e2e8f0',
+            background: 'linear-gradient(90deg, #ffffff 0%, #f8fafc 100%)',
+            border: '1.5px solid #e0e7ff',
             borderRadius: '20px',
             padding: '16px 24px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '12px'
+            gap: '16px',
+            boxShadow: '0 4px 14px rgba(79, 70, 229, 0.03)',
+            flexWrap: 'wrap'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#3730a3', fontSize: '13.5px', fontWeight: '700' }}>
-              <ShieldCheck size={18} color="#4f46e5" />
-              <span>Admin Controlled Profile • Auto-synced with Staff Management</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: '#4f46e5', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: '800', boxShadow: '0 4px 10px rgba(79, 70, 229, 0.25)' }}>
+                01
+              </div>
+              <div>
+                <div style={{ fontSize: '10.5px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Full Name</div>
+                <div style={{ fontSize: '16px', fontWeight: '800', color: '#1e1b4b', marginTop: '2px' }}>{user?.name || '-'}</div>
+              </div>
             </div>
-            <span style={{ fontSize: '12px', background: '#eef2ff', color: '#4338ca', border: '1px solid #c7d2fe', padding: '5px 14px', borderRadius: '12px', fontWeight: '800' }}>
-              Read-Only Status
-            </span>
+
+            <div style={{ background: '#e0e7ff', color: '#4338ca', padding: '5px 14px', borderRadius: '12px', fontSize: '11.5px', fontWeight: '800' }}>
+              🔒 ADMIN SYNCED
+            </div>
           </div>
 
+          {/* Strip 2: Email Address */}
+          <div style={{
+            background: 'linear-gradient(90deg, #ffffff 0%, #f8fafc 100%)',
+            border: '1.5px solid #e0e7ff',
+            borderRadius: '20px',
+            padding: '16px 24px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '16px',
+            boxShadow: '0 4px 14px rgba(79, 70, 229, 0.03)',
+            flexWrap: 'wrap'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: '#4338ca', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: '800', boxShadow: '0 4px 10px rgba(67, 56, 202, 0.25)' }}>
+                02
+              </div>
+              <div>
+                <div style={{ fontSize: '10.5px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Email Address</div>
+                <div style={{ fontSize: '16px', fontWeight: '800', color: '#1e1b4b', marginTop: '2px', wordBreak: 'break-all' }}>{user?.email || '-'}</div>
+              </div>
+            </div>
+
+            <div style={{ background: '#e0f2fe', color: '#0369a1', padding: '5px 14px', borderRadius: '12px', fontSize: '11.5px', fontWeight: '800' }}>
+              ✉ PRIMARY EMAIL
+            </div>
+          </div>
+
+          {/* Strip 3: Phone Number */}
+          <div style={{
+            background: 'linear-gradient(90deg, #ffffff 0%, #f8fafc 100%)',
+            border: '1.5px solid #e0e7ff',
+            borderRadius: '20px',
+            padding: '16px 24px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '16px',
+            boxShadow: '0 4px 14px rgba(79, 70, 229, 0.03)',
+            flexWrap: 'wrap'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: '#3730a3', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: '800', boxShadow: '0 4px 10px rgba(55, 48, 163, 0.25)' }}>
+                03
+              </div>
+              <div>
+                <div style={{ fontSize: '10.5px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Phone Contact</div>
+                <div style={{ fontSize: '16px', fontWeight: '800', color: '#1e1b4b', marginTop: '2px' }}>{user?.phone || 'Not Provided'}</div>
+              </div>
+            </div>
+
+            <div style={{ background: '#dcfce7', color: '#15803d', padding: '5px 14px', borderRadius: '12px', fontSize: '11.5px', fontWeight: '800' }}>
+              📞 DIRECT PHONE
+            </div>
+          </div>
+
+          {/* Strip 4: Member Since */}
+          <div style={{
+            background: 'linear-gradient(90deg, #ffffff 0%, #f8fafc 100%)',
+            border: '1.5px solid #e0e7ff',
+            borderRadius: '20px',
+            padding: '16px 24px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '16px',
+            boxShadow: '0 4px 14px rgba(79, 70, 229, 0.03)',
+            flexWrap: 'wrap'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: '#6366f1', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: '800', boxShadow: '0 4px 10px rgba(99, 102, 241, 0.25)' }}>
+                04
+              </div>
+              <div>
+                <div style={{ fontSize: '10.5px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>System Membership</div>
+                <div style={{ fontSize: '16px', fontWeight: '800', color: '#1e1b4b', marginTop: '2px' }}>
+                  {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Active Member'}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ background: '#fce7f3', color: '#be185d', padding: '5px 14px', borderRadius: '12px', fontSize: '11.5px', fontWeight: '800' }}>
+              🗓 ACTIVE LOG
+            </div>
+          </div>
+
+        </div>
+
+        {/* Bottom Compliance Security Footer */}
+        <div style={{
+          background: '#f8fafc',
+          border: '1.5px solid #e2e8f0',
+          borderRadius: '18px',
+          padding: '16px 24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '12px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#3730a3', fontSize: '13.5px', fontWeight: '700' }}>
+            <ShieldCheck size={18} color="#4f46e5" />
+            <span>Read-Only Profile • Auto-synchronized with Staff Management</span>
+          </div>
+          <span style={{ fontSize: '12px', background: '#eef2ff', color: '#4338ca', border: '1px solid #c7d2fe', padding: '5px 14px', borderRadius: '12px', fontWeight: '800' }}>
+            Security Verified
+          </span>
         </div>
 
       </div>
