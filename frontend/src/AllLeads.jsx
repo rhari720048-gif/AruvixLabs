@@ -78,8 +78,17 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
     }
 
     setTimeout(() => {
-      setCallPhase('dialing');
-      setSecondsElapsed(0);
+        resetCallState();
+        setCallPhase('dialing');
+        
+        setTimeout(() => {
+            setCallPhase('active');
+            setSecondsElapsed(0);
+            const interval = setInterval(() => {
+                setSecondsElapsed(prev => prev + 1);
+            }, 1000);
+            setTimerInterval(interval);
+        }, 1500);
     }, 100);
   };
 
