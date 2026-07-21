@@ -353,6 +353,20 @@ const ProfilePage = () => {
       .catch(() => setLoading(false));
   }, []);
 
+  const lockedInputStyle = {
+    width: '100%',
+    padding: '14px 18px 14px 46px',
+    borderRadius: '16px',
+    border: '1.5px solid #e2e8f0',
+    background: '#f8fafc',
+    color: '#0f172a',
+    fontWeight: '700',
+    fontSize: '14px',
+    outline: 'none',
+    boxSizing: 'border-box',
+    cursor: 'not-allowed'
+  };
+
   if (loading) return (
     <div style={{ padding: '80px', textAlign: 'center', fontFamily: "'Outfit', 'Inter', sans-serif" }}>
       <div className="spinner" style={{ margin: '0 auto 16px auto' }}></div>
@@ -360,197 +374,125 @@ const ProfilePage = () => {
     </div>
   );
 
-  const initial = (user?.name || 'U').charAt(0).toUpperCase();
-
   return (
-    <div style={{ maxWidth: 860, margin: '0 auto', animation: 'fadeIn 0.35s ease-out', fontFamily: "'Outfit', 'Inter', sans-serif" }}>
+    <div style={{ maxWidth: 840, margin: '0 auto', animation: 'fadeIn 0.35s ease-out', fontFamily: "'Outfit', 'Inter', sans-serif" }}>
       
-      {/* Outer Floating Glass Card */}
+      {/* Outer Card */}
       <div style={{
-        background: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(20px)',
-        borderRadius: '32px',
-        border: '1.5px solid rgba(226, 232, 240, 0.9)',
-        boxShadow: '0 25px 50px -12px rgba(99, 102, 241, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.8) inset',
-        padding: '40px',
-        position: 'relative',
-        overflow: 'hidden'
+        background: '#ffffff',
+        borderRadius: '28px',
+        border: '1px solid #e2e8f0',
+        padding: '36px',
+        boxShadow: '0 15px 35px -5px rgba(15, 23, 42, 0.05)'
       }}>
         
-        {/* Ambient Background Gradient Flares */}
-        <div style={{ position: 'absolute', top: '-80px', right: '-80px', width: '260px', height: '260px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(255, 255, 255, 0) 70%)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', bottom: '-80px', left: '-80px', width: '260px', height: '260px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(168, 85, 247, 0.12) 0%, rgba(255, 255, 255, 0) 70%)', pointerEvents: 'none' }} />
-
-        {/* Profile Header Block */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '36px', flexWrap: 'wrap', gap: '20px', borderBottom: '1px solid #f1f5f9', paddingBottom: '28px' }}>
-          
-          <div style={{ display: 'flex', alignItems: 'center', gap: '22px' }}>
-            {/* Avatar Circle with Pastel Ring */}
-            <div style={{ position: 'relative' }}>
-              <div style={{
-                width: '88px',
-                height: '88px',
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #818cf8 0%, #4f46e5 100%)',
-                color: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '36px',
-                fontWeight: '800',
-                boxShadow: '0 10px 25px rgba(99, 102, 241, 0.3)',
-                border: '4px solid #ffffff'
-              }}>
-                {initial}
-              </div>
-              <div style={{
-                position: 'absolute',
-                bottom: '4px',
-                right: '4px',
-                background: user?.status === 'Inactive' ? '#ef4444' : '#22c55e',
-                border: '3px solid #ffffff',
-                width: '18px',
-                height: '18px',
-                borderRadius: '50%',
-                boxShadow: '0 0 10px rgba(34, 197, 94, 0.5)'
-              }} />
+        {/* Header Title & Subtitle */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', borderBottom: '1px solid #f1f5f9', paddingBottom: '22px', flexWrap: 'wrap', gap: '16px' }}>
+          <div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#e0e7ff', color: '#4338ca', padding: '4px 12px', borderRadius: '12px', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', marginBottom: '8px' }}>
+              <ShieldCheck size={14} color="#4338ca" /> Account Credentials
             </div>
+            <h1 style={{ fontSize: '26px', fontWeight: '800', color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>My Profile Details</h1>
+            <p style={{ color: '#64748b', fontSize: '14px', margin: '4px 0 0 0' }}>Read-only staff profile managed by Administrator</p>
+          </div>
 
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                <h1 style={{ fontSize: '26px', fontWeight: '800', color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
-                  {user?.name || 'Staff Member'}
-                </h1>
-                <span style={{ background: '#dcfce7', color: '#15803d', padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase' }}>
-                  ✓ Verified
-                </span>
-              </div>
-              <p style={{ margin: 0, color: '#64748b', fontSize: '14px', fontWeight: '500' }}>
-                {user?.email || 'Official CRM Staff Account'}
-              </p>
+          <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '8px 16px', borderRadius: '16px', color: '#15803d', fontWeight: '700', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 8px #22c55e' }} />
+            {user?.status ? `${user.status} Account` : 'Active Account'}
+          </div>
+        </div>
+
+        {/* Info Alert Box */}
+        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '18px', padding: '14px 18px', marginBottom: '32px', display: 'flex', alignItems: 'center', gap: '12px', color: '#475569', fontSize: '13.5px', fontWeight: '600' }}>
+          <Building size={20} color="#4f46e5" />
+          <span>Staff account details are created & updated by Admin in Staff Management.</span>
+        </div>
+
+        {/* 2-Column Form Fields with Icons inside Input */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '22px', marginBottom: '32px' }}>
+          
+          {/* Full Name */}
+          <div>
+            <label style={{ display: 'flex', alignItems: 'center', justifyBetween: 'space-between', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#374151' }}>
+              <span>Full Name</span>
+              <span style={{ fontSize: '11px', color: '#94a3b8', marginLeft: 'auto', fontWeight: '600' }}>🔒 Admin Managed</span>
+            </label>
+            <div style={{ position: 'relative', width: '100%' }}>
+              <User size={18} color="#6366f1" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
+              <input value={user?.name || '-'} readOnly disabled style={lockedInputStyle} />
             </div>
           </div>
 
-          {/* Role Pill Badge */}
-          <div style={{
-            background: '#eef2ff',
-            border: '1.5px solid #c7d2fe',
-            padding: '10px 22px',
-            borderRadius: '20px',
-            textAlign: 'center',
-            boxShadow: '0 4px 12px rgba(99, 102, 241, 0.08)'
-          }}>
-            <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em', color: '#4338ca', fontWeight: '700' }}>
-              System Access Level
+          {/* Email Address */}
+          <div>
+            <label style={{ display: 'flex', alignItems: 'center', justifyBetween: 'space-between', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#374151' }}>
+              <span>Email Address</span>
+              <span style={{ fontSize: '11px', color: '#94a3b8', marginLeft: 'auto', fontWeight: '600' }}>🔒 Admin Managed</span>
+            </label>
+            <div style={{ position: 'relative', width: '100%' }}>
+              <Building size={18} color="#2563eb" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
+              <input value={user?.email || '-'} readOnly disabled style={lockedInputStyle} />
             </div>
-            <div style={{ fontSize: '15px', fontWeight: '800', color: '#312e81', textTransform: 'uppercase', marginTop: '2px' }}>
-              {user?.role || 'EMPLOYEE'}
+          </div>
+
+          {/* Phone Number */}
+          <div>
+            <label style={{ display: 'flex', alignItems: 'center', justifyBetween: 'space-between', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#374151' }}>
+              <span>Phone Number</span>
+              <span style={{ fontSize: '11px', color: '#94a3b8', marginLeft: 'auto', fontWeight: '600' }}>🔒 Admin Managed</span>
+            </label>
+            <div style={{ position: 'relative', width: '100%' }}>
+              <PhoneCall size={18} color="#16a34a" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
+              <input value={user?.phone || 'Not Provided'} readOnly disabled style={lockedInputStyle} />
+            </div>
+          </div>
+
+          {/* Role */}
+          <div>
+            <label style={{ display: 'flex', alignItems: 'center', justifyBetween: 'space-between', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#374151' }}>
+              <span>System Role</span>
+              <span style={{ fontSize: '11px', color: '#94a3b8', marginLeft: 'auto', fontWeight: '600' }}>🔒 Admin Managed</span>
+            </label>
+            <div style={{ position: 'relative', width: '100%' }}>
+              <ShieldCheck size={18} color="#4338ca" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
+              <input value={(user?.role || 'EMPLOYEE').toUpperCase()} readOnly disabled style={{ ...lockedInputStyle, background: '#eef2ff', color: '#4338ca' }} />
+            </div>
+          </div>
+
+          {/* Account Status */}
+          <div>
+            <label style={{ display: 'flex', alignItems: 'center', justifyBetween: 'space-between', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#374151' }}>
+              <span>Account Status</span>
+              <span style={{ fontSize: '11px', color: '#94a3b8', marginLeft: 'auto', fontWeight: '600' }}>🔒 Admin Managed</span>
+            </label>
+            <div style={{ position: 'relative', width: '100%' }}>
+              <CheckCircle size={18} color={user?.status === 'Inactive' ? '#dc2626' : '#16a34a'} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
+              <input value={user?.status || 'Active'} readOnly disabled style={{ ...lockedInputStyle, background: user?.status === 'Inactive' ? '#fef2f2' : '#f0fdf4', color: user?.status === 'Inactive' ? '#dc2626' : '#16a34a' }} />
+            </div>
+          </div>
+
+          {/* Member Since */}
+          <div>
+            <label style={{ display: 'flex', alignItems: 'center', justifyBetween: 'space-between', marginBottom: 8, fontSize: 13, fontWeight: 700, color: '#374151' }}>
+              <span>Member Since</span>
+              <span style={{ fontSize: '11px', color: '#94a3b8', marginLeft: 'auto', fontWeight: '600' }}>🔒 Auto Logged</span>
+            </label>
+            <div style={{ position: 'relative', width: '100%' }}>
+              <Calendar size={18} color="#c026d3" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
+              <input value={user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Active'} readOnly disabled style={lockedInputStyle} />
             </div>
           </div>
 
         </div>
 
-        {/* 4 Pastel Icon Chip Cards Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '32px' }}>
-          
-          {/* Card 1: Full Name */}
-          <div style={{
-            background: 'rgba(248, 250, 252, 0.8)',
-            border: '1px solid #e2e8f0',
-            borderRadius: '22px',
-            padding: '20px',
-            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
-              <div style={{ width: '38px', height: '38px', borderRadius: '14px', background: '#e0e7ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <User size={20} color="#4f46e5" />
-              </div>
-              <div>
-                <div style={{ fontSize: '11px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Full Name</div>
-                <div style={{ fontSize: '15px', fontWeight: '800', color: '#0f172a', marginTop: '2px' }}>{user?.name || '-'}</div>
-              </div>
-            </div>
+        {/* Footer Security Badge */}
+        <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '22px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748b', fontSize: '13px', fontWeight: '600' }}>
+            <CheckCircle size={16} color="#16a34a" />
+            <span>Real-time sync enabled with Staff Management</span>
           </div>
-
-          {/* Card 2: Email Address */}
-          <div style={{
-            background: 'rgba(248, 250, 252, 0.8)',
-            border: '1px solid #e2e8f0',
-            borderRadius: '22px',
-            padding: '20px',
-            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
-              <div style={{ width: '38px', height: '38px', borderRadius: '14px', background: '#e0f2fe', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Building size={20} color="#0284c7" />
-              </div>
-              <div>
-                <div style={{ fontSize: '11px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Email Address</div>
-                <div style={{ fontSize: '15px', fontWeight: '800', color: '#0f172a', marginTop: '2px', wordBreak: 'break-all' }}>{user?.email || '-'}</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 3: Phone Number */}
-          <div style={{
-            background: 'rgba(248, 250, 252, 0.8)',
-            border: '1px solid #e2e8f0',
-            borderRadius: '22px',
-            padding: '20px',
-            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
-              <div style={{ width: '38px', height: '38px', borderRadius: '14px', background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <PhoneCall size={20} color="#16a34a" />
-              </div>
-              <div>
-                <div style={{ fontSize: '11px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Phone Number</div>
-                <div style={{ fontSize: '15px', fontWeight: '800', color: '#0f172a', marginTop: '2px' }}>{user?.phone || 'Not Provided'}</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 4: Member Since */}
-          <div style={{
-            background: 'rgba(248, 250, 252, 0.8)',
-            border: '1px solid #e2e8f0',
-            borderRadius: '22px',
-            padding: '20px',
-            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
-              <div style={{ width: '38px', height: '38px', borderRadius: '14px', background: '#fce7f3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Calendar size={20} color="#be185d" />
-              </div>
-              <div>
-                <div style={{ fontSize: '11px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Member Since</div>
-                <div style={{ fontSize: '15px', fontWeight: '800', color: '#0f172a', marginTop: '2px' }}>
-                  {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Active'}
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        {/* Bottom Glass Notice Bar */}
-        <div style={{
-          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-          border: '1px solid #e2e8f0',
-          borderRadius: '20px',
-          padding: '16px 24px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '12px'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#475569', fontSize: '13.5px', fontWeight: '600' }}>
-            <ShieldCheck size={18} color="#6366f1" />
-            <span>Synced in real-time with Admin Staff Management</span>
-          </div>
-          <span style={{ fontSize: '12px', background: '#ffffff', color: '#4f46e5', border: '1px solid #c7d2fe', padding: '5px 14px', borderRadius: '14px', fontWeight: '700', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
-            Admin Controlled Settings
+          <span style={{ fontSize: '12px', background: '#f1f5f9', color: '#475569', padding: '4px 12px', borderRadius: '12px', fontWeight: '700' }}>
+            AruvixLabs CRM System
           </span>
         </div>
 
