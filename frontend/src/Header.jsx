@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, Clock, Calendar, ShieldCheck, Sun, Moon, Sunrise, LogOut } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { API } from './apiConfig';
 
 const decodeToken = (token) => {
   try { return JSON.parse(atob(token.split('.')[1])); }
@@ -76,7 +77,18 @@ export default function Header({ setSidebarOpen }) {
     hour12: true
   });
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        await fetch(`${API}/telecalling/release-locks`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+    } catch (e) {
+      console.error('Failed to release locks on logout:', e);
+    }
     toast.success('Logged out successfully!');
     localStorage.clear();
     setTimeout(() => {

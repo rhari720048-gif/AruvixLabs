@@ -136,6 +136,15 @@ async function initDB() {
         try {
             await pool.query("ALTER TABLE customers ADD COLUMN converted_by INT NULL");
         } catch (e) { }
+        try {
+            await pool.query("ALTER TABLE customers ADD COLUMN locked_by INT NULL");
+        } catch (e) { }
+        try {
+            await pool.query("ALTER TABLE customers ADD FOREIGN KEY (locked_by) REFERENCES users(id) ON DELETE SET NULL");
+        } catch (e) { }
+        try {
+            await pool.query("ALTER TABLE customers ADD COLUMN locked_at TIMESTAMP NULL");
+        } catch (e) { }
 
         // Indexes for fast call_logs query synchronization
         try {

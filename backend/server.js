@@ -178,7 +178,63 @@ app.put('/api/auth/profile', authenticate, async (req, res) => {
 
 
 app.get('/api/customers', authenticate, async (req, res) => {
+    const { location, queue } = req.query;
+    const userId = req.user?.id;
+    const isEmp = req.user?.role !== 'admin';
+
     try {
+        // Fetch users map for assignee names
+        const [users] = await pool.query('SELECT id, name FROM users');
+        const userMap = {};
+        users.forEach(u => userMap[u.id] = u.name);
+
+        // If queue is true, enforce location selection and implement locking for employees
+        if (queue === 'true' && isEmp) {
+            if (!location) {
+                return res.json([]); // Return empty if no location selected yet
+            }
+
+            // 1. Release locks on other locations
+            await pool.query(
+                'UPDATE customers SET locked_by = NULL, locked_at = NULL WHERE locked_by = ? AND (district != ? OR district IS NULL)',
+                [userId, location]
+            );
+
+            // 2. Find currently locked active leads in this location for this user
+            const [lockedRows] = await pool.query(
+                `SELECT id FROM customers 
+                 WHERE district = ? 
+                   AND locked_by = ? 
+                   AND status NOT IN ('Converted', 'Completed Work', 'Appointment', 'Call Later', 'NI', 'Not Interested')`,
+                [location, userId]
+            );
+
+            const activeLockedCount = lockedRows.length;
+            if (activeLockedCount < 10) {
+                const limit = 10 - activeLockedCount;
+                // Find and lock more pending leads in this location
+                // Select leads where locked_by is null or lock has expired (> 30 mins ago), excluding other active locked leads
+                const [available] = await pool.query(
+                    `SELECT id FROM customers 
+                     WHERE district = ? 
+                       AND (locked_by IS NULL OR locked_at < DATE_SUB(NOW(), INTERVAL 30 MINUTE))
+                       AND status NOT IN ('Converted', 'Completed Work', 'Appointment', 'Call Later', 'NI', 'Not Interested')
+                     ORDER BY created_at ASC 
+                     LIMIT ?`,
+                    [location, limit]
+                );
+
+                if (available.length > 0) {
+                    const idsToLock = available.map(row => row.id);
+                    await pool.query(
+                        'UPDATE customers SET locked_by = ?, locked_at = NOW() WHERE id IN (?)',
+                        [userId, idsToLock]
+                    );
+                }
+            }
+        }
+
+        // Build selection query
         let query = `
             SELECT c.*, l.notes as last_note, l.callback_time 
             FROM customers c
@@ -188,15 +244,27 @@ app.get('/api/customers', authenticate, async (req, res) => {
                 GROUP BY customer_id
             ) l_max ON c.id = l_max.customer_id
             LEFT JOIN call_logs l ON l_max.max_id = l.id
-            ORDER BY c.created_at DESC
         `;
-        const [[rows], [users]] = await Promise.all([
-            pool.query(query),
-            pool.query('SELECT id, name FROM users')
-        ]);
+        let queryParams = [];
 
-        const userMap = {};
-        users.forEach(u => userMap[u.id] = u.name);
+        if (location) {
+            if (queue === 'true' && isEmp) {
+                // Return only active leads locked by this employee in this location
+                query += ` WHERE c.district = ? AND c.locked_by = ? 
+                           AND c.status NOT IN ('Converted', 'Completed Work', 'Appointment', 'Call Later', 'NI', 'Not Interested')`;
+                queryParams.push(location, userId);
+            } else {
+                // Simply filter by location
+                query += ` WHERE c.district = ?`;
+                queryParams.push(location);
+            }
+        } else if (queue === 'true' && isEmp) {
+            return res.json([]);
+        }
+
+        query += ` ORDER BY c.created_at DESC`;
+
+        const [rows] = await pool.query(query, queryParams);
 
         const formattedRows = rows.map(row => {
             let assigneeNames = [];
@@ -234,14 +302,27 @@ app.put('/api/customers/:id', authenticate, async (req, res) => {
             // Full update
             const parsed = parseAssignedTo(assigned_to);
             const assignedToStr = JSON.stringify(parsed);
-            const query = 'UPDATE customers SET name=?, phone=?, district=?, source=?, notes=?, status=?, assigned_to=?, car_model=?, registration_number=? WHERE id=?';
-                
-            const params = [name, phone, district, source, notes, status, assignedToStr, car_model || '', registration_number || '', customerId];
+            let query = 'UPDATE customers SET name=?, phone=?, district=?, source=?, notes=?, status=?, assigned_to=?, car_model=?, registration_number=?';
+            const params = [name, phone, district, source, notes, status, assignedToStr, car_model || '', registration_number || ''];
+            
+            if (status && status !== 'Pending' && status !== 'Uncalled') {
+                query += ', locked_by = NULL, locked_at = NULL';
+            }
+            query += ' WHERE id=?';
+            params.push(customerId);
                 
             await pool.query(query, params);
         } else {
             // Partial update (just status/notes)
-            await pool.query('UPDATE customers SET status = ?, notes = ? WHERE id = ?', [status, notes, customerId]);
+            let query = 'UPDATE customers SET status = ?, notes = ?';
+            const params = [status, notes];
+            if (status && status !== 'Pending' && status !== 'Uncalled') {
+                query += ', locked_by = NULL, locked_at = NULL';
+            }
+            query += ' WHERE id = ?';
+            params.push(customerId);
+            
+            await pool.query(query, params);
             // Record conversion info when status changes to Converted
             if (status === 'Converted') {
                 await pool.query('UPDATE customers SET converted_at = NOW(), converted_by = ? WHERE id = ? AND converted_at IS NULL', [empId, customerId]);
@@ -1380,12 +1461,21 @@ app.post('/api/telecalling/feedback', authenticate, async (req, res) => {
         }
 
         await pool.query(
-            'UPDATE customers SET status = ?, last_dial_date = NOW(), assigned_to = ? WHERE id = ?',
+            'UPDATE customers SET status = ?, last_dial_date = NOW(), assigned_to = ?, locked_by = NULL, locked_at = NULL WHERE id = ?',
             [status, JSON.stringify(assignedArr), customer_id]
         );
         
         res.json({ success: true });
     } catch (error) { res.status(500).json({ error: error.message }); }
+});
+
+app.post('/api/telecalling/release-locks', authenticate, async (req, res) => {
+    try {
+        await pool.query('UPDATE customers SET locked_by = NULL, locked_at = NULL WHERE locked_by = ?', [req.user.id]);
+        res.json({ success: true, message: 'All locks released successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 app.get('/api/telecalling/reports', authenticate, async (req, res) => {
