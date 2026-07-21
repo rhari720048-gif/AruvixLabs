@@ -361,7 +361,7 @@ const Appointments = () => {
                        (l.district || l.location || '').toLowerCase().includes(q) ||
                        (l.year || '').toString().toLowerCase().includes(q) ||
                        (l.notes || '').toLowerCase().includes(q);
-              }).map(lead => (
+              }).map((lead, index) => (
                 <li 
                   key={lead.id} 
                   className={`contact-card ${selectedLead?.id === lead.id ? 'active' : ''}`}
