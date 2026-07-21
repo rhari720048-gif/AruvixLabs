@@ -2169,8 +2169,15 @@ input:-webkit-autofill:active {
     width: 100% !important;
     font-size: 13px !important;
     height: 38px !important;
-    padding: 6px 10px !important;
+    padding-top: 6px !important;
+    padding-right: 10px !important;
+    padding-bottom: 6px !important;
+    padding-left: 10px;
     border-radius: 10px !important;
+  }
+
+  input.has-icon-left, input[style*="paddingLeft"], input[style*="padding-left"] {
+    padding-left: 44px !important;
   }
 
   /* Filter buttons horizontal scroll */
