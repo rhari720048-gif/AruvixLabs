@@ -129,7 +129,7 @@ const CompletedWork = () => {
             placeholder="Search by client name, phone or car..." 
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            style={{ width: '100%', paddingLeft: '42px' }}
+            style={{ width: '100%', paddingLeft: '46px' }}
           />
         </div>
       </div>

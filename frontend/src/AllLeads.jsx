@@ -306,7 +306,7 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
             placeholder="Search leads by name, phone, car..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ width: '100%', paddingLeft: '42px' }}
+            style={{ width: '100%', paddingLeft: '46px' }}
           />
         </div>
 

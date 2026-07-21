@@ -152,7 +152,7 @@ const CallHistory = () => {
             placeholder="Search by phone number or customer..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ width: '100%', paddingLeft: '42px' }}
+            style={{ width: '100%', paddingLeft: '46px' }}
           />
         </div>
       </div>

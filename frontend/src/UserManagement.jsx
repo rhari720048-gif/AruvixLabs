@@ -410,7 +410,7 @@ export default function UserManagement() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search by name or email..."
-            style={{ ...inp, background: '#f9fafb' }}
+            style={{ ...inp, paddingLeft: '46px', background: '#f9fafb' }}
           />
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>

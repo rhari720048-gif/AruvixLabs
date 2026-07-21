@@ -520,7 +520,10 @@ tr:hover td {
 input[type="text"], input[type="email"], input[type="password"], input[type="tel"], input[type="number"], input[type="datetime-local"], input[type="date"], input[type="time"], select, textarea {
   border: 1.5px solid rgba(226, 232, 240, 0.95) !important;
   border-radius: 16px !important;
-  padding: 14px 18px !important;
+  padding-top: 12px !important;
+  padding-right: 18px !important;
+  padding-bottom: 12px !important;
+  padding-left: 18px;
   font-size: 14px !important;
   outline: none !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
@@ -533,7 +536,7 @@ input[type="text"], input[type="email"], input[type="password"], input[type="tel
 
 /* Inputs with Left Icon override */
 input.has-icon-left {
-  padding-left: 42px !important;
+  padding-left: 46px !important;
 }
 
 /* Custom Styled Select Dropdown Lists */
