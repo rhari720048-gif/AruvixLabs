@@ -13,7 +13,7 @@ const TAMIL_NADU_LOCATIONS = [
   "Dindigul", "Erode", "Hosur", "Kallakurichi", "Kanchipuram", "Kanyakumari", "Karaikudi", "Karur", 
   "Kovilpatti", "Krishnagiri", "Kumbakonam", "Madurai", "Mayiladuthurai", "Nagapattinam", "Nagercoil", 
   "Namakkal", "Neyveli", "Ooty (Nilgiris)", "Perambalur", "Pollachi", "Pudukkottai", "Rajapalayam", 
-  "Ramanathapuram", "Ranipet", "Salem", "Sivaganga", "Sivakasi", "Tambaram", "Tenkasi", "Thanjavur", 
+  "Ramanathapuram", "Ranipet", "Salem", "Sivaganga", "Sivakasi", "Sriperumbudur", "Tambaram", "Tenkasi", "Thanjavur", 
   "Theni", "Thiruvallur", "Thiruvarur", "Thoothukudi (Tuticorin)", "Tiruchirappalli (Trichy)", 
   "Tirunelveli", "Tirupathur", "Tiruppur", "Tiruvannamalai", "Vaniyambadi", "Vellore", "Viluppuram", 
   "Virudhunagar"
