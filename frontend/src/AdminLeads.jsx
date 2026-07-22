@@ -124,39 +124,39 @@ const AdminLeads = () => {
   const addLeads = async (newLeads) => {
     const token = localStorage.getItem('token');
     
-    // Process each new lead sequentially
-    for (let lead of newLeads) {
-      try {
-        const payload = {
-          customer_id: 'L-' + Date.now() + Math.floor(Math.random()*1000), // Random ID
-          name: lead.name,
-          phone: lead.phone,
-          district: lead.location,
-          car_model: lead.car_name || '',
-          registration_number: lead.car_number || '',
-          notes: (lead.year || 'N/A') + ' | ' + (lead.feedback || 'None'),
-          source: lead.source || 'Manual',
-          assigned_to: lead.assignedTo || null
-        };
-        
-        const res = await fetch(`${API}/customers`, {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}` 
-          },
-          body: JSON.stringify(payload)
-        });
-        if (!res.ok) {
-           toast.error(`Failed to add lead: ${lead.name}`);
-        }
-      } catch (e) {
-        console.error("Error adding lead:", e);
-        toast.error(`Error adding lead: ${lead.name}`);
+    // Prepare the bulk payload with guaranteed unique customer_ids
+    const payload = newLeads.map((lead, index) => ({
+      customer_id: 'L-' + Date.now() + '-' + index + '-' + Math.floor(Math.random() * 100000),
+      name: lead.name,
+      phone: lead.phone,
+      district: lead.location,
+      car_model: lead.car_name || '',
+      registration_number: lead.car_number || '',
+      notes: (lead.year || 'N/A') + ' | ' + (lead.feedback || 'None'),
+      source: lead.source || 'Manual',
+      assigned_to: lead.assignedTo || null
+    }));
+
+    try {
+      const res = await fetch(`${API}/customers/bulk`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}` 
+        },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        toast.success("Leads processed successfully!");
+      } else {
+        const errorData = await res.json();
+        toast.error(`Failed to process leads: ${errorData.error || 'Server error'}`);
       }
+    } catch (e) {
+      console.error("Error adding leads:", e);
+      toast.error("Error connecting to server to add leads.");
     }
     
-    toast.success("Leads processed!");
     fetchLeads(); // Refresh from DB
   };
 

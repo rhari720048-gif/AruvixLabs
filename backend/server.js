@@ -391,6 +391,55 @@ app.post('/api/customers', authenticate, async (req, res) => {
     }
 });
 
+app.post('/api/customers/bulk', authenticate, async (req, res) => {
+    const leads = req.body;
+    if (!Array.isArray(leads)) {
+        return res.status(400).json({ error: 'Payload must be an array' });
+    }
+
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        const insertQuery = `
+            INSERT INTO customers (
+                customer_id, name, phone, district, source, notes, status, assigned_to, car_model, registration_number
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        for (const lead of leads) {
+            const parsed = parseAssignedTo(lead.assigned_to);
+            const assignedToStr = JSON.stringify(parsed);
+            
+            const [insertRes] = await connection.query(insertQuery, [
+                lead.customer_id,
+                lead.name,
+                lead.phone,
+                lead.district,
+                lead.source || 'Manual',
+                lead.notes || '',
+                'Pending',
+                assignedToStr,
+                lead.car_model || '',
+                lead.registration_number || ''
+            ]);
+
+            await connection.query(
+                'INSERT INTO call_logs (customer_id, employee_id, status, notes) VALUES (?, ?, ?, ?)',
+                [insertRes.insertId, req.user?.id || null, 'Pending', lead.notes || 'Customer record created']
+            );
+        }
+
+        await connection.commit();
+        res.json({ success: true, count: leads.length });
+    } catch (error) {
+        await connection.rollback();
+        res.status(500).json({ error: error.message });
+    } finally {
+        connection.release();
+    }
+});
+
 // ── User Management Routes ─────────────────────────────────────────────────
 
 // GET all users
