@@ -403,11 +403,17 @@ app.post('/api/customers/bulk', authenticate, async (req, res) => {
             for (const lead of batch) {
                 const parsed = parseAssignedTo(lead.assigned_to);
                 const assignedToStr = JSON.stringify(parsed);
+                
+                // Robust verification and sanitization to prevent database constraint errors
+                const cleanName = (lead.name || 'Unknown').trim().substring(0, 255);
+                const cleanPhone = (lead.phone || 'Unknown').trim().replace(/[^0-9+]/g, '').substring(0, 20) || 'Unknown';
+                const cleanDistrict = (lead.district || 'Unknown').trim().substring(0, 100);
+
                 custValues.push([
                     lead.customer_id,
-                    lead.name,
-                    lead.phone,
-                    lead.district,
+                    cleanName,
+                    cleanPhone,
+                    cleanDistrict,
                     lead.source || 'Manual',
                     lead.notes || '',
                     'Pending',
@@ -1797,6 +1803,12 @@ app.post('/api/telecalling/feedback', authenticate, async (req, res) => {
         console.error('Error submitting telecalling feedback:', error);
         res.status(500).json({ error: error.message });
     }
+});
+
+// Global Error Handler Middleware to catch unhandled errors and prevent crashes
+app.use((err, req, res, next) => {
+    console.error('Unhandled Server Error:', err);
+    res.status(500).json({ error: 'Internal Server Error. Please contact system administrator.' });
 });
 
 const PORT = process.env.PORT || 5000;

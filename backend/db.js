@@ -13,7 +13,7 @@ const pool = mysql.createPool({
         rejectUnauthorized: false
     },
     waitForConnections: true,
-    connectionLimit: 10,
+    connectionLimit: 50,
     queueLimit: 0,
     enableKeepAlive: true,
     keepAliveInitialDelay: 0
@@ -167,6 +167,9 @@ async function initDB() {
         } catch (e) { }
         try {
             await pool.query("CREATE INDEX idx_users_email ON users(email)");
+        } catch (e) { }
+        try {
+            await pool.query("CREATE INDEX idx_customers_district_status_locked ON customers(district, status, locked_by, locked_at, created_at)");
         } catch (e) { }
 
         // Seed default roles if roles table is empty
