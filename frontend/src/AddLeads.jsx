@@ -73,21 +73,50 @@ const AddLeads = ({ addLeads }) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    const getValueByKeys = (row, possibleKeys, defaultValue = '') => {
+      const keys = Object.keys(row);
+      for (const k of keys) {
+        const normalizedKey = k.toLowerCase().replace(/[^a-z0-9]/g, '');
+        for (const pk of possibleKeys) {
+          const normalizedPk = pk.toLowerCase().replace(/[^a-z0-9]/g, '');
+          if (normalizedKey === normalizedPk) {
+            return row[k];
+          }
+        }
+      }
+      return defaultValue;
+    };
+
     setIsProcessing(true);
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
       complete: function (results) {
-        const parsedLeads = results.data.map((row, i) => ({
-          id: Date.now() + i,
-          name: row.name || row.Name || 'Unknown',
-          phone: row.phone || row.Phone || row.Contact || 'Unknown',
-          location: row.location || row.Location || row.City || 'Unknown',
-          car_name: row.car_name || row.car_model || row['Car Name'] || row['Car Name with Year'] || '',
-          year: row.year || row.Year || '',
-          source: 'CSV',
-          status: 'Pending'
-        }));
+        const parsedLeads = results.data.map((row, i) => {
+          const rawLocation = getValueByKeys(row, ['location', 'city', 'district', 'citylocation', 'place'], 'Unknown');
+          const cleanLoc = (rawLocation || '').trim();
+          const lowerLoc = cleanLoc.toLowerCase().replace(/[^a-z]/g, '');
+          
+          const abbreviations = [
+            'srip', 'sripl', 'sripi', 'sri', 'sr', 's', 'st', 'si', 'srip', 'srif', 'sripi', 'sp', 'sriplt', 'spit', 'spie', 'saipi', 'srii'
+          ];
+          
+          let finalLocation = cleanLoc;
+          if (abbreviations.includes(lowerLoc) || cleanLoc.toLowerCase().includes('sriperumbudur')) {
+            finalLocation = 'Sriperumbudur';
+          }
+
+          return {
+            id: Date.now() + i,
+            name: getValueByKeys(row, ['name', 'clientname', 'customername', 'fullname'], 'Unknown'),
+            phone: getValueByKeys(row, ['phone', 'phonenumber', 'mobile', 'mobilenumber', 'contact', 'mobilephonenumber', 'mobileno'], 'Unknown'),
+            location: finalLocation,
+            car_name: getValueByKeys(row, ['carname', 'carmodel', 'car', 'vehicle', 'carnamewithyear'], ''),
+            year: getValueByKeys(row, ['year', 'manufactureyear', 'mfgyear'], ''),
+            source: 'CSV',
+            status: 'Pending'
+          };
+        });
         addLeads(parsedLeads);
         toast.success('CSV uploaded successfully! Leads added.');
         setIsProcessing(false);
