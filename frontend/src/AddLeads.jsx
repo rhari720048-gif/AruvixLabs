@@ -117,9 +117,9 @@ const AddLeads = ({ addLeads }) => {
             status: 'Pending'
           };
         });
-        addLeads(parsedLeads);
-        toast.success('CSV uploaded successfully! Leads added.');
-        setIsProcessing(false);
+        addLeads(parsedLeads).finally(() => {
+          setIsProcessing(false);
+        });
       },
       error: function (error) {
         console.error("CSV Parse Error:", error);

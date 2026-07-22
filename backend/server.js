@@ -56,7 +56,8 @@ app.use(cors({
     origin: ['https://aruvix-labs.vercel.app', 'http://localhost:5173', 'http://localhost:3000'],
     credentials: true,
 }));
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Initialize DB and inject pool into mailer
 initDB()
@@ -212,25 +213,18 @@ app.get('/api/customers', authenticate, async (req, res) => {
             const activeLockedCount = lockedRows.length;
             if (activeLockedCount < 10) {
                 const limit = 10 - activeLockedCount;
-                // Find and lock more pending leads in this location
-                // Select leads where locked_by is null or lock has expired (> 30 mins ago), excluding other active locked leads
-                const [available] = await pool.query(
-                    `SELECT id FROM customers 
+                
+                // Atomically update and lock available leads in a single query to eliminate race conditions
+                await pool.query(
+                    `UPDATE customers 
+                     SET locked_by = ?, locked_at = NOW() 
                      WHERE district = ? 
                        AND (locked_by IS NULL OR locked_at < DATE_SUB(NOW(), INTERVAL 30 MINUTE))
                        AND status NOT IN ('Converted', 'Completed Work', 'Appointment', 'Call Later', 'NI', 'Not Interested')
                      ORDER BY created_at ASC 
                      LIMIT ?`,
-                    [location, limit]
+                    [userId, location, limit]
                 );
-
-                if (available.length > 0) {
-                    const idsToLock = available.map(row => row.id);
-                    await pool.query(
-                        'UPDATE customers SET locked_by = ?, locked_at = NOW() WHERE id IN (?)',
-                        [userId, idsToLock]
-                    );
-                }
             }
         }
 
@@ -401,32 +395,48 @@ app.post('/api/customers/bulk', authenticate, async (req, res) => {
     try {
         await connection.beginTransaction();
 
-        const insertQuery = `
-            INSERT INTO customers (
-                customer_id, name, phone, district, source, notes, status, assigned_to, car_model, registration_number
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `;
-
-        for (const lead of leads) {
-            const parsed = parseAssignedTo(lead.assigned_to);
-            const assignedToStr = JSON.stringify(parsed);
+        const batchSize = 2000;
+        for (let i = 0; i < leads.length; i += batchSize) {
+            const batch = leads.slice(i, i + batchSize);
             
-            const [insertRes] = await connection.query(insertQuery, [
-                lead.customer_id,
-                lead.name,
-                lead.phone,
-                lead.district,
-                lead.source || 'Manual',
-                lead.notes || '',
-                'Pending',
-                assignedToStr,
-                lead.car_model || '',
-                lead.registration_number || ''
-            ]);
+            const custValues = [];
+            for (const lead of batch) {
+                const parsed = parseAssignedTo(lead.assigned_to);
+                const assignedToStr = JSON.stringify(parsed);
+                custValues.push([
+                    lead.customer_id,
+                    lead.name,
+                    lead.phone,
+                    lead.district,
+                    lead.source || 'Manual',
+                    lead.notes || '',
+                    'Pending',
+                    assignedToStr,
+                    lead.car_model || '',
+                    lead.registration_number || ''
+                ]);
+            }
+
+            const [custRes] = await connection.query(
+                'INSERT INTO customers (customer_id, name, phone, district, source, notes, status, assigned_to, car_model, registration_number) VALUES ?',
+                [custValues]
+            );
+
+            const firstId = custRes.insertId;
+            const logValues = [];
+            batch.forEach((lead, idx) => {
+                const custId = firstId + idx;
+                logValues.push([
+                    custId,
+                    req.user?.id || null,
+                    'Pending',
+                    lead.notes || 'Customer record created'
+                ]);
+            });
 
             await connection.query(
-                'INSERT INTO call_logs (customer_id, employee_id, status, notes) VALUES (?, ?, ?, ?)',
-                [insertRes.insertId, req.user?.id || null, 'Pending', lead.notes || 'Customer record created']
+                'INSERT INTO call_logs (customer_id, employee_id, status, notes) VALUES ?',
+                [logValues]
             );
         }
 
