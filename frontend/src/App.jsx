@@ -112,7 +112,7 @@ const Dashboard = () => {
   const canEdit = perms.edit ?? perms.canEdit ?? true;
   const canDelete = perms.delete ?? perms.canDelete ?? true;
 
-  useEffect(() => {
+  const fetchData = () => {
     const token = localStorage.getItem('token');
     fetch(`${API}/customers`, {
       headers: { Authorization: `Bearer ${token}` }
@@ -125,6 +125,10 @@ const Dashboard = () => {
     }).then(res => res.json()).then(resData => {
       setReports(resData);
     }).catch(e => console.error(e));
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
   const handleView = (c) => setViewRecord(c);
@@ -141,6 +145,32 @@ const Dashboard = () => {
           toast.success("Record deleted successfully.");
         } else {
           toast.error('Failed to delete record.');
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error('An error occurred while deleting.');
+      }
+    }
+  };
+
+  const handleDeleteCategory = async (category, categoryLabel) => {
+    if (window.confirm(`⚠️ WARNING: Are you sure you want to delete ALL leads in the "${categoryLabel}" category? This will delete these leads and all their call history logs. This action CANNOT be undone.`)) {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API}/customers/delete-by-category`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ category })
+        });
+        if (res.ok) {
+          toast.success(`Cleared all leads in "${categoryLabel}" successfully!`);
+          fetchData(); // Refresh stats and list
+        } else {
+          const errData = await res.json();
+          toast.error(`Failed to clear category: ${errData.error || 'Server error'}`);
         }
       } catch (err) {
         console.error(err);
@@ -173,7 +203,20 @@ const Dashboard = () => {
         <div className="modern-stat-card grad-total">
           <div className="modern-stat-header">
             <span>Total Leads</span>
-            <Users size={20} />
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              {role === 'admin' && (
+                <button 
+                  onClick={(e) => { e.stopPropagation(); handleDeleteCategory('all', 'Total Leads'); }}
+                  style={{ background: 'none', border: 'none', color: '#ffffff', opacity: 0.8, cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', zIndex: 10 }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.25)'; e.currentTarget.style.opacity = '1'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.opacity = '0.8'; }}
+                  title="Clear Category"
+                >
+                  <Trash2 size={16} />
+                </button>
+              )}
+              <Users size={20} />
+            </div>
           </div>
           <div className="modern-stat-value">{total}</div>
           <Users size={100} className="bg-icon" />
@@ -182,7 +225,20 @@ const Dashboard = () => {
         <div className="modern-stat-card grad-pending">
           <div className="modern-stat-header">
             <span>Uncalled / Pending</span>
-            <PhoneCall size={20} />
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              {role === 'admin' && (
+                <button 
+                  onClick={(e) => { e.stopPropagation(); handleDeleteCategory('pending', 'Uncalled / Pending'); }}
+                  style={{ background: 'none', border: 'none', color: '#ffffff', opacity: 0.8, cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', zIndex: 10 }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.25)'; e.currentTarget.style.opacity = '1'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.opacity = '0.8'; }}
+                  title="Clear Category"
+                >
+                  <Trash2 size={16} />
+                </button>
+              )}
+              <PhoneCall size={20} />
+            </div>
           </div>
           <div className="modern-stat-value">{pending}</div>
           <PhoneCall size={100} className="bg-icon" />
@@ -191,7 +247,20 @@ const Dashboard = () => {
         <div className="modern-stat-card grad-appointments">
           <div className="modern-stat-header">
             <span>Appointments</span>
-            <Calendar size={20} />
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              {role === 'admin' && (
+                <button 
+                  onClick={(e) => { e.stopPropagation(); handleDeleteCategory('appointments', 'Appointments'); }}
+                  style={{ background: 'none', border: 'none', color: '#ffffff', opacity: 0.8, cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', zIndex: 10 }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.25)'; e.currentTarget.style.opacity = '1'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.opacity = '0.8'; }}
+                  title="Clear Category"
+                >
+                  <Trash2 size={16} />
+                </button>
+              )}
+              <Calendar size={20} />
+            </div>
           </div>
           <div className="modern-stat-value">{apts}</div>
           <Calendar size={100} className="bg-icon" />
@@ -200,7 +269,20 @@ const Dashboard = () => {
         <div className="modern-stat-card grad-call-later">
           <div className="modern-stat-header">
             <span>Call Later</span>
-            <Clock size={20} />
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              {role === 'admin' && (
+                <button 
+                  onClick={(e) => { e.stopPropagation(); handleDeleteCategory('call_later', 'Call Later'); }}
+                  style={{ background: 'none', border: 'none', color: '#ffffff', opacity: 0.8, cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', zIndex: 10 }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.25)'; e.currentTarget.style.opacity = '1'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.opacity = '0.8'; }}
+                  title="Clear Category"
+                >
+                  <Trash2 size={16} />
+                </button>
+              )}
+              <Clock size={20} />
+            </div>
           </div>
           <div className="modern-stat-value">{callLater}</div>
           <Clock size={100} className="bg-icon" />
@@ -209,7 +291,20 @@ const Dashboard = () => {
         <div className="modern-stat-card grad-ni">
           <div className="modern-stat-header">
             <span>Not Interested (NI)</span>
-            <Archive size={20} />
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              {role === 'admin' && (
+                <button 
+                  onClick={(e) => { e.stopPropagation(); handleDeleteCategory('ni', 'Not Interested (NI)'); }}
+                  style={{ background: 'none', border: 'none', color: '#ffffff', opacity: 0.8, cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', zIndex: 10 }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.25)'; e.currentTarget.style.opacity = '1'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.opacity = '0.8'; }}
+                  title="Clear Category"
+                >
+                  <Trash2 size={16} />
+                </button>
+              )}
+              <Archive size={20} />
+            </div>
           </div>
           <div className="modern-stat-value">{ni}</div>
           <Archive size={100} className="bg-icon" />
@@ -218,16 +313,42 @@ const Dashboard = () => {
         <div className="modern-stat-card grad-converted">
           <div className="modern-stat-header">
             <span>Clients (Converted)</span>
-            <UserPlus size={20} />
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              {role === 'admin' && (
+                <button 
+                  onClick={(e) => { e.stopPropagation(); handleDeleteCategory('converted', 'Clients (Converted)'); }}
+                  style={{ background: 'none', border: 'none', color: '#ffffff', opacity: 0.8, cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', zIndex: 10 }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.25)'; e.currentTarget.style.opacity = '1'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.opacity = '0.8'; }}
+                  title="Clear Category"
+                >
+                  <Trash2 size={16} />
+                </button>
+              )}
+              <UserPlus size={20} />
+            </div>
           </div>
           <div className="modern-stat-value">{converted}</div>
           <UserPlus size={100} className="bg-icon" />
         </div>
-
+        
         <div className="modern-stat-card grad-completed">
           <div className="modern-stat-header">
             <span>Completed Work</span>
-            <CheckCircle size={20} />
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              {role === 'admin' && (
+                <button 
+                  onClick={(e) => { e.stopPropagation(); handleDeleteCategory('completed', 'Completed Work'); }}
+                  style={{ background: 'none', border: 'none', color: '#ffffff', opacity: 0.8, cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', zIndex: 10 }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.25)'; e.currentTarget.style.opacity = '1'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.opacity = '0.8'; }}
+                  title="Clear Category"
+                >
+                  <Trash2 size={16} />
+                </button>
+              )}
+              <CheckCircle size={20} />
+            </div>
           </div>
           <div className="modern-stat-value">{completed}</div>
           <CheckCircle size={100} className="bg-icon" />

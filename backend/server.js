@@ -361,6 +361,61 @@ app.post('/api/customers/bulk-delete', authenticate, async (req, res) => {
     }
 });
 
+app.post('/api/customers/delete-by-category', authenticate, async (req, res) => {
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ error: 'Access denied: Only administrators can clear categories.' });
+    }
+
+    const { category } = req.body;
+    try {
+        if (category === 'all') {
+            await pool.query('DELETE FROM call_logs');
+            await pool.query('DELETE FROM customers');
+        } else if (category === 'pending') {
+            await pool.query(
+                `DELETE FROM call_logs WHERE customer_id IN (
+                    SELECT id FROM customers WHERE status NOT IN ('Converted', 'Completed Work', 'Appointment', 'Call Later', 'NI', 'Not Interested')
+                )`
+            );
+            await pool.query(
+                `DELETE FROM customers WHERE status NOT IN ('Converted', 'Completed Work', 'Appointment', 'Call Later', 'NI', 'Not Interested')`
+            );
+        } else if (category === 'ni') {
+            await pool.query(
+                `DELETE FROM call_logs WHERE customer_id IN (
+                    SELECT id FROM customers WHERE status IN ('NI', 'Not Interested')
+                )`
+            );
+            await pool.query(
+                `DELETE FROM customers WHERE status IN ('NI', 'Not Interested')`
+            );
+        } else {
+            const statusMap = {
+                appointments: 'Appointment',
+                call_later: 'Call Later',
+                converted: 'Converted',
+                completed: 'Completed Work'
+            };
+            const statusVal = statusMap[category];
+            if (!statusVal) {
+                return res.status(400).json({ error: 'Invalid category' });
+            }
+
+            await pool.query(
+                `DELETE FROM call_logs WHERE customer_id IN (
+                    SELECT id FROM customers WHERE status = ?
+                )`,
+                [statusVal]
+            );
+            await pool.query('DELETE FROM customers WHERE status = ?', [statusVal]);
+        }
+
+        res.json({ success: true, message: `All leads in ${category} category cleared successfully.` });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.post('/api/customers', authenticate, async (req, res) => {
     const { customer_id, name, phone, district, source, notes, assigned_to, car_model, registration_number } = req.body;
     const parsed = parseAssignedTo(assigned_to);
