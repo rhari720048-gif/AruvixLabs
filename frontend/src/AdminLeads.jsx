@@ -104,7 +104,18 @@ const AdminLeads = () => {
     setSelectedLocation(loc);
   };
 
-  const handleChangeLocation = () => {
+  const handleChangeLocation = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        await fetch(`${API}/telecalling/release-locks`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+    } catch (e) {
+      console.error('Failed to release locks:', e);
+    }
     localStorage.removeItem('selected_lead_location');
     setSelectedLocation('');
     setLeads([]);
@@ -471,6 +482,7 @@ const AdminLeads = () => {
           selectedLocation ? (
             <AllLeads 
               leads={leads} 
+              selectedLocation={selectedLocation}
               employees={employees}
               handleDelete={canDelete ? handleDelete : undefined}
               handleBulkDelete={canDelete ? handleBulkDelete : undefined}

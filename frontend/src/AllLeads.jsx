@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 
 import { API } from './apiConfig';
 
-const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handleBulkAssign, handleEdit, refreshLeads, onAddLeadClick }) => {
+const AllLeads = ({ leads, selectedLocation, employees = [], handleDelete, handleBulkDelete, handleBulkAssign, handleEdit, refreshLeads, onAddLeadClick }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIds, setSelectedIds] = useState([]);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState([]);
@@ -345,7 +345,14 @@ const AllLeads = ({ leads, employees = [], handleDelete, handleBulkDelete, handl
           <tbody>
             {filteredLeads.length === 0 ? (
               <tr>
-                <td colSpan="8" className="empty-state">No leads found.</td>
+                <td colSpan="8" className="empty-state" style={{ textAlign: 'center', padding: '48px 24px', color: '#64748b' }}>
+                  <div style={{ fontSize: '18px', fontWeight: '700', color: '#1e293b', marginBottom: '6px' }}>
+                    Data Over / Data Completed
+                  </div>
+                  <div style={{ fontSize: '14px', color: '#64748b' }}>
+                    No pending leads available in {selectedLocation || 'this location'}.
+                  </div>
+                </td>
               </tr>
             ) : filteredLeads.map((lead, index) => (
               <tr key={lead.id} className={selectedIds.includes(lead.id) ? 'selected-row' : ''}>

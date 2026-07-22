@@ -180,7 +180,7 @@ app.put('/api/auth/profile', authenticate, async (req, res) => {
 app.get('/api/customers', authenticate, async (req, res) => {
     const { location, queue } = req.query;
     const userId = req.user?.id;
-    const isEmp = req.user?.role !== 'admin';
+    const isEmp = true; // Apply queue locking to all users (including admin/CTO/Director) when queue=true is requested
 
     try {
         // Fetch users map for assignee names
